@@ -42,3 +42,8 @@ dependencies {
 application {
     mainClass = "it.battlejar.commander.Main"
 }
+
+tasks.shadowJar {
+    archiveFileName = "commander.jar"
+    destinationDirectory = layout.buildDirectory
+}
