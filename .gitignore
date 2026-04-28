@@ -1,0 +1,32 @@
+# --- Merged by agent-sandbox init (duplicates removed across merge; safe to regen) ---
+# Generated / vendor trees
+battlejar-client-sources/
+battlejar-client-sources
+.client/
+
+
+# Gradle / JVM
+.gradle/
+build/
+out/
+*.class
+hs_err_pid*
+replay_pid*
+# Agent sandbox (also under /work; useful if repo tracks them by mistake)
+.agent-state/
+.agent-logs/
+.secrets/
+.work/
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+*~
+# Logs
+history/
+history
+*.log
+# Node (Claude / tooling)
+node_modules/
+npm-debug.log*
