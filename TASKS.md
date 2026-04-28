@@ -1,3 +1,5 @@
 Execute one of the following tasks, commit and push to github when task is completed
 
-- [ ] Analyze AGANTS.md and the client sources and set up the game client
+- [x] Analyze AGANTS.md and the client sources and setup the game client
+
+- [ ] Modify Gradle setup to copy the result jar to ./build/commander.jar
