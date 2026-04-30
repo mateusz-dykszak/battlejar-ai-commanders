@@ -8,8 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 public class ClaudeCommander extends AbstractCommander {
@@ -18,8 +20,9 @@ public class ClaudeCommander extends AbstractCommander {
     private static final float BORDER_MARGIN = 50f;
     private static final float CENTER_THRESHOLD = 80f;
     private static final float FORMATION_THRESHOLD = 50f;
-    private static final int DOCK_HEALTH_THRESHOLD = 3;   // fighters start at 10 HP; dock below 30%
-    private static final float FIGHTER_MISSILE_RANGE = 150f; // fire fighter missile when this close to enemy carrier
+    private static final int DOCK_HEALTH_THRESHOLD = 3;    // fighters start at 10 HP; dock below 30%
+    private static final long RECOVERY_MS = 3_000;         // time a docked fighter is left to heal before redeploying
+    private static final float FIGHTER_MISSILE_RANGE = 150f;
 
     // 8 compass positions at radius 80 around the carrier (carrier-relative offsets)
     private static final int[][] FORMATION = {
@@ -28,6 +31,9 @@ public class ClaudeCommander extends AbstractCommander {
     };
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
+    // fighters we explicitly docked for damage recovery; excluded from deploy orders until RECOVERY_MS passes
+    private final Set<String> recovering = new HashSet<>();
+    private final Map<String, Long> dockTime = new HashMap<>();
 
     @Override
     protected boolean process(Collection<Entity> entities) {
@@ -73,6 +79,8 @@ public class ClaudeCommander extends AbstractCommander {
             if (isNearBorder(fighter)) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, "0|0"));
             } else if (health(fighter) <= DOCK_HEALTH_THRESHOLD) {
+                recovering.add(fighter.id());
+                dockTime.put(fighter.id(), System.currentTimeMillis());
                 sendOrder(new Order(fighter.id(), OrderType.DOCK));
             } else if (enemyMissilesNearby) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
@@ -88,6 +96,23 @@ public class ClaudeCommander extends AbstractCommander {
                 sendOrder(new Order(fighter.id(), OrderType.ATTACK));
             }
         }
+
+        // Send formation orders to docked fighters to trigger undocking at the game's configured rate.
+        // Skip fighters still in the recovery window from a damage-retreat DOCK.
+        long now = System.currentTimeMillis();
+        entities.stream()
+                .filter(e -> e.type() == Entity.Type.FIGHTER)
+                .filter(e -> myColor.name().equals(e.color()))
+                .filter(e -> "C".equals(e.status()))
+                .forEach(docked -> {
+                    boolean stillRecovering = recovering.contains(docked.id())
+                            && now - dockTime.getOrDefault(docked.id(), 0L) < RECOVERY_MS;
+                    if (!stillRecovering) {
+                        recovering.remove(docked.id());
+                        int[] offset = formationOffset(docked);
+                        sendOrder(new Order(docked.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
+                    }
+                });
 
         float centerX = settings.worldWidth() / 2f;
         float centerY = settings.worldHeight() / 2f;
