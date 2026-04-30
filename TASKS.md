@@ -19,4 +19,4 @@ If no open tasks remain, analyze history/ (.log and .md files only) and add new 
 
 - [x] Fix TARGET + ATTACK cooldown conflict — the 150 ms per-entity cooldown means only TARGET "M" gets sent when enemy missiles are nearby; the ATTACK that follows is always dropped. Drop the redundant ATTACK call: TARGET "M" alone is sufficient because auto-targeting fires at missiles while that filter is set.
 
-- [ ] Carrier PATROL when centered — once the carrier reaches center it sends no orders (idle) unless fighters are gone. A stationary carrier is an easy target. Send PATROL when centered so it keeps moving unpredictably while fighters are active.
+- [x] Carrier PATROL when centered — once the carrier reaches center it sends no orders (idle) unless fighters are gone. A stationary carrier is an easy target. Send PATROL when centered so it keeps moving unpredictably while fighters are active.

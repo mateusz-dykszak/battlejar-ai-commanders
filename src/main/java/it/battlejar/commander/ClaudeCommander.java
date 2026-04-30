@@ -129,6 +129,8 @@ public class ClaudeCommander extends AbstractCommander {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
         } else if (myFighters.isEmpty() && hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK));
+        } else if (hasEnemies) {
+            sendOrder(new Order(myCarrier.id(), OrderType.PATROL));
         }
 
         return true;
