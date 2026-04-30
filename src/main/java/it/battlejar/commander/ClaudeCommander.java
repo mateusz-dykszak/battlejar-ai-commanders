@@ -50,6 +50,13 @@ public class ClaudeCommander extends AbstractCommander {
                 .filter(e -> !myColor.name().equals(e.color()))
                 .anyMatch(e -> !"D".equals(e.status()));
 
+        Entity nearestEnemyCarrier = entities.stream()
+                .filter(e -> e.type() == Entity.Type.CARRIER)
+                .filter(e -> !myColor.name().equals(e.color()))
+                .filter(e -> !"D".equals(e.status()))
+                .min((a, b) -> Float.compare(distance(a, myCarrier), distance(b, myCarrier)))
+                .orElse(null);
+
         boolean enemyMissilesNearby = entities.stream()
                 .filter(e -> e.type() == Entity.Type.MISSILE)
                 .filter(e -> !myColor.name().equals(e.color()))
@@ -68,6 +75,8 @@ public class ClaudeCommander extends AbstractCommander {
                 sendOrder(new Order(fighter.id(), OrderType.ATTACK));
             } else if (!inFormation) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
+            } else if (nearestEnemyCarrier != null) {
+                sendOrder(new Order(fighter.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
             } else if (hasEnemies) {
                 sendOrder(new Order(fighter.id(), OrderType.ATTACK));
             }
@@ -81,6 +90,8 @@ public class ClaudeCommander extends AbstractCommander {
             float dx = centerX - myCarrier.px();
             float dy = centerY - myCarrier.py();
             sendOrder(new Order(myCarrier.id(), OrderType.MOVE, (int) dx + "|" + (int) dy));
+        } else if (myFighters.isEmpty() && nearestEnemyCarrier != null) {
+            sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
         } else if (myFighters.isEmpty() && hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK));
         }
