@@ -17,6 +17,13 @@ public class ClaudeCommander extends AbstractCommander {
     private static final long ORDER_COOLDOWN_MS = 150;
     private static final float BORDER_MARGIN = 50f;
     private static final float CENTER_THRESHOLD = 80f;
+    private static final float FORMATION_THRESHOLD = 50f;
+
+    // 8 compass positions at radius 80 around the carrier (carrier-relative offsets)
+    private static final int[][] FORMATION = {
+        { 80,  0}, { 57, 57}, {  0, 80}, {-57, 57},
+        {-80,  0}, {-57,-57}, {  0,-80}, { 57,-57}
+    };
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
 
@@ -50,11 +57,17 @@ public class ClaudeCommander extends AbstractCommander {
                 .anyMatch(e -> distance(e, myCarrier) < 200f);
 
         for (Entity fighter : myFighters) {
+            int[] offset = formationOffset(fighter);
+            boolean inFormation = distanceTo(fighter,
+                    myCarrier.px() + offset[0], myCarrier.py() + offset[1]) < FORMATION_THRESHOLD;
+
             if (isNearBorder(fighter)) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, "0|0"));
             } else if (enemyMissilesNearby) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
                 sendOrder(new Order(fighter.id(), OrderType.ATTACK));
+            } else if (!inFormation) {
+                sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
             } else if (hasEnemies) {
                 sendOrder(new Order(fighter.id(), OrderType.ATTACK));
             }
@@ -82,6 +95,15 @@ public class ClaudeCommander extends AbstractCommander {
         }
         lastOrderTime.put(order.id(), now);
         order(order);
+    }
+
+    private int[] formationOffset(Entity fighter) {
+        try {
+            int num = Integer.parseInt(fighter.id().split("-")[1]);
+            return FORMATION[num % FORMATION.length];
+        } catch (NumberFormatException e) {
+            return FORMATION[0];
+        }
     }
 
     private boolean isNearBorder(Entity e) {
