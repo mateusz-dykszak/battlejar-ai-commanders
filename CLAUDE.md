@@ -62,6 +62,8 @@ Implement strategy in `ClaudeCommander.process(Collection<Entity>)`. Return `tru
 `TASKS.md` is the queue. Use checklist lines: `- [ ]` / `- [x]`.  
 Take one task at a time, then update the file: mark work done, split work, and **add** follow-up tasks (including ones you set for yourself). Same file, no second system.
 
+When the queue has no open tasks: analyze `history/` (`.log` and `.md` files only) and add new improvement tasks to `TASKS.md` based on what you find.
+
 # Git
 
 After each finished task: **commit** on the **current branch** with a clear message, then **push** to the remote.  
@@ -69,7 +71,7 @@ Do **not** switch branches or integrate other branches (no merging / cherry-pick
 
 # Habits
 
-- Analyze **history** / game logs when they exist; add small parsers or scripts if that helps — add them to `postprocess.sh` so they run automatically after each game.
+- Analyze **history** / game logs when they exist; add small parsers or scripts if that helps — add them to `postprocess.sh` so they run automatically after each game. When reading from `history/`, use only `.log` and `.md` files — ignore `.jsonl` files (too large to process directly).
 - Append short, dated notes to **`SUMMARY.md`**: issues, limits, and anything that needs a human (keep older entries).
 - Use **`notes/`** for scratch writing and open questions.
 - When history has been digested, clear or mark it so the next pass is obvious.
