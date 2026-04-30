@@ -17,6 +17,6 @@ If no open tasks remain, analyze history/ (.log and .md files only) and add new 
 
 - [x] Deploy docked fighters — all fighters start docked and only undock when they receive an order (confirmed from game data: 0 blue fighters ever deployed while all other teams had fighters active). Send formation MOVE orders to docked fighters that are not in recovery so the carrier releases them at the game's configured rate. Track fighters we explicitly docked for damage recovery (in a Set) and skip them for a recovery window (~3 s) before redeploying.
 
-- [ ] Fix TARGET + ATTACK cooldown conflict — the 150 ms per-entity cooldown means only TARGET "M" gets sent when enemy missiles are nearby; the ATTACK that follows is always dropped. Drop the redundant ATTACK call: TARGET "M" alone is sufficient because auto-targeting fires at missiles while that filter is set.
+- [x] Fix TARGET + ATTACK cooldown conflict — the 150 ms per-entity cooldown means only TARGET "M" gets sent when enemy missiles are nearby; the ATTACK that follows is always dropped. Drop the redundant ATTACK call: TARGET "M" alone is sufficient because auto-targeting fires at missiles while that filter is set.
 
 - [ ] Carrier PATROL when centered — once the carrier reaches center it sends no orders (idle) unless fighters are gone. A stationary carrier is an easy target. Send PATROL when centered so it keeps moving unpredictably while fighters are active.

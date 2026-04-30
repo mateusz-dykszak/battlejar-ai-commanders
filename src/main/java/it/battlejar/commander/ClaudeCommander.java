@@ -84,7 +84,6 @@ public class ClaudeCommander extends AbstractCommander {
                 sendOrder(new Order(fighter.id(), OrderType.DOCK));
             } else if (enemyMissilesNearby) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
-                sendOrder(new Order(fighter.id(), OrderType.ATTACK));
             } else if (!inFormation) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
             } else if (nearestEnemyCarrier != null && fighter.missiles() > 0
