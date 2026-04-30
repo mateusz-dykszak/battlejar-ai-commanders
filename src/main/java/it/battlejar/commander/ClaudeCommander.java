@@ -18,6 +18,7 @@ public class ClaudeCommander extends AbstractCommander {
     private static final float BORDER_MARGIN = 50f;
     private static final float CENTER_THRESHOLD = 80f;
     private static final float FORMATION_THRESHOLD = 50f;
+    private static final int DOCK_HEALTH_THRESHOLD = 3; // fighters start at 10 HP; dock below 30%
 
     // 8 compass positions at radius 80 around the carrier (carrier-relative offsets)
     private static final int[][] FORMATION = {
@@ -70,6 +71,8 @@ public class ClaudeCommander extends AbstractCommander {
 
             if (isNearBorder(fighter)) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, "0|0"));
+            } else if (health(fighter) <= DOCK_HEALTH_THRESHOLD) {
+                sendOrder(new Order(fighter.id(), OrderType.DOCK));
             } else if (enemyMissilesNearby) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
                 sendOrder(new Order(fighter.id(), OrderType.ATTACK));
@@ -106,6 +109,14 @@ public class ClaudeCommander extends AbstractCommander {
         }
         lastOrderTime.put(order.id(), now);
         order(order);
+    }
+
+    private int health(Entity e) {
+        try {
+            return Integer.parseInt(e.status());
+        } catch (NumberFormatException ex) {
+            return Integer.MAX_VALUE;
+        }
     }
 
     private int[] formationOffset(Entity fighter) {
