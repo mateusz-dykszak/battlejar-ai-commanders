@@ -18,7 +18,8 @@ public class ClaudeCommander extends AbstractCommander {
     private static final float BORDER_MARGIN = 50f;
     private static final float CENTER_THRESHOLD = 80f;
     private static final float FORMATION_THRESHOLD = 50f;
-    private static final int DOCK_HEALTH_THRESHOLD = 3; // fighters start at 10 HP; dock below 30%
+    private static final int DOCK_HEALTH_THRESHOLD = 3;   // fighters start at 10 HP; dock below 30%
+    private static final float FIGHTER_MISSILE_RANGE = 150f; // fire fighter missile when this close to enemy carrier
 
     // 8 compass positions at radius 80 around the carrier (carrier-relative offsets)
     private static final int[][] FORMATION = {
@@ -78,6 +79,9 @@ public class ClaudeCommander extends AbstractCommander {
                 sendOrder(new Order(fighter.id(), OrderType.ATTACK));
             } else if (!inFormation) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
+            } else if (nearestEnemyCarrier != null && fighter.missiles() > 0
+                    && distance(fighter, nearestEnemyCarrier) < FIGHTER_MISSILE_RANGE) {
+                sendOrder(new Order(fighter.id(), OrderType.FIRE_MISSILE));
             } else if (nearestEnemyCarrier != null) {
                 sendOrder(new Order(fighter.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
             } else if (hasEnemies) {
@@ -93,6 +97,10 @@ public class ClaudeCommander extends AbstractCommander {
             float dx = centerX - myCarrier.px();
             float dy = centerY - myCarrier.py();
             sendOrder(new Order(myCarrier.id(), OrderType.MOVE, (int) dx + "|" + (int) dy));
+        } else if (nearestEnemyCarrier != null && myCarrier.missiles() > 0) {
+            float dx = nearestEnemyCarrier.px() - myCarrier.px();
+            float dy = nearestEnemyCarrier.py() - myCarrier.py();
+            sendOrder(new Order(myCarrier.id(), OrderType.FIRE_MISSILE, (int) dx + "|" + (int) dy));
         } else if (myFighters.isEmpty() && nearestEnemyCarrier != null) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
         } else if (myFighters.isEmpty() && hasEnemies) {

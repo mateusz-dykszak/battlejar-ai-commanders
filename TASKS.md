@@ -13,4 +13,4 @@ If no open tasks remain, analyze history/ (.log and .md files only) and add new 
 
 - [x] Dock damaged fighters — no health check exists at all. Parse numeric status; DOCK any fighter below a health threshold (e.g. < 30) so it survives and reloads.
 
-- [ ] Fire missiles — FIRE_MISSILE is never called. Fire carrier missiles when an enemy carrier is within range, and release fighter missiles when fighters are close to an enemy carrier.
+- [x] Fire missiles — FIRE_MISSILE is never called. Fire carrier missiles when an enemy carrier is within range, and release fighter missiles when fighters are close to an enemy carrier.
