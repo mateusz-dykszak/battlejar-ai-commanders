@@ -16,6 +16,7 @@ public class ClaudeCommander extends AbstractCommander {
 
     private static final long ORDER_COOLDOWN_MS = 150;
     private static final float BORDER_MARGIN = 50f;
+    private static final float CENTER_THRESHOLD = 80f;
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
 
@@ -59,8 +60,14 @@ public class ClaudeCommander extends AbstractCommander {
             }
         }
 
-        if (isNearBorder(myCarrier)) {
-            sendOrder(new Order(myCarrier.id(), OrderType.MOVE, "0|0"));
+        float centerX = settings.worldWidth() / 2f;
+        float centerY = settings.worldHeight() / 2f;
+        boolean carrierNearCenter = distanceTo(myCarrier, centerX, centerY) < CENTER_THRESHOLD;
+
+        if (isNearBorder(myCarrier) || !carrierNearCenter) {
+            float dx = centerX - myCarrier.px();
+            float dy = centerY - myCarrier.py();
+            sendOrder(new Order(myCarrier.id(), OrderType.MOVE, (int) dx + "|" + (int) dy));
         } else if (myFighters.isEmpty() && hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK));
         }
@@ -87,6 +94,12 @@ public class ClaudeCommander extends AbstractCommander {
     private float distance(Entity a, Entity b) {
         float dx = a.px() - b.px();
         float dy = a.py() - b.py();
+        return (float) Math.sqrt(dx * dx + dy * dy);
+    }
+
+    private float distanceTo(Entity e, float x, float y) {
+        float dx = e.px() - x;
+        float dy = e.py() - y;
         return (float) Math.sqrt(dx * dx + dy * dy);
     }
 }

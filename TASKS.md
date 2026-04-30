@@ -5,7 +5,7 @@ If no open tasks remain, analyze history/ (.log and .md files only) and add new 
 
 - [x] Modify Gradle setup to copy the result jar to ./build/commander.jar
 
-- [ ] Move carrier toward center at game start — carrier stays in its spawn corner every game, giving up all map control. Use MOVE to push it toward (0|0) relative offset (i.e. hold position near center-field).
+- [x] Move carrier toward center at game start — carrier stays in its spawn corner every game, giving up all map control. Use MOVE to push it toward (0|0) relative offset (i.e. hold position near center-field).
 
 - [ ] Give fighters explicit formation positions — fighters currently drift with no positional orders and never contest center lanes. MOVE each fighter to a spread formation around the carrier (e.g. offsets like 80|0, -80|0, 0|80) so they create a real screen.
 
