@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 stats.py — per-game summary statistics
-Outputs: history/<gameId>.stats.json
+Outputs: local_history/<gameId>.stats.json
 
 What it captures and why:
   - Player roster (color → username): identifies which color is ours so every
@@ -62,7 +62,9 @@ def carrier_hp(entity):
 
 def main(jsonl_path: Path):
     game_id = jsonl_path.stem
-    out_path = jsonl_path.parent / f"{game_id}.stats.json"
+    out_dir = Path(__file__).parent.parent / "local_history"
+    out_dir.mkdir(exist_ok=True)
+    out_path = out_dir / f"{game_id}.stats.json"
 
     with open(jsonl_path) as f:
         lines = f.readlines()

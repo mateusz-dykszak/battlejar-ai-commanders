@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 deployment.py — our fighter deployment curve over time
-Outputs: history/<gameId>.deployment.csv
+Outputs: local_history/<gameId>.deployment.csv
 
 What it captures and why:
   - Columns: time_s, active, docked, destroyed, total_deployed_ever
@@ -41,7 +41,9 @@ def parse_entity(raw):
 
 def main(jsonl_path: Path):
     game_id = jsonl_path.stem
-    out_path = jsonl_path.parent / f"{game_id}.deployment.csv"
+    out_dir = Path(__file__).parent.parent / "local_history"
+    out_dir.mkdir(exist_ok=True)
+    out_path = out_dir / f"{game_id}.deployment.csv"
 
     with open(jsonl_path) as f:
         lines = f.readlines()

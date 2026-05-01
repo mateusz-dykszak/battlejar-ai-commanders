@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 threats.py — carrier threat timeline
-Outputs: history/<gameId>.threats.csv
+Outputs: local_history/<gameId>.threats.csv
 
 What it captures and why:
   - Columns: time_s, our_hp, our_active_fighters, nearest_enemy_carrier_dist,
@@ -63,7 +63,9 @@ def carrier_hp(entity):
 
 def main(jsonl_path: Path):
     game_id = jsonl_path.stem
-    out_path = jsonl_path.parent / f"{game_id}.threats.csv"
+    out_dir = Path(__file__).parent.parent / "local_history"
+    out_dir.mkdir(exist_ok=True)
+    out_path = out_dir / f"{game_id}.threats.csv"
 
     with open(jsonl_path) as f:
         lines = f.readlines()
