@@ -23,6 +23,7 @@ public class ClaudeCommander extends AbstractCommander {
     private static final int DOCK_HEALTH_THRESHOLD = 3;    // fighters start at 10 HP; dock below 30%
     private static final long RECOVERY_MS = 3_000;         // time a docked fighter is left to heal before redeploying
     private static final float FIGHTER_MISSILE_RANGE = 150f;
+    private static final float MISSILE_INTERCEPT_RANGE = 150f;
     private static final float FORMATION_RADIUS = 150f;
     private static final int FORMATION_SLOTS = 8;
 
@@ -76,6 +77,10 @@ public class ClaudeCommander extends AbstractCommander {
         }
         int[][] formation = buildFormation(lastFormationAngle);
 
+        // Assign one fighter per threatening missile to physically intercept it.
+        // Keyed by fighter id → carrier-relative offset of the missile's current position.
+        Map<String, int[]> intercept = buildInterceptAssignments(entities, myCarrier, myFighters);
+
         for (Entity fighter : myFighters) {
             int[] offset = formationOffset(fighter, formation);
             boolean inFormation = distanceTo(fighter,
@@ -87,6 +92,9 @@ public class ClaudeCommander extends AbstractCommander {
                 recovering.add(fighter.id());
                 dockTime.put(fighter.id(), System.currentTimeMillis());
                 sendOrder(new Order(fighter.id(), OrderType.DOCK));
+            } else if (intercept.containsKey(fighter.id())) {
+                int[] mPos = intercept.get(fighter.id());
+                sendOrder(new Order(fighter.id(), OrderType.MOVE, mPos[0] + "|" + mPos[1]));
             } else if (enemyMissilesNearby) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
             } else if (!inFormation) {
@@ -155,6 +163,38 @@ public class ClaudeCommander extends AbstractCommander {
         } catch (NumberFormatException ex) {
             return Integer.MAX_VALUE;
         }
+    }
+
+    // For each armed enemy missile within MISSILE_INTERCEPT_RANGE of our carrier,
+    // assign the closest available fighter to physically move to the missile position.
+    // Returns fighter-id → carrier-relative [dx, dy] of the missile.
+    private Map<String, int[]> buildInterceptAssignments(
+            Collection<Entity> entities, Entity myCarrier, List<Entity> myFighters) {
+        List<Entity> threats = entities.stream()
+                .filter(e -> e.type() == Entity.Type.MISSILE)
+                .filter(e -> !myColor.name().equals(e.color()))
+                .filter(e -> "A".equals(e.status()))
+                .filter(e -> distance(e, myCarrier) < MISSILE_INTERCEPT_RANGE)
+                .sorted((a, b) -> Float.compare(distance(a, myCarrier), distance(b, myCarrier)))
+                .toList();
+
+        Map<String, int[]> result = new HashMap<>();
+        Set<String> assigned = new HashSet<>();
+        for (Entity missile : threats) {
+            myFighters.stream()
+                    .filter(f -> !assigned.contains(f.id()))
+                    .filter(f -> !recovering.contains(f.id()))
+                    .filter(f -> !isNearBorder(f))
+                    .min((a, b) -> Float.compare(distance(a, missile), distance(b, missile)))
+                    .ifPresent(f -> {
+                        assigned.add(f.id());
+                        result.put(f.id(), new int[]{
+                            Math.round(missile.px() - myCarrier.px()),
+                            Math.round(missile.py() - myCarrier.py())
+                        });
+                    });
+        }
+        return result;
     }
 
     // 8 slots spread in a 180° arc facing the enemy carrier (carrier-relative offsets)

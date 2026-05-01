@@ -25,4 +25,4 @@ If no open tasks remain, analyze history/ (.log and .md files only) and add new 
 
 - [x] Directional fighter formation — the 8-position symmetric ring wastes half the fighters facing borders or empty space. Rotate the formation to face the nearest enemy carrier: compute the direction to the enemy, then place all 8 slots in a forward-biased arc (e.g. a semicircle on the enemy-facing side).
 
-- [ ] Active missile intercept — TARGET "M" makes fighters fire at missiles already in laser range but doesn't move fighters to intercept. When an armed enemy missile is within 150 units of the carrier, find the fighter closest to the missile's path and send it a MOVE order to the missile's current position (carrier-relative).
+- [x] Active missile intercept — TARGET "M" makes fighters fire at missiles already in laser range but doesn't move fighters to intercept. When an armed enemy missile is within 150 units of the carrier, find the fighter closest to the missile's path and send it a MOVE order to the missile's current position (carrier-relative).
