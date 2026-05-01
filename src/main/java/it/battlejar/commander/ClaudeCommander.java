@@ -18,7 +18,7 @@ public class ClaudeCommander extends AbstractCommander {
 
     private static final long ORDER_COOLDOWN_MS = 150;
     private static final float BORDER_MARGIN = 50f;
-    private static final float CENTER_THRESHOLD = 80f;
+    private static final float SAFE_INSET = 30f;      // extra clearance beyond border margin
     private static final float FORMATION_THRESHOLD = 50f;
     private static final int DOCK_HEALTH_THRESHOLD = 3;    // fighters start at 10 HP; dock below 30%
     private static final long RECOVERY_MS = 3_000;         // time a docked fighter is left to heal before redeploying
@@ -113,14 +113,13 @@ public class ClaudeCommander extends AbstractCommander {
                     }
                 });
 
-        float centerX = settings.worldWidth() / 2f;
-        float centerY = settings.worldHeight() / 2f;
-        boolean carrierNearCenter = distanceTo(myCarrier, centerX, centerY) < CENTER_THRESHOLD;
-
-        if (isNearBorder(myCarrier) || !carrierNearCenter) {
-            float dx = centerX - myCarrier.px();
-            float dy = centerY - myCarrier.py();
-            sendOrder(new Order(myCarrier.id(), OrderType.MOVE, (int) dx + "|" + (int) dy));
+        if (isNearBorder(myCarrier)) {
+            // Move to nearest safe interior point — stays in spawn quadrant, does not rush to center
+            float inner = BORDER_MARGIN + SAFE_INSET;
+            float safeX = Math.max(inner, Math.min(settings.worldWidth() - inner, myCarrier.px()));
+            float safeY = Math.max(inner, Math.min(settings.worldHeight() - inner, myCarrier.py()));
+            sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
+                    (int) (safeX - myCarrier.px()) + "|" + (int) (safeY - myCarrier.py())));
         } else if (nearestEnemyCarrier != null && myCarrier.missiles() > 0) {
             float dx = nearestEnemyCarrier.px() - myCarrier.px();
             float dy = nearestEnemyCarrier.py() - myCarrier.py();

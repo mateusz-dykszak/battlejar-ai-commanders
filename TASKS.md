@@ -20,3 +20,9 @@ If no open tasks remain, analyze history/ (.log and .md files only) and add new 
 - [x] Fix TARGET + ATTACK cooldown conflict — the 150 ms per-entity cooldown means only TARGET "M" gets sent when enemy missiles are nearby; the ATTACK that follows is always dropped. Drop the redundant ATTACK call: TARGET "M" alone is sufficient because auto-targeting fires at missiles while that filter is set.
 
 - [x] Carrier PATROL when centered — once the carrier reaches center it sends no orders (idle) unless fighters are gone. A stationary carrier is an easy target. Send PATROL when centered so it keeps moving unpredictably while fighters are active.
+
+- [x] Stop moving carrier to world center — confirmed from JSONL: carrier reaches center at ~6s, takes fire from 3 directions simultaneously, dies at 13–20s with only 4–10 fighters active. The one game Klaudiusz survived to 52s he was in a corner. Remove the MOVE-to-center logic; keep carrier in its spawn quadrant (border safety only). Compensate by increasing fighter formation radius from 80 to 150 so fighters naturally cover the center lanes.
+
+- [ ] Directional fighter formation — the 8-position symmetric ring wastes half the fighters facing borders or empty space. Rotate the formation to face the nearest enemy carrier: compute the direction to the enemy, then place all 8 slots in a forward-biased arc (e.g. a semicircle on the enemy-facing side).
+
+- [ ] Active missile intercept — TARGET "M" makes fighters fire at missiles already in laser range but doesn't move fighters to intercept. When an armed enemy missile is within 150 units of the carrier, find the fighter closest to the missile's path and send it a MOVE order to the missile's current position (carrier-relative).

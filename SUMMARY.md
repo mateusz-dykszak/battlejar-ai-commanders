@@ -1,5 +1,9 @@
 # Summary
 
+## 2026-05-01 — 9 new games analysis
+
+Fighters now deploy (fix confirmed working). But carrier still dies at 13–20 s in 7/7 games as Blue. Root cause: carrier rushed to world center at ~6 s, exposed to 3 enemies simultaneously, only 4–10 fighters active at time of death (factory releases ~1/2 per second). JSONL confirmed: 2 enemy missiles reached within 12–18 units of carrier (inside the 80-unit formation ring). The one game as GREEN (corner position) Klaudiusz survived to 52 s. Removed carrier MOVE-to-center; carrier now stays in spawn quadrant, only moves ~62 px to clear near border. Three new tasks added: directional formation, active missile intercept.
+
 ## 2026-05-01 — New game post-improvements (d94f33ee)
 
 Klaudiusz destroyed at 13 s with **zero fighters ever deployed**. Root cause confirmed from JSONL: all 30 blue fighters stayed docked (status "C") for the entire game. Other teams (RED/GREEN/VIOLET) had active fighters by frame 10. The commander sends no orders to docked fighters; without an order the carrier won't release them. All formation/targeting/missile improvements were irrelevant — the carrier fought alone. Three new tasks added: deploy docked fighters (critical), fix TARGET+ATTACK cooldown conflict, add PATROL for carrier when centered.
