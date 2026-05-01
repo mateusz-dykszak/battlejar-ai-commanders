@@ -23,17 +23,15 @@ public class ClaudeCommander extends AbstractCommander {
     private static final int DOCK_HEALTH_THRESHOLD = 3;    // fighters start at 10 HP; dock below 30%
     private static final long RECOVERY_MS = 3_000;         // time a docked fighter is left to heal before redeploying
     private static final float FIGHTER_MISSILE_RANGE = 150f;
-
-    // 8 compass positions at radius 80 around the carrier (carrier-relative offsets)
-    private static final int[][] FORMATION = {
-        { 80,  0}, { 57, 57}, {  0, 80}, {-57, 57},
-        {-80,  0}, {-57,-57}, {  0,-80}, { 57,-57}
-    };
+    private static final float FORMATION_RADIUS = 150f;
+    private static final int FORMATION_SLOTS = 8;
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
     // fighters we explicitly docked for damage recovery; excluded from deploy orders until RECOVERY_MS passes
     private final Set<String> recovering = new HashSet<>();
     private final Map<String, Long> dockTime = new HashMap<>();
+    // last known angle to nearest enemy carrier; reused when no enemy is visible
+    private float lastFormationAngle = 0f;
 
     @Override
     protected boolean process(Collection<Entity> entities) {
@@ -71,8 +69,15 @@ public class ClaudeCommander extends AbstractCommander {
                 .filter(e -> "A".equals(e.status()))
                 .anyMatch(e -> distance(e, myCarrier) < 200f);
 
+        if (nearestEnemyCarrier != null) {
+            lastFormationAngle = (float) Math.atan2(
+                    nearestEnemyCarrier.py() - myCarrier.py(),
+                    nearestEnemyCarrier.px() - myCarrier.px());
+        }
+        int[][] formation = buildFormation(lastFormationAngle);
+
         for (Entity fighter : myFighters) {
-            int[] offset = formationOffset(fighter);
+            int[] offset = formationOffset(fighter, formation);
             boolean inFormation = distanceTo(fighter,
                     myCarrier.px() + offset[0], myCarrier.py() + offset[1]) < FORMATION_THRESHOLD;
 
@@ -108,7 +113,7 @@ public class ClaudeCommander extends AbstractCommander {
                             && now - dockTime.getOrDefault(docked.id(), 0L) < RECOVERY_MS;
                     if (!stillRecovering) {
                         recovering.remove(docked.id());
-                        int[] offset = formationOffset(docked);
+                        int[] offset = formationOffset(docked, formation);
                         sendOrder(new Order(docked.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
                     }
                 });
@@ -152,12 +157,24 @@ public class ClaudeCommander extends AbstractCommander {
         }
     }
 
-    private int[] formationOffset(Entity fighter) {
+    // 8 slots spread in a 180° arc facing the enemy carrier (carrier-relative offsets)
+    private int[][] buildFormation(float angleRad) {
+        int[][] offsets = new int[FORMATION_SLOTS][2];
+        for (int i = 0; i < FORMATION_SLOTS; i++) {
+            float t = (float) i / (FORMATION_SLOTS - 1);
+            float slotAngle = angleRad - (float) Math.PI / 2f + t * (float) Math.PI;
+            offsets[i][0] = Math.round(FORMATION_RADIUS * (float) Math.cos(slotAngle));
+            offsets[i][1] = Math.round(FORMATION_RADIUS * (float) Math.sin(slotAngle));
+        }
+        return offsets;
+    }
+
+    private int[] formationOffset(Entity fighter, int[][] formation) {
         try {
             int num = Integer.parseInt(fighter.id().split("-")[1]);
-            return FORMATION[num % FORMATION.length];
+            return formation[num % formation.length];
         } catch (NumberFormatException e) {
-            return FORMATION[0];
+            return formation[0];
         }
     }
 
