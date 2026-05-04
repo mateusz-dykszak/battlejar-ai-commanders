@@ -119,12 +119,14 @@ public class ClaudeCommander extends AbstractCommander {
         // Keyed by fighter id → carrier-relative offset of the missile's current position.
         Map<String, int[]> intercept = buildInterceptAssignments(armedEnemyMissiles, myCarrier, myFighters);
 
-        // Enemy fighters inside the tight ring are an immediate laser threat — target the closest one.
+        // Enemy fighters inside 100 units are a direct laser threat — target the closest one.
+        // Expanded from 50 to 100: at ec=80-110, escort fighters land 50-80 units from our carrier,
+        // outside the old 50-unit ring but close enough to concentrate laser DPS on the carrier.
         Entity intrudingEnemyFighter = entities.stream()
                 .filter(e -> e.type() == Entity.Type.FIGHTER)
                 .filter(e -> !myColor.name().equals(e.color()))
                 .filter(e -> !"D".equals(e.status()) && !"C".equals(e.status()))
-                .filter(e -> distance(e, myCarrier) < FORMATION_RADIUS_TIGHT)
+                .filter(e -> distance(e, myCarrier) < 100f)
                 .min((a, b) -> Float.compare(distance(a, myCarrier), distance(b, myCarrier)))
                 .orElse(null);
 
