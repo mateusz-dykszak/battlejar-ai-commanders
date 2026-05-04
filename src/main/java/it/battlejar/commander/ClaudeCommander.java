@@ -98,8 +98,17 @@ public class ClaudeCommander extends AbstractCommander {
                     nearestEnemyCarrier.py() - myCarrier.py(),
                     nearestEnemyCarrier.px() - myCarrier.px());
         }
+        // In 1v1, scale wide radius so the farthest forward fighter stays between the two carriers.
+        // At fixed 150, when ec < 150, front fighters overshoot past the enemy — no laser/missile cover.
+        float effectiveWideRadius = FORMATION_RADIUS_WIDE;
+        if (liveEnemyCarriers.size() == 1 && nearestEnemyCarrier != null) {
+            float ec = distance(myCarrier, nearestEnemyCarrier);
+            if (ec < FORMATION_RADIUS_WIDE) {
+                effectiveWideRadius = Math.max(FORMATION_RADIUS_TIGHT, ec / 2f);
+            }
+        }
         boolean expanded = myFighters.size() >= FORMATION_EXPAND_AT;
-        float formRadius = expanded ? FORMATION_RADIUS_WIDE : FORMATION_RADIUS_TIGHT;
+        float formRadius = expanded ? effectiveWideRadius : FORMATION_RADIUS_TIGHT;
         // tight: full 360° ring — even coverage against multiple enemies attacking simultaneously
         // wide: 180° forward arc — directional pressure once screen is established
         float formArc = expanded ? (float) Math.PI : 2f * (float) Math.PI;

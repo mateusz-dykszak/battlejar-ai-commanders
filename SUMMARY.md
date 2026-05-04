@@ -1,5 +1,13 @@
 # Summary
 
+## 2026-05-04 — 9 more games analyzed (63 total); formation overshoot in 1v1 identified
+
+1 WIN (17bd6589): all 3 enemies killed (t=15.6, t=34.2, t=39.6), carrier hp=719 — cleanest win yet.
+
+**Formation overshoot is the primary 1v1 damage mechanism.** When ec < 150 (FORMATION_RADIUS_WIDE), the forward fighters in the 180° arc overshoot the enemy carrier by `150 - ec` units. At ec=137 (91f49fd1, t=46-49): overshoot=13 units → 50 HP/s with m80=0 (carrier laser, not missiles). At ec=85 (t=54): overshoot=65 → 100 HP/s. At ec=23 (9a3bf322): overshoot=127 → 113 HP/s. Pattern is exact: **zero damage while ec ≥ 149, damage starts when ec < 149.** In 6493299c, 279 HP and 500 HP drops in 1s at ec=107 and ec=92 both with m80=0 — fighters plus carrier all lasering us from the same side because our formation has overshot.
+
+Three new tasks: scale formation radius to ec/2 in 1v1 (primary fix), minimum carrier separation at ec<80, expand intruder-fighter detection from 50 to 100 units.
+
 ## 2026-05-04 — 9 more games analyzed (54 total); 1v1 loss pattern identified
 
 6 of 9 new games reached 1v1 phase; WE LOST ALL 6. Two root causes: (1) Carrier kite creates a kite loop in 1v1 — oscillates at 148-174 units from enemy for 15s, never closes range (bd167898). (2) Enemy fighters rush inside our 50-unit ring and deal 305 HP laser damage in 1s (e4cbed4f, t=41). Fighter count dropped 6→2 simultaneously.
