@@ -34,6 +34,9 @@ public class ClaudeCommander extends AbstractCommander {
     private static final int FORMATION_SLOTS = 8;
     private static final int AGGRESSION_FIGHTER_THRESHOLD = 12;
     private static final float CARRIER_PUSH_DISTANCE = 80f;
+    private static final float CARRIER_KITE_RANGE = 150f;    // enemy carrier distance that triggers kite-away
+    private static final int CARRIER_KITE_FIGHTER_MAX = 8;   // kite only when fighter screen is thin
+    private static final float CARRIER_KITE_DISTANCE = 80f;  // how far to move away per kite step
     private static final int KILL_FOCUS_HP = 300;        // target enemy carrier if HP ≤ this
     private static final float KILL_FOCUS_RANGE = 350f;  // only focus-fire within this distance
 
@@ -184,6 +187,18 @@ public class ClaudeCommander extends AbstractCommander {
             int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE);
             int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
             sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
+        } else if (nearestEnemyCarrier != null
+                && distance(myCarrier, nearestEnemyCarrier) < CARRIER_KITE_RANGE
+                && myFighters.size() < CARRIER_KITE_FIGHTER_MAX) {
+            // Enemy carrier too close with a thin screen — move away to increase missile travel time.
+            float dist = distance(myCarrier, nearestEnemyCarrier);
+            float retreatX = myCarrier.px() - (nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_KITE_DISTANCE;
+            float retreatY = myCarrier.py() - (nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_KITE_DISTANCE;
+            float margin = BORDER_MARGIN + SAFE_INSET;
+            retreatX = Math.max(margin, Math.min(settings.worldWidth() - margin, retreatX));
+            retreatY = Math.max(margin, Math.min(settings.worldHeight() - margin, retreatY));
+            sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
+                    (int) (retreatX - myCarrier.px()) + "|" + (int) (retreatY - myCarrier.py())));
         } else if (hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.PATROL));
         }
