@@ -32,12 +32,14 @@ public class ClaudeCommander extends AbstractCommander {
     private static final int FORMATION_SLOTS = 8;
     private static final int AGGRESSION_FIGHTER_THRESHOLD = 12;
     private static final float CARRIER_PUSH_DISTANCE = 80f;
+    private static final int KILL_FOCUS_HP = 300;        // target enemy carrier if HP ≤ this
+    private static final float KILL_FOCUS_RANGE = 350f;  // only focus-fire within this distance
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
     // fighters we explicitly docked for damage recovery; excluded from deploy orders until RECOVERY_MS passes
     private final Set<String> recovering = new HashSet<>();
     private final Map<String, Long> dockTime = new HashMap<>();
-    // last known angle to nearest enemy carrier; reused when no enemy is visible
+    // last known angle to current target carrier; reused when no enemy is visible
     private float lastFormationAngle = 0f;
     // enemy carrier count at game start; used to detect when we have achieved a kill
     private int initialEnemyCarrierCount = 0;
@@ -76,9 +78,8 @@ public class ClaudeCommander extends AbstractCommander {
         }
         boolean hasKilledEnemy = liveEnemyCarriers.size() < initialEnemyCarrierCount;
 
-        Entity nearestEnemyCarrier = liveEnemyCarriers.stream()
-                .min((a, b) -> Float.compare(distance(a, myCarrier), distance(b, myCarrier)))
-                .orElse(null);
+        // Wounded carrier within range takes priority; otherwise nearest
+        Entity nearestEnemyCarrier = selectTarget(liveEnemyCarriers, myCarrier);
 
         boolean enemyMissilesNearby = entities.stream()
                 .filter(e -> e.type() == Entity.Type.MISSILE)
@@ -286,6 +287,16 @@ public class ClaudeCommander extends AbstractCommander {
                     });
         }
         return result;
+    }
+
+    // Prefer the lowest-HP wounded enemy carrier within KILL_FOCUS_RANGE; fall back to nearest.
+    private Entity selectTarget(List<Entity> liveEnemyCarriers, Entity myCarrier) {
+        return liveEnemyCarriers.stream()
+                .filter(e -> health(e) <= KILL_FOCUS_HP && distance(e, myCarrier) <= KILL_FOCUS_RANGE)
+                .min((a, b) -> Integer.compare(health(a), health(b)))
+                .or(() -> liveEnemyCarriers.stream()
+                        .min((a, b) -> Float.compare(distance(a, myCarrier), distance(b, myCarrier))))
+                .orElse(null);
     }
 
     private int[][] buildFormation(float angleRad, float radius, float arcRad) {
