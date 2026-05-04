@@ -1,5 +1,13 @@
 # Summary
 
+## 2026-05-04 — 9 more games analyzed (54 total); 1v1 loss pattern identified
+
+6 of 9 new games reached 1v1 phase; WE LOST ALL 6. Two root causes: (1) Carrier kite creates a kite loop in 1v1 — oscillates at 148-174 units from enemy for 15s, never closes range (bd167898). (2) Enemy fighters rush inside our 50-unit ring and deal 305 HP laser damage in 1s (e4cbed4f, t=41). Fighter count dropped 6→2 simultaneously.
+
+AGGRESSION_FIGHTER_THRESHOLD = 12 never fires in 1v1 (we have 5-9 fighters). Passive PATROL loses every 1v1.
+
+Three new tasks: disable kite in 1v1 + lower aggression threshold to 6, attack close enemy fighters before distant carrier, carrier ATTACK in 1v1.
+
 ## 2026-05-04 — 10 new games + deep threats analysis (45 total)
 
 10 new games, all deaths, peak 5–11 fighters, died 15–33s. Enemy carrier approach is universal (180→79–130 units by t=14–23s) and present even in the 132s survived game (ec=79 at t=14!). Survival depends on whether enemy carriers fight each other (diverting from us) — not on our defense quality alone.

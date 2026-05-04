@@ -181,16 +181,25 @@ public class ClaudeCommander extends AbstractCommander {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
         } else if (myFighters.isEmpty() && hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK));
-        } else if (hasKilledEnemy && myFighters.size() >= AGGRESSION_FIGHTER_THRESHOLD
-                && nearestEnemyCarrier != null) {
-            float dist = distance(myCarrier, nearestEnemyCarrier);
-            int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE);
-            int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
-            sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
+        } else if (hasKilledEnemy && nearestEnemyCarrier != null) {
+            // Use half the fighter threshold in 1v1 — passive PATROL loses every 1v1 in recorded data.
+            int effectiveThreshold = liveEnemyCarriers.size() == 1
+                    ? AGGRESSION_FIGHTER_THRESHOLD / 2
+                    : AGGRESSION_FIGHTER_THRESHOLD;
+            if (myFighters.size() >= effectiveThreshold) {
+                float dist = distance(myCarrier, nearestEnemyCarrier);
+                int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE);
+                int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
+                sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
+            } else {
+                sendOrder(new Order(myCarrier.id(), OrderType.PATROL));
+            }
         } else if (nearestEnemyCarrier != null
                 && distance(myCarrier, nearestEnemyCarrier) < CARRIER_KITE_RANGE
-                && myFighters.size() < CARRIER_KITE_FIGHTER_MAX) {
-            // Enemy carrier too close with a thin screen — move away to increase missile travel time.
+                && myFighters.size() < CARRIER_KITE_FIGHTER_MAX
+                && liveEnemyCarriers.size() > 1) {
+            // Kite only when multiple enemies present — in 1v1 kite creates an oscillation loop
+            // that prevents closing range for decisive damage.
             float dist = distance(myCarrier, nearestEnemyCarrier);
             float retreatX = myCarrier.px() - (nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_KITE_DISTANCE;
             float retreatY = myCarrier.py() - (nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_KITE_DISTANCE;
