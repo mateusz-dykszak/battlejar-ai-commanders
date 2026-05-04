@@ -71,15 +71,31 @@ Do **not** switch branches or integrate other branches (no merging / cherry-pick
 
 # Analysis outputs
 
-`postprocess.sh` runs after every game session and processes every `history/*.jsonl` that hasn't been seen yet. Results land in `local_history/` (gitignored — player-specific, never committed). Three files are written per game:
-
-| File | Contents |
-|------|----------|
-| `<gameId>.stats.json` | Player roster, game duration, carrier death order, our first-deploy time, peak/total fighters, closest missile approach, winner. Also the skip sentinel — if this file exists the game is not reprocessed. |
-| `<gameId>.deployment.csv` | Per-second: active / docked / destroyed fighter counts + cumulative total deployed. Use to catch deployment failures or screens collapsing faster than fighters undock. |
-| `<gameId>.threats.csv` | Per-second: our carrier HP, active fighters, nearest enemy carrier distance, nearest armed missile distance, missile counts within 200 and 80 units. The within-80 column measures formation-ring penetration. |
+`postprocess.sh` runs after every game session and processes every `history/*.jsonl` that hasn't been seen yet. Results land in `local_history/` (gitignored — player-specific, never committed). The skip sentinel is `<gameId>.stats.json` — if it exists the game is not reprocessed, so `stats.py` must always run first.
 
 Read these files (`.json` / `.csv`) when analyzing past performance — they are small and already parsed. Do not read `.jsonl` files directly (too large).
+
+## Available scripts
+
+Scripts run in this order in `postprocess.sh`. Each script's file begins with a detailed docstring — line numbers below show where to read it.
+
+| Script | Output | One-line description | Docstring |
+|--------|--------|----------------------|-----------|
+| `scripts/stats.py` | `<gameId>.stats.json` | Per-game summary: roster, duration, death order, fighter stats, missile approach, winner, timing snapshots at t=5/8/12/15. **Also the skip sentinel.** | lines 2–28 |
+| `scripts/deployment.py` | `<gameId>.deployment.csv` | Per-second: our active / docked / destroyed fighter counts and cumulative total deployed. | lines 2–23 |
+| `scripts/threats.py` | `<gameId>.threats.csv` | Per-second: our HP, fighter counts, nearest enemy carrier dist/HP, missile counts within 200 and 80 units, enemy fighters near carrier, HP delta. | lines 2–23 |
+| `scripts/all_carriers.py` | `<gameId>.all_carriers.csv` | Per-second per-carrier: HP, distance to us, active fighters, position — all players in long format. | lines 2–26 |
+
+## Adding a new script
+
+When a task requires extracting data not covered by the existing scripts, **add it to postprocessing** rather than computing it ad-hoc each time. Follow these rules:
+
+1. **Create `scripts/<name>.py`** — start the file with a module-level docstring (lines 2–N) that explains: what the script captures, why each column or field exists, and any caveats (e.g. missile color encoding). Use the existing scripts as a template.
+2. **Add to `postprocess.sh`** in dependency order — scripts that read outputs of other scripts must come after them. `stats.py` is always first (it writes the sentinel).
+3. **Update the table above** with the new script, its output file, a one-line description, and the line range of its docstring.
+4. **Document the new output file** in the table if it's a new format not already listed.
+
+Do not write one-off inline analysis scripts when the data would be useful across future games. If you catch yourself writing the same parse-entity / per-second-loop boilerplate a second time, factor it into a persistent script instead.
 
 # Habits
 
