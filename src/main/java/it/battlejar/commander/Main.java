@@ -11,11 +11,10 @@ import java.util.concurrent.Executors;
 public class Main {
 
     private static final String SERVER_URL = System.getenv("BATTLEJAR_API_URL");
-    private static final String USERNAME = "Klaudiusz";
     private static final int MAX_GAMES = 10;
 
     public static void main(String[] args) {
-        Player player = new Player(null, null, USERNAME);
+        Player player = new Player(null, null, null);
 
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
