@@ -25,7 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ./run.sh                     # shadowJar → run → postprocess.sh
 ```
 
-`run.sh` expects the fat JAR at `build/commander.jar`. The shadow plugin currently outputs to `build/libs/claude-commander-1.0-SNAPSHOT-all.jar` — a Gradle task to copy/rename it is pending in TASKS.md.
+`run.sh` expects the fat JAR at `build/commander.jar`. The shadow plugin is configured to output directly to `build/commander.jar`.
 
 GitHub Packages credentials are provided via the `net.linguica.maven-settings` plugin (version `0.5`), which reads the pre-configured `github-battlejar-client` server from `~/.m2/settings.xml`. Use this plugin when declaring the repository in `build.gradle.kts` instead of inline credentials.
 
@@ -69,9 +69,21 @@ When the queue has no open tasks: analyze `history/` (`.log` and `.md` files onl
 After each finished task: **commit** on the **current branch** with a clear message, then **push** to the remote.  
 Do **not** switch branches or integrate other branches (no merging / cherry-picking / rebasing from other branches into your line of work).
 
+# Analysis outputs
+
+`postprocess.sh` runs after every game session and processes every `history/*.jsonl` that hasn't been seen yet. Results land in `local_history/` (gitignored — player-specific, never committed). Three files are written per game:
+
+| File | Contents |
+|------|----------|
+| `<gameId>.stats.json` | Player roster, game duration, carrier death order, our first-deploy time, peak/total fighters, closest missile approach, winner. Also the skip sentinel — if this file exists the game is not reprocessed. |
+| `<gameId>.deployment.csv` | Per-second: active / docked / destroyed fighter counts + cumulative total deployed. Use to catch deployment failures or screens collapsing faster than fighters undock. |
+| `<gameId>.threats.csv` | Per-second: our carrier HP, active fighters, nearest enemy carrier distance, nearest armed missile distance, missile counts within 200 and 80 units. The within-80 column measures formation-ring penetration. |
+
+Read these files (`.json` / `.csv`) when analyzing past performance — they are small and already parsed. Do not read `.jsonl` files directly (too large).
+
 # Habits
 
-- Analyze **history** / game logs when they exist; add small parsers or scripts if that helps — add them to `postprocess.sh` so they run automatically after each game. When reading from `history/`, use only `.log` and `.md` files — ignore `.jsonl` files (too large to process directly).
+- Analyze **history** / game logs when they exist. Prefer `local_history/` stats files for quantitative analysis; use `history/*.md` for narrative context. When no stats files exist for a game, `postprocess.sh` will generate them on the next run.
 - Append short, dated notes to **`SUMMARY.md`**: issues, limits, and anything that needs a human (keep older entries).
 - Use **`notes/`** for scratch writing and open questions.
 - When history has been digested, clear or mark it so the next pass is obvious.
