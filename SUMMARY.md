@@ -1,5 +1,15 @@
 # Summary
 
+## 2026-05-04 — 36-game analysis (new games include 3 wins)
+
+Three confirmed wins across all history: fc7c192f (132s, peak 15), a7ffcd33 (62.9s, peak 14 — "Winner: Klaudiusz"), 1b9ad40f (39s, peak 17, hp_min=24 barely survived). Two more draws (both carriers alive at time limit).
+
+**Early-game damage pattern (wins vs losses):** All three wins show identical signature — fighters drop from 5–6 to 1–3 at t=8–9s as they die blocking the first missile wave, carrier HP holds at 1000 until t=11s, then takes first hit (1000→735). Death games show simultaneous 2+ missile hits at t=4–8s with only 1–3 fighters. The tight 50-unit formation IS working (fighters die as shields), but the 180° arc leaves flanks unguarded against multi-directional attacks.
+
+**Early missile saturation correlation:** max missiles within 200 units in first 15s: 5–9 = quick death (13–15s); 1–4 = survives longer. Fighter count matters less than arrival timing of the first salvo.
+
+Three new tasks: 360° ring for early formation, focus-fire weakest carrier, wider missile detection thresholds.
+
 ## 2026-05-04 — 27-game stats analysis (local_history/)
 
 First confirmed win (fc7c192f, 132s): peak 15 fighters, 72 total deployed, 2 enemy carriers eliminated; survived alongside Red (draw on carrier count, but narrative confirms Blue map dominance). Carrier HP reached minimum 77/1000.

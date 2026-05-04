@@ -91,9 +91,12 @@ public class ClaudeCommander extends AbstractCommander {
                     nearestEnemyCarrier.py() - myCarrier.py(),
                     nearestEnemyCarrier.px() - myCarrier.px());
         }
-        float formRadius = myFighters.size() >= FORMATION_EXPAND_AT
-                ? FORMATION_RADIUS_WIDE : FORMATION_RADIUS_TIGHT;
-        int[][] formation = buildFormation(lastFormationAngle, formRadius);
+        boolean expanded = myFighters.size() >= FORMATION_EXPAND_AT;
+        float formRadius = expanded ? FORMATION_RADIUS_WIDE : FORMATION_RADIUS_TIGHT;
+        // tight: full 360° ring — even coverage against multiple enemies attacking simultaneously
+        // wide: 180° forward arc — directional pressure once screen is established
+        float formArc = expanded ? (float) Math.PI : 2f * (float) Math.PI;
+        int[][] formation = buildFormation(lastFormationAngle, formRadius, formArc);
 
         // Assign one fighter per threatening missile to physically intercept it.
         // Keyed by fighter id → carrier-relative offset of the missile's current position.
@@ -285,12 +288,14 @@ public class ClaudeCommander extends AbstractCommander {
         return result;
     }
 
-    // 8 slots spread in a 180° arc facing the enemy carrier (carrier-relative offsets)
-    private int[][] buildFormation(float angleRad, float radius) {
+    private int[][] buildFormation(float angleRad, float radius, float arcRad) {
         int[][] offsets = new int[FORMATION_SLOTS][2];
         for (int i = 0; i < FORMATION_SLOTS; i++) {
-            float t = (float) i / (FORMATION_SLOTS - 1);
-            float slotAngle = angleRad - (float) Math.PI / 2f + t * (float) Math.PI;
+            float t = (float) i / FORMATION_SLOTS;  // for full ring: 0 slots overlap at ends
+            // for partial arc (π): span [-arc/2, +arc/2] around angleRad, non-overlapping endpoints
+            float slotAngle = arcRad < 2f * (float) Math.PI
+                    ? angleRad - arcRad / 2f + t * arcRad + arcRad / (2f * FORMATION_SLOTS)
+                    : t * arcRad;  // full ring: evenly spaced, no offset needed
             offsets[i][0] = Math.round(radius * (float) Math.cos(slotAngle));
             offsets[i][1] = Math.round(radius * (float) Math.sin(slotAngle));
         }
