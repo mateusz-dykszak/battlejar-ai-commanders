@@ -127,6 +127,12 @@ def main(jsonl_path: Path):
     # Winner detection: last color with living carrier
     last_alive_colors = set()
 
+    # Per-second timing snapshots (sampled once per integer second)
+    SNAPSHOT_SECONDS = [5, 8, 12, 15]
+    snapshots = {t: None for t in SNAPSHOT_SECONDS}  # t → dict
+    next_snap_second = 0
+    max_ef_near_100 = 0
+
     for frame in frames:
         frame_s = round(ts_to_sec(frame["timeStamp"]) - t0, 2)
         entities = [parse_entity(e) for e in frame["entities"]]
@@ -191,11 +197,56 @@ def main(jsonl_path: Path):
         if living:
             last_alive_colors = living
 
+        # Per-second snapshots at key game moments
+        if frame_s >= next_snap_second and our_color:
+            sec = int(frame_s)
+            our_carrier_e = carriers.get(our_color)
+            if our_carrier_e and our_carrier_e["status"] != "D":
+                our_hp_now = carrier_hp(our_carrier_e)
+                enemy_carriers_live = [
+                    c for col, c in carriers.items()
+                    if col != our_color and c["status"] != "D"
+                ]
+                nearest_ec = min(
+                    enemy_carriers_live,
+                    key=lambda c: dist(c, our_carrier_e),
+                    default=None,
+                )
+                nearest_ec_hp = carrier_hp(nearest_ec) if nearest_ec else None
+                enemy_fighters = [
+                    f for f in fighters
+                    if f["color"] != our_color and f["status"] not in ("D", "C")
+                ]
+                ef_near = sum(1 for f in enemy_fighters if dist(f, our_carrier_e) < 100)
+                if ef_near > max_ef_near_100:
+                    max_ef_near_100 = ef_near
+                snap = {
+                    "our_hp": our_hp_now,
+                    "nearest_ec_hp": nearest_ec_hp,
+                    "ef_near_100": ef_near,
+                }
+                for snap_t in SNAPSHOT_SECONDS:
+                    if snapshots[snap_t] is None and sec >= snap_t:
+                        snapshots[snap_t] = snap
+            next_snap_second = sec + 1
+
     winner_color = next(iter(last_alive_colors)) if len(last_alive_colors) == 1 else None
     winner_name = color_to_name.get(winner_color) if winner_color else None
 
     # Build ordered death list
     death_order = sorted(carrier_death_times.items(), key=lambda x: x[1])
+    enemy_deaths = [(c, t) for c, t in death_order if c != our_color]
+    first_kill_s = enemy_deaths[0][1] if enemy_deaths else None
+
+    # Derive snapshot fields (None if carrier was already dead at that second)
+    def snap_field(t, key):
+        s = snapshots.get(t)
+        return s[key] if s else None
+
+    hp_at_t15 = snap_field(15, "our_hp")
+    hp_lost_by_t15 = (
+        (our_hp_start - hp_at_t15) if our_hp_start is not None and hp_at_t15 is not None else None
+    )
 
     result = {
         "game_id": game_id,
@@ -206,6 +257,7 @@ def main(jsonl_path: Path):
             {"color": c, "name": color_to_name.get(c, c), "time_s": t}
             for c, t in death_order
         ],
+        "first_kill_s": first_kill_s,
         "our_carrier": {
             "hp_start": our_hp_start,
             "hp_min": our_hp_min,
@@ -221,6 +273,18 @@ def main(jsonl_path: Path):
             round(min_missile_dist, 1) if min_missile_dist < float("inf") else None
         ),
         "winner": {"color": winner_color, "name": winner_name},
+        "timing_snapshots": {
+            "our_hp_at_t5":          snap_field(5,  "our_hp"),
+            "our_hp_at_t8":          snap_field(8,  "our_hp"),
+            "our_hp_at_t12":         snap_field(12, "our_hp"),
+            "our_hp_at_t15":         hp_at_t15,
+            "nearest_ec_hp_at_t8":   snap_field(8,  "nearest_ec_hp"),
+            "nearest_ec_hp_at_t12":  snap_field(12, "nearest_ec_hp"),
+            "ef_near_100_at_t8":     snap_field(8,  "ef_near_100"),
+            "ef_near_100_at_t12":    snap_field(12, "ef_near_100"),
+            "max_ef_near_100":       max_ef_near_100,
+            "hp_lost_by_t15":        hp_lost_by_t15,
+        },
     }
 
     with open(out_path, "w") as f:
