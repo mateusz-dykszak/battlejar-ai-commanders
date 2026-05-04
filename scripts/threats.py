@@ -3,30 +3,23 @@
 threats.py — carrier threat timeline
 Outputs: local_history/<gameId>.threats.csv
 
-What it captures and why:
-  - Columns: time_s, our_hp, our_active_fighters, nearest_enemy_carrier_dist,
-             nearest_armed_missile_dist, armed_missiles_within_200,
-             armed_missiles_within_80
-  - Sampled once per second.
+Columns (sampled once per second):
+  time_s                    — seconds since game start
+  our_hp                    — our carrier HP (1000 until dead → 0)
+  our_active_fighters       — our undocked, living fighters
+  nearest_enemy_carrier_dist — distance to closest enemy carrier (blank if none)
+  nearest_armed_missile_dist — closest armed enemy missile to our carrier (blank if none)
+  armed_missiles_within_200  — armed enemy missiles within 200 units
+  armed_missiles_within_80   — armed enemy missiles within 80 units (inside formation ring)
+  live_enemy_carriers        — count of non-dead enemy carriers
+  nearest_ec_hp              — HP of the nearest enemy carrier (blank if none)
+  enemy_fighters_total       — all active (undocked, living) enemy fighters
+  enemy_fighters_near_100    — enemy fighters within 100 units of our carrier
+  our_hp_delta               — our HP change vs previous second (negative = damage taken; blank for first row)
 
-  - 'our_hp': our carrier's health. NOTE: in the current game data carriers report
-    1000 (full) until instant destruction (no intermediate HP values are emitted).
-    This column is therefore 1000 until the last row (0). Kept for completeness and
-    in case the server changes behavior. Use the row count / last time_s to infer
-    survival time instead.
-  - 'our_active_fighters': screen size at each moment — correlate with HP loss
-    to see whether a larger screen slows damage intake.
-  - 'nearest_enemy_carrier_dist': how close we are to the enemy carrier over
-    time. Useful for tuning PATROL vs MOVE thresholds; also tells us if we're
-    staying in our spawn quadrant as intended.
-  - 'nearest_armed_missile_dist': minimum distance any armed enemy missile
-    reached toward our carrier. Values < 80 (formation ring radius) mean
-    missiles are passing through our screen — direct indicator of intercept
-    failure (the active missile intercept task).
-  - 'armed_missiles_within_200': count of armed missiles that triggered
-    our TARGET "M" logic (200-unit threshold in current code).
-  - 'armed_missiles_within_80': count that penetrated the formation ring —
-    these are the ones that actually damage the carrier.
+NOTE: missile color is encoded in the missile ID (e.g. "M10-BLUE-01"), not in
+the entity color field (which is always "NONE"). This file correctly attributes
+missiles to their owner by parsing the ID.
 """
 
 import json
@@ -39,10 +32,17 @@ def parse_entity(raw):
     parts = raw.split("|")
     if len(parts) < 12:
         return None
+    entity_type = parts[1]
+    # Missiles always have color="NONE" in field[2]; real owner is in the ID.
+    if entity_type == "M":
+        id_parts = parts[0].split("-")
+        color = id_parts[1] if len(id_parts) >= 3 else "NONE"
+    else:
+        color = parts[2]
     return {
         "id": parts[0],
-        "type": parts[1],
-        "color": parts[2],
+        "type": entity_type,
+        "color": color,
         "px": float(parts[3]),
         "py": float(parts[4]),
         "status": parts[11],
@@ -55,8 +55,7 @@ def dist2(a, b):
 
 def carrier_hp(entity):
     try:
-        v = int(entity["status"])
-        return v
+        return int(entity["status"])
     except (ValueError, TypeError):
         return None
 
@@ -89,6 +88,7 @@ def main(jsonl_path: Path):
 
     rows = []
     next_second = 0
+    prev_hp = None
 
     for frame in frames:
         frame_s = ts_to_sec(frame["timeStamp"]) - t0
@@ -105,7 +105,6 @@ def main(jsonl_path: Path):
             None,
         )
         if our_carrier is None or our_carrier["status"] == "D":
-            # Carrier dead — record final row and stop
             rows.append({
                 "time_s": round(frame_s, 1),
                 "our_hp": 0,
@@ -114,10 +113,17 @@ def main(jsonl_path: Path):
                 "nearest_armed_missile_dist": None,
                 "armed_missiles_within_200": 0,
                 "armed_missiles_within_80": 0,
+                "live_enemy_carriers": None,
+                "nearest_ec_hp": None,
+                "enemy_fighters_total": None,
+                "enemy_fighters_near_100": None,
+                "our_hp_delta": None,
             })
             break
 
         hp = carrier_hp(our_carrier)
+        hp_delta = (hp - prev_hp) if (prev_hp is not None and hp is not None) else None
+        prev_hp = hp
 
         our_fighters_active = [
             e for e in entities
@@ -129,26 +135,36 @@ def main(jsonl_path: Path):
             e for e in entities
             if e["type"] == "C" and e["color"] != our_color and e["status"] != "D"
         ]
+        live_enemy_carriers = len(enemy_carriers)
+
+        nearest_enemy_carrier = None
+        nearest_enemy_carrier_dist = None
+        nearest_ec_hp_val = None
         if enemy_carriers:
-            nearest_enemy_carrier_dist = round(
-                min(dist2(ec, our_carrier) for ec in enemy_carriers), 1
-            )
-        else:
-            nearest_enemy_carrier_dist = None
+            nearest_enemy_carrier = min(enemy_carriers, key=lambda c: dist2(c, our_carrier))
+            nearest_enemy_carrier_dist = round(dist2(nearest_enemy_carrier, our_carrier), 1)
+            nearest_ec_hp_val = carrier_hp(nearest_enemy_carrier)
+
+        enemy_fighters = [
+            e for e in entities
+            if e["type"] == "F" and e["color"] != our_color
+            and e["status"] not in ("D", "C")
+        ]
+        enemy_fighters_total = len(enemy_fighters)
+        enemy_fighters_near_100 = sum(1 for f in enemy_fighters if dist2(f, our_carrier) < 100)
 
         enemy_missiles = [
             e for e in entities
             if e["type"] == "M" and e["color"] != our_color and e["status"] == "A"
         ]
+        nearest_armed_missile_dist = None
+        within_200 = 0
+        within_80 = 0
         if enemy_missiles:
             dists = [dist2(m, our_carrier) for m in enemy_missiles]
             nearest_armed_missile_dist = round(min(dists), 1)
             within_200 = sum(1 for d in dists if d < 200)
             within_80 = sum(1 for d in dists if d < 80)
-        else:
-            nearest_armed_missile_dist = None
-            within_200 = 0
-            within_80 = 0
 
         rows.append({
             "time_s": round(frame_s, 1),
@@ -158,22 +174,39 @@ def main(jsonl_path: Path):
             "nearest_armed_missile_dist": nearest_armed_missile_dist,
             "armed_missiles_within_200": within_200,
             "armed_missiles_within_80": within_80,
+            "live_enemy_carriers": live_enemy_carriers,
+            "nearest_ec_hp": nearest_ec_hp_val,
+            "enemy_fighters_total": enemy_fighters_total,
+            "enemy_fighters_near_100": enemy_fighters_near_100,
+            "our_hp_delta": hp_delta,
         })
 
+    header = (
+        "time_s,our_hp,our_active_fighters,nearest_enemy_carrier_dist,"
+        "nearest_armed_missile_dist,armed_missiles_within_200,armed_missiles_within_80,"
+        "live_enemy_carriers,nearest_ec_hp,enemy_fighters_total,"
+        "enemy_fighters_near_100,our_hp_delta\n"
+    )
+
+    def fmt(v):
+        return "" if v is None else str(v)
+
     with open(out_path, "w") as f:
-        f.write(
-            "time_s,our_hp,our_active_fighters,nearest_enemy_carrier_dist,"
-            "nearest_armed_missile_dist,armed_missiles_within_200,armed_missiles_within_80\n"
-        )
+        f.write(header)
         for row in rows:
             f.write(
                 f"{row['time_s']},"
-                f"{row['our_hp'] if row['our_hp'] is not None else ''},"
+                f"{fmt(row['our_hp'])},"
                 f"{row['our_active_fighters']},"
-                f"{row['nearest_enemy_carrier_dist'] if row['nearest_enemy_carrier_dist'] is not None else ''},"
-                f"{row['nearest_armed_missile_dist'] if row['nearest_armed_missile_dist'] is not None else ''},"
+                f"{fmt(row['nearest_enemy_carrier_dist'])},"
+                f"{fmt(row['nearest_armed_missile_dist'])},"
                 f"{row['armed_missiles_within_200']},"
-                f"{row['armed_missiles_within_80']}\n"
+                f"{row['armed_missiles_within_80']},"
+                f"{fmt(row['live_enemy_carriers'])},"
+                f"{fmt(row['nearest_ec_hp'])},"
+                f"{fmt(row['enemy_fighters_total'])},"
+                f"{fmt(row['enemy_fighters_near_100'])},"
+                f"{fmt(row['our_hp_delta'])}\n"
             )
 
     print(f"Written: {out_path} ({len(rows)} rows)")

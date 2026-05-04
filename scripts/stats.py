@@ -38,10 +38,17 @@ def parse_entity(raw):
     parts = raw.split("|")
     if len(parts) < 12:
         return None
+    entity_type = parts[1]
+    # Missiles always have color="NONE" in field[2]; real owner is encoded in the ID.
+    if entity_type == "M":
+        id_parts = parts[0].split("-")
+        color = id_parts[1] if len(id_parts) >= 3 else "NONE"
+    else:
+        color = parts[2]
     return {
         "id": parts[0],
-        "type": parts[1],   # C=Carrier, F=Fighter, M=Missile
-        "color": parts[2],
+        "type": entity_type,   # C=Carrier, F=Fighter, M=Missile
+        "color": color,
         "px": float(parts[3]),
         "py": float(parts[4]),
         "missiles": int(parts[10]) if parts[10] else 0,
