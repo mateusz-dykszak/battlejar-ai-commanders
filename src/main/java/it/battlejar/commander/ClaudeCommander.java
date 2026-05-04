@@ -19,7 +19,7 @@ public class ClaudeCommander extends AbstractCommander {
     private static final long ORDER_COOLDOWN_MS = 150;
     private static final float BORDER_MARGIN = 50f;
     private static final float SAFE_INSET = 30f;      // extra clearance beyond border margin
-    private static final float FORMATION_THRESHOLD = 50f;
+    private static final float FORMATION_THRESHOLD = 100f; // increased from 50: reduces slot-chasing after carrier dodge
     private static final int DOCK_HEALTH_THRESHOLD = 3;    // fighters start at 10 HP; dock below 30%
     private static final long RECOVERY_MS = 3_000;         // time a docked fighter is left to heal before redeploying
     private static final float FIGHTER_MISSILE_RANGE = 150f;
