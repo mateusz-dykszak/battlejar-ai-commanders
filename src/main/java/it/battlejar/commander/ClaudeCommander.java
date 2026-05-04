@@ -30,6 +30,8 @@ public class ClaudeCommander extends AbstractCommander {
     private static final float FORMATION_RADIUS_WIDE = 150f;   // directional arc once screen is established
     private static final int FORMATION_EXPAND_AT = 8;
     private static final int FORMATION_SLOTS = 8;
+    private static final int AGGRESSION_FIGHTER_THRESHOLD = 12;
+    private static final float CARRIER_PUSH_DISTANCE = 80f;
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
     // fighters we explicitly docked for damage recovery; excluded from deploy orders until RECOVERY_MS passes
@@ -37,6 +39,8 @@ public class ClaudeCommander extends AbstractCommander {
     private final Map<String, Long> dockTime = new HashMap<>();
     // last known angle to nearest enemy carrier; reused when no enemy is visible
     private float lastFormationAngle = 0f;
+    // enemy carrier count at game start; used to detect when we have achieved a kill
+    private int initialEnemyCarrierCount = 0;
 
     @Override
     protected boolean process(Collection<Entity> entities) {
@@ -61,10 +65,18 @@ public class ClaudeCommander extends AbstractCommander {
                 .filter(e -> !myColor.name().equals(e.color()))
                 .anyMatch(e -> !"D".equals(e.status()));
 
-        Entity nearestEnemyCarrier = entities.stream()
+        List<Entity> liveEnemyCarriers = entities.stream()
                 .filter(e -> e.type() == Entity.Type.CARRIER)
                 .filter(e -> !myColor.name().equals(e.color()))
                 .filter(e -> !"D".equals(e.status()))
+                .toList();
+
+        if (liveEnemyCarriers.size() > initialEnemyCarrierCount) {
+            initialEnemyCarrierCount = liveEnemyCarriers.size();
+        }
+        boolean hasKilledEnemy = liveEnemyCarriers.size() < initialEnemyCarrierCount;
+
+        Entity nearestEnemyCarrier = liveEnemyCarriers.stream()
                 .min((a, b) -> Float.compare(distance(a, myCarrier), distance(b, myCarrier)))
                 .orElse(null);
 
@@ -152,6 +164,12 @@ public class ClaudeCommander extends AbstractCommander {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
         } else if (myFighters.isEmpty() && hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK));
+        } else if (hasKilledEnemy && myFighters.size() >= AGGRESSION_FIGHTER_THRESHOLD
+                && nearestEnemyCarrier != null) {
+            float dist = distance(myCarrier, nearestEnemyCarrier);
+            int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE);
+            int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
+            sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
         } else if (hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.PATROL));
         }
