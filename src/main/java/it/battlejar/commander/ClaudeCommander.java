@@ -40,6 +40,7 @@ public class ClaudeCommander extends AbstractCommander {
     private static final int KILL_FOCUS_HP = 300;        // target enemy carrier if HP ≤ this
     private static final float KILL_FOCUS_RANGE = 350f;  // only focus-fire within this distance
     private static final float CARRIER_MIN_SEPARATION_1V1 = 80f; // floor distance in 1v1 to avoid collision
+    private static final float FIGHTER_INTRUDER_RANGE = 60f; // per-fighter: engage nearest enemy fighter within this radius
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
     // fighters we explicitly docked for damage recovery; excluded from deploy orders until RECOVERY_MS passes
@@ -119,16 +120,13 @@ public class ClaudeCommander extends AbstractCommander {
         // Keyed by fighter id → carrier-relative offset of the missile's current position.
         Map<String, int[]> intercept = buildInterceptAssignments(armedEnemyMissiles, myCarrier, myFighters);
 
-        // Enemy fighters inside 100 units are a direct laser threat — target the closest one.
-        // Expanded from 50 to 100: at ec=80-110, escort fighters land 50-80 units from our carrier,
-        // outside the old 50-unit ring but close enough to concentrate laser DPS on the carrier.
-        Entity intrudingEnemyFighter = entities.stream()
+        // Precompute active enemy fighters once; each fighter independently finds its own nearest
+        // within FIGHTER_INTRUDER_RANGE of itself, distributing our squad across the swarm.
+        List<Entity> activeEnemyFighters = entities.stream()
                 .filter(e -> e.type() == Entity.Type.FIGHTER)
                 .filter(e -> !myColor.name().equals(e.color()))
                 .filter(e -> !"D".equals(e.status()) && !"C".equals(e.status()))
-                .filter(e -> distance(e, myCarrier) < 100f)
-                .min((a, b) -> Float.compare(distance(a, myCarrier), distance(b, myCarrier)))
-                .orElse(null);
+                .toList();
 
         for (Entity fighter : myFighters) {
             int[] offset = formationOffset(fighter, formation);
@@ -156,13 +154,21 @@ public class ClaudeCommander extends AbstractCommander {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
             } else if (!inFormation) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
-            } else if (intrudingEnemyFighter != null) {
-                // Enemy fighter inside the 50-unit ring — attack it before it lasers the carrier to death.
-                sendOrder(new Order(fighter.id(), OrderType.ATTACK, intrudingEnemyFighter.id()));
-            } else if (nearestEnemyCarrier != null) {
-                sendOrder(new Order(fighter.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
-            } else if (hasEnemies) {
-                sendOrder(new Order(fighter.id(), OrderType.ATTACK));
+            } else {
+                // Each fighter independently targets the nearest enemy fighter within its own
+                // engagement radius, distributing our squad against the swarm instead of all
+                // piling on one shared target while the rest laser the carrier freely.
+                Entity nearbyEnemy = activeEnemyFighters.stream()
+                        .filter(e -> distance(e, fighter) < FIGHTER_INTRUDER_RANGE)
+                        .min((a, b) -> Float.compare(distance(a, fighter), distance(b, fighter)))
+                        .orElse(null);
+                if (nearbyEnemy != null) {
+                    sendOrder(new Order(fighter.id(), OrderType.ATTACK, nearbyEnemy.id()));
+                } else if (nearestEnemyCarrier != null) {
+                    sendOrder(new Order(fighter.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
+                } else if (hasEnemies) {
+                    sendOrder(new Order(fighter.id(), OrderType.ATTACK));
+                }
             }
         }
 

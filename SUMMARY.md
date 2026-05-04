@@ -1,5 +1,17 @@
 # Summary
 
+## 2026-05-04 — 10 more games analyzed (73 total); first-kill timing is the win condition
+
+2 new wins (f650d958: hp_min=318, 17bd6589: hp_min=719). Total: 6 survived, 2 wins from 73 games.
+
+**First kill by t=15 = win; first kill after t=19 = loss** (from 73-game stats analysis). All 3 wins have first_kill_s ≤ 15.6. The opening 3 carrier missiles drop the nearest enemy from 1000 → ~500 at t=8 (confirmed in all_carriers.csv). KILL_FOCUS_HP=300 does not kick in at 500 HP, so fighters scatter instead of finishing the kill.
+
+**ef_near_100 is the swarm metric**: in wins, ef_near@t=12 is 0–3. In deaths, it's 6–12. Current code: all 8 fighters attack ONE shared intruder, leaving 9–11 uncontested. Per-fighter independent targeting (each fighter attacks nearest enemy within 60 units of ITSELF) would distribute the load.
+
+Three new tasks: per-fighter intruder targeting, raise KILL_FOCUS_HP to 600, early carrier push on wounded enemy before first kill.
+
+**Postprocessing enriched**: timing_snapshots added to stats.json (our_hp/nearest_ec_hp/ef_near_100 at t=5/8/12/15, max_ef_near_100, hp_lost_by_t15, first_kill_s). Cross-game correlation now works from stats files alone without loading threats.csv.
+
 ## 2026-05-04 — 9 more games analyzed (63 total); formation overshoot in 1v1 identified
 
 1 WIN (17bd6589): all 3 enemies killed (t=15.6, t=34.2, t=39.6), carrier hp=719 — cleanest win yet.
