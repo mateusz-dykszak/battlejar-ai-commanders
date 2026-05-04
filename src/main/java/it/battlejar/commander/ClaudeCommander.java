@@ -111,9 +111,14 @@ public class ClaudeCommander extends AbstractCommander {
         }
         boolean expanded = myFighters.size() >= FORMATION_EXPAND_AT;
         float formRadius = expanded ? effectiveWideRadius : FORMATION_RADIUS_TIGHT;
-        // tight: full 360° ring — even coverage against multiple enemies attacking simultaneously
-        // wide: 180° forward arc — directional pressure once screen is established
-        float formArc = expanded ? (float) Math.PI : 2f * (float) Math.PI;
+        // tight (<8 fighters): full 360° ring for all-around early coverage
+        // wide in 1v1: 180° forward arc — single threat direction known, directional pressure
+        // wide in multi-enemy: full 360° ring — enemies attack from all angles simultaneously;
+        //   the 180° arc leaves the rear 180° of the carrier completely unguarded against the
+        //   other enemies' fighters approaching from flanks and rear.
+        float formArc = (expanded && liveEnemyCarriers.size() == 1)
+                ? (float) Math.PI
+                : 2f * (float) Math.PI;
         int[][] formation = buildFormation(lastFormationAngle, formRadius, formArc);
 
         // Assign one fighter per threatening missile to physically intercept it.

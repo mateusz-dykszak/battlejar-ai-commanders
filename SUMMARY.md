@@ -1,5 +1,15 @@
 # Summary
 
+## 2026-05-04 — 83-game analysis; 180° formation arc is the primary multi-enemy gap
+
+No new games since last session (83 total). Added `phases.py` to postprocessing — outputs `phases.json` per game with 1v1 start time, HP/EC-dist at 1v1, survival time, and death-cause label.
+
+**42 multi-enemy deaths (excluding pre-deploy-fix peak=0 games): ef_near_100 peak median = 16, range 3–28.** Cause breakdown: fighters 62%, combined 33%, missiles 5%. **25 1v1 deaths: ef_near peak median = 9, fighters 72%.**
+
+Root cause for multi-enemy deaths: the 180° directional arc at 8+ fighters only covers the nearest enemy's direction. Enemy fighters from the other 2 carriers approach from the exposed rear 180° unchallenged.
+
+Three new tasks: 360° ring in multi-enemy, raise FIGHTER_INTRUDER_RANGE 60→120, raise DOCK_HEALTH_THRESHOLD 3→5.
+
 ## 2026-05-04 — 10 more games analyzed (73 total); first-kill timing is the win condition
 
 2 new wins (f650d958: hp_min=318, 17bd6589: hp_min=719). Total: 6 survived, 2 wins from 73 games.

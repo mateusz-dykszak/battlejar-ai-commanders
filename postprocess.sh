@@ -25,4 +25,5 @@ for JSONL in "${jsonl_files[@]}"; do
     python3 scripts/deployment.py   "$JSONL"
     python3 scripts/threats.py      "$JSONL"
     python3 scripts/all_carriers.py "$JSONL"
+    python3 scripts/phases.py       "$JSONL"
 done
