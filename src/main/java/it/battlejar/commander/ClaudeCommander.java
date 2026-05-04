@@ -40,7 +40,7 @@ public class ClaudeCommander extends AbstractCommander {
     private static final int KILL_FOCUS_HP = 600;        // target enemy carrier if HP ≤ this
     private static final float KILL_FOCUS_RANGE = 350f;  // only focus-fire within this distance
     private static final float CARRIER_MIN_SEPARATION_1V1 = 80f; // floor distance in 1v1 to avoid collision
-    private static final float FIGHTER_INTRUDER_RANGE = 60f; // per-fighter: engage nearest enemy fighter within this radius
+    private static final float FIGHTER_INTRUDER_RANGE = 120f; // per-fighter: engage nearest enemy fighter within this radius
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
     // fighters we explicitly docked for damage recovery; excluded from deploy orders until RECOVERY_MS passes
