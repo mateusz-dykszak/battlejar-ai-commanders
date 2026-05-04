@@ -109,6 +109,15 @@ public class ClaudeCommander extends AbstractCommander {
         // Keyed by fighter id → carrier-relative offset of the missile's current position.
         Map<String, int[]> intercept = buildInterceptAssignments(armedEnemyMissiles, myCarrier, myFighters);
 
+        // Enemy fighters inside the tight ring are an immediate laser threat — target the closest one.
+        Entity intrudingEnemyFighter = entities.stream()
+                .filter(e -> e.type() == Entity.Type.FIGHTER)
+                .filter(e -> !myColor.name().equals(e.color()))
+                .filter(e -> !"D".equals(e.status()) && !"C".equals(e.status()))
+                .filter(e -> distance(e, myCarrier) < FORMATION_RADIUS_TIGHT)
+                .min((a, b) -> Float.compare(distance(a, myCarrier), distance(b, myCarrier)))
+                .orElse(null);
+
         for (Entity fighter : myFighters) {
             int[] offset = formationOffset(fighter, formation);
             boolean inFormation = distanceTo(fighter,
@@ -135,6 +144,9 @@ public class ClaudeCommander extends AbstractCommander {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
             } else if (!inFormation) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
+            } else if (intrudingEnemyFighter != null) {
+                // Enemy fighter inside the 50-unit ring — attack it before it lasers the carrier to death.
+                sendOrder(new Order(fighter.id(), OrderType.ATTACK, intrudingEnemyFighter.id()));
             } else if (nearestEnemyCarrier != null) {
                 sendOrder(new Order(fighter.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
             } else if (hasEnemies) {
