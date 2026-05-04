@@ -24,8 +24,8 @@ public class ClaudeCommander extends AbstractCommander {
     private static final long RECOVERY_MS = 3_000;         // time a docked fighter is left to heal before redeploying
     private static final float FIGHTER_MISSILE_RANGE = 150f;
     private static final float FIGHTER_LASER_RANGE = 150f;   // per-fighter proximity for TARGET "M" defense
-    private static final float MISSILE_INTERCEPT_RANGE = 250f;
-    private static final float MISSILE_TARGET_RANGE = 300f;  // carrier-relative range for intercept assignments
+    private static final float MISSILE_INTERCEPT_RANGE = 80f;  // physical move-to-intercept; beyond this rely on lasers
+    private static final float MISSILE_TARGET_RANGE = 300f;    // carrier-relative range for intercept assignments
     private static final float CARRIER_DODGE_RANGE = 200f;
     private static final float CARRIER_DODGE_DISTANCE = 60f;
     private static final float FORMATION_RADIUS_TIGHT = 50f;   // used until FORMATION_EXPAND_AT fighters are active
