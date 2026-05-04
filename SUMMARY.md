@@ -1,5 +1,11 @@
 # Summary
 
+## 2026-05-04 — 10 new games + deep threats analysis (45 total)
+
+10 new games, all deaths, peak 5–11 fighters, died 15–33s. Enemy carrier approach is universal (180→79–130 units by t=14–23s) and present even in the 132s survived game (ec=79 at t=14!). Survival depends on whether enemy carriers fight each other (diverting from us) — not on our defense quality alone.
+
+Three new improvement tasks: fighter FIRE_MISSILE before TARGET "M" (kill approaching carrier fast), larger formation threshold (reduce slot-chasing from carrier dodge disruption), carrier kite when outnumbered (<8 fighters, ec<150).
+
 ## 2026-05-04 — threats.csv analysis: survived vs died high-peak games
 
 Key finding: **ALL 3 survived games share one pattern — 2 of 3 enemies killed before t=26s, leaving only 1-vs-1 for the final stretch**. In every high-peak death game (peak 15-17), all 3 enemies stayed alive through ~t=25s, producing 3-directional missile fire that overwhelms the carrier regardless of fighter count.

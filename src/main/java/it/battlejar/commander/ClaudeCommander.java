@@ -123,13 +123,15 @@ public class ClaudeCommander extends AbstractCommander {
             } else if (intercept.containsKey(fighter.id())) {
                 int[] mPos = intercept.get(fighter.id());
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, mPos[0] + "|" + mPos[1]));
+            } else if (nearestEnemyCarrier != null && fighter.missiles() > 0
+                    && distance(fighter, nearestEnemyCarrier) < FIGHTER_MISSILE_RANGE) {
+                // Fire missiles at close enemy carrier before switching to laser defense —
+                // burst damage on the carrier stops future missile launches entirely.
+                sendOrder(new Order(fighter.id(), OrderType.FIRE_MISSILE));
             } else if (missileCloseToFighter) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
             } else if (!inFormation) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
-            } else if (nearestEnemyCarrier != null && fighter.missiles() > 0
-                    && distance(fighter, nearestEnemyCarrier) < FIGHTER_MISSILE_RANGE) {
-                sendOrder(new Order(fighter.id(), OrderType.FIRE_MISSILE));
             } else if (nearestEnemyCarrier != null) {
                 sendOrder(new Order(fighter.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
             } else if (hasEnemies) {
