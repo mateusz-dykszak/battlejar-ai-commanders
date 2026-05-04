@@ -203,6 +203,10 @@ public class ClaudeCommander extends AbstractCommander {
                 int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE);
                 int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
                 sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
+            } else if (liveEnemyCarriers.size() == 1) {
+                // In 1v1 with too few fighters to push: ATTACK with carrier lasers while waiting for
+                // more fighters to deploy. Carrier auto-moves toward target, supplementing fighter DPS.
+                sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
             } else {
                 sendOrder(new Order(myCarrier.id(), OrderType.PATROL));
             }
