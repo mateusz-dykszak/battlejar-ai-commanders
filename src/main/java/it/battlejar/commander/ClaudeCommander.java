@@ -24,7 +24,9 @@ public class ClaudeCommander extends AbstractCommander {
     private static final long RECOVERY_MS = 3_000;         // time a docked fighter is left to heal before redeploying
     private static final float FIGHTER_MISSILE_RANGE = 150f;
     private static final float MISSILE_INTERCEPT_RANGE = 150f;
-    private static final float FORMATION_RADIUS = 150f;
+    private static final float FORMATION_RADIUS_TIGHT = 50f;   // used until FORMATION_EXPAND_AT fighters are active
+    private static final float FORMATION_RADIUS_WIDE = 150f;   // directional arc once screen is established
+    private static final int FORMATION_EXPAND_AT = 8;
     private static final int FORMATION_SLOTS = 8;
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
@@ -75,7 +77,9 @@ public class ClaudeCommander extends AbstractCommander {
                     nearestEnemyCarrier.py() - myCarrier.py(),
                     nearestEnemyCarrier.px() - myCarrier.px());
         }
-        int[][] formation = buildFormation(lastFormationAngle);
+        float formRadius = myFighters.size() >= FORMATION_EXPAND_AT
+                ? FORMATION_RADIUS_WIDE : FORMATION_RADIUS_TIGHT;
+        int[][] formation = buildFormation(lastFormationAngle, formRadius);
 
         // Assign one fighter per threatening missile to physically intercept it.
         // Keyed by fighter id → carrier-relative offset of the missile's current position.
@@ -198,13 +202,13 @@ public class ClaudeCommander extends AbstractCommander {
     }
 
     // 8 slots spread in a 180° arc facing the enemy carrier (carrier-relative offsets)
-    private int[][] buildFormation(float angleRad) {
+    private int[][] buildFormation(float angleRad, float radius) {
         int[][] offsets = new int[FORMATION_SLOTS][2];
         for (int i = 0; i < FORMATION_SLOTS; i++) {
             float t = (float) i / (FORMATION_SLOTS - 1);
             float slotAngle = angleRad - (float) Math.PI / 2f + t * (float) Math.PI;
-            offsets[i][0] = Math.round(FORMATION_RADIUS * (float) Math.cos(slotAngle));
-            offsets[i][1] = Math.round(FORMATION_RADIUS * (float) Math.sin(slotAngle));
+            offsets[i][0] = Math.round(radius * (float) Math.cos(slotAngle));
+            offsets[i][1] = Math.round(radius * (float) Math.sin(slotAngle));
         }
         return offsets;
     }
