@@ -1,5 +1,17 @@
 # Summary
 
+## 2026-05-04 — threats.csv analysis: survived vs died high-peak games
+
+Key finding: **ALL 3 survived games share one pattern — 2 of 3 enemies killed before t=26s, leaving only 1-vs-1 for the final stretch**. In every high-peak death game (peak 15-17), all 3 enemies stayed alive through ~t=25s, producing 3-directional missile fire that overwhelms the carrier regardless of fighter count.
+
+**Two bugs identified from code review + threats data:**
+1. Carrier dodge (priority 2) fires every 150 ms while any missile is within 200 units (true from t=3s onward). FIRE_MISSILE sits at priority 3, so the carrier almost never fires its own missiles — it just dodges indefinitely. Fix: move FIRE_MISSILE to priority 1.
+2. `enemyMissilesNearby` is a shared flag — when ANY missile is within 300 units, ALL fighters switch to TARGET "M" defense. Missiles are present from t=5s onward, so fighters never attack. Fix: per-fighter proximity check (within 150 units of THAT fighter) so near-fighters defend while far-fighters attack.
+
+Also: physical intercept at 250 units pulls formation fighters to chase missiles 7.5 seconds away; shrink to 80 units to stop disrupting formation.
+
+Three new tasks: carrier FIRE_MISSILE priority, per-fighter TARGET "M", shrink intercept range.
+
 ## 2026-05-04 — 36-game analysis (new games include 3 wins)
 
 Three confirmed wins across all history: fc7c192f (132s, peak 15), a7ffcd33 (62.9s, peak 14 — "Winner: Klaudiusz"), 1b9ad40f (39s, peak 17, hp_min=24 barely survived). Two more draws (both carriers alive at time limit).

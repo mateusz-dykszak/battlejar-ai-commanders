@@ -151,7 +151,13 @@ public class ClaudeCommander extends AbstractCommander {
 
         int[] carrierDodge = computeCarrierDodge(entities, myCarrier);
 
-        if (isNearBorder(myCarrier)) {
+        if (nearestEnemyCarrier != null && myCarrier.missiles() > 0) {
+            // Fire first — dodge activates on the very next 150 ms cooldown tick.
+            // Keeping this at highest priority ensures the carrier contributes DPS even while under fire.
+            float dx = nearestEnemyCarrier.px() - myCarrier.px();
+            float dy = nearestEnemyCarrier.py() - myCarrier.py();
+            sendOrder(new Order(myCarrier.id(), OrderType.FIRE_MISSILE, (int) dx + "|" + (int) dy));
+        } else if (isNearBorder(myCarrier)) {
             // Move to nearest safe interior point — stays in spawn quadrant, does not rush to center
             float inner = BORDER_MARGIN + SAFE_INSET;
             float safeX = Math.max(inner, Math.min(settings.worldWidth() - inner, myCarrier.px()));
@@ -161,10 +167,6 @@ public class ClaudeCommander extends AbstractCommander {
         } else if (carrierDodge != null) {
             sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
                     carrierDodge[0] + "|" + carrierDodge[1]));
-        } else if (nearestEnemyCarrier != null && myCarrier.missiles() > 0) {
-            float dx = nearestEnemyCarrier.px() - myCarrier.px();
-            float dy = nearestEnemyCarrier.py() - myCarrier.py();
-            sendOrder(new Order(myCarrier.id(), OrderType.FIRE_MISSILE, (int) dx + "|" + (int) dy));
         } else if (myFighters.isEmpty() && nearestEnemyCarrier != null) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
         } else if (myFighters.isEmpty() && hasEnemies) {
