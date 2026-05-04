@@ -39,6 +39,7 @@ public class ClaudeCommander extends AbstractCommander {
     private static final float CARRIER_KITE_DISTANCE = 80f;  // how far to move away per kite step
     private static final int KILL_FOCUS_HP = 300;        // target enemy carrier if HP ≤ this
     private static final float KILL_FOCUS_RANGE = 350f;  // only focus-fire within this distance
+    private static final float CARRIER_MIN_SEPARATION_1V1 = 80f; // floor distance in 1v1 to avoid collision
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
     // fighters we explicitly docked for damage recovery; excluded from deploy orders until RECOVERY_MS passes
@@ -202,6 +203,18 @@ public class ClaudeCommander extends AbstractCommander {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
         } else if (myFighters.isEmpty() && hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK));
+        } else if (liveEnemyCarriers.size() == 1 && nearestEnemyCarrier != null
+                && distance(myCarrier, nearestEnemyCarrier) < CARRIER_MIN_SEPARATION_1V1) {
+            // Prevent carrier collision in 1v1 — aggression push + enemy ATTACK can drive ec to ~23.
+            // Retreat to restore working separation where even the tight formation doesn't overshoot.
+            float dist = distance(myCarrier, nearestEnemyCarrier);
+            float retreatX = myCarrier.px() - (nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_KITE_DISTANCE;
+            float retreatY = myCarrier.py() - (nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_KITE_DISTANCE;
+            float margin = BORDER_MARGIN + SAFE_INSET;
+            retreatX = Math.max(margin, Math.min(settings.worldWidth() - margin, retreatX));
+            retreatY = Math.max(margin, Math.min(settings.worldHeight() - margin, retreatY));
+            sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
+                    (int) (retreatX - myCarrier.px()) + "|" + (int) (retreatY - myCarrier.py())));
         } else if (hasKilledEnemy && nearestEnemyCarrier != null) {
             // Use half the fighter threshold in 1v1 — passive PATROL loses every 1v1 in recorded data.
             int effectiveThreshold = liveEnemyCarriers.size() == 1
