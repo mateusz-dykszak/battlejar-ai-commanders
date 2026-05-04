@@ -23,8 +23,9 @@ public class ClaudeCommander extends AbstractCommander {
     private static final int DOCK_HEALTH_THRESHOLD = 3;    // fighters start at 10 HP; dock below 30%
     private static final long RECOVERY_MS = 3_000;         // time a docked fighter is left to heal before redeploying
     private static final float FIGHTER_MISSILE_RANGE = 150f;
+    private static final float FIGHTER_LASER_RANGE = 150f;   // per-fighter proximity for TARGET "M" defense
     private static final float MISSILE_INTERCEPT_RANGE = 250f;
-    private static final float MISSILE_TARGET_RANGE = 300f;  // distance at which fighters switch to TARGET "M"
+    private static final float MISSILE_TARGET_RANGE = 300f;  // carrier-relative range for intercept assignments
     private static final float CARRIER_DODGE_RANGE = 200f;
     private static final float CARRIER_DODGE_DISTANCE = 60f;
     private static final float FORMATION_RADIUS_TIGHT = 50f;   // used until FORMATION_EXPAND_AT fighters are active
@@ -82,11 +83,12 @@ public class ClaudeCommander extends AbstractCommander {
         // Wounded carrier within range takes priority; otherwise nearest
         Entity nearestEnemyCarrier = selectTarget(liveEnemyCarriers, myCarrier);
 
-        boolean enemyMissilesNearby = entities.stream()
+        // Precompute once; per-fighter proximity check replaces the old shared flag.
+        List<Entity> armedEnemyMissiles = entities.stream()
                 .filter(e -> e.type() == Entity.Type.MISSILE)
                 .filter(e -> !myColor.name().equals(e.color()))
                 .filter(e -> "A".equals(e.status()))
-                .anyMatch(e -> distance(e, myCarrier) < MISSILE_TARGET_RANGE);
+                .toList();
 
         if (nearestEnemyCarrier != null) {
             lastFormationAngle = (float) Math.atan2(
@@ -102,12 +104,15 @@ public class ClaudeCommander extends AbstractCommander {
 
         // Assign one fighter per threatening missile to physically intercept it.
         // Keyed by fighter id → carrier-relative offset of the missile's current position.
-        Map<String, int[]> intercept = buildInterceptAssignments(entities, myCarrier, myFighters);
+        Map<String, int[]> intercept = buildInterceptAssignments(armedEnemyMissiles, myCarrier, myFighters);
 
         for (Entity fighter : myFighters) {
             int[] offset = formationOffset(fighter, formation);
             boolean inFormation = distanceTo(fighter,
                     myCarrier.px() + offset[0], myCarrier.py() + offset[1]) < FORMATION_THRESHOLD;
+            // Only this specific fighter defends if a missile is close to IT — others keep attacking.
+            boolean missileCloseToFighter = armedEnemyMissiles.stream()
+                    .anyMatch(m -> distance(m, fighter) < FIGHTER_LASER_RANGE);
 
             if (isNearBorder(fighter)) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, "0|0"));
@@ -118,7 +123,7 @@ public class ClaudeCommander extends AbstractCommander {
             } else if (intercept.containsKey(fighter.id())) {
                 int[] mPos = intercept.get(fighter.id());
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, mPos[0] + "|" + mPos[1]));
-            } else if (enemyMissilesNearby) {
+            } else if (missileCloseToFighter) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
             } else if (!inFormation) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
@@ -264,11 +269,8 @@ public class ClaudeCommander extends AbstractCommander {
     // assign the closest available fighter to physically move to the missile position.
     // Returns fighter-id → carrier-relative [dx, dy] of the missile.
     private Map<String, int[]> buildInterceptAssignments(
-            Collection<Entity> entities, Entity myCarrier, List<Entity> myFighters) {
-        List<Entity> threats = entities.stream()
-                .filter(e -> e.type() == Entity.Type.MISSILE)
-                .filter(e -> !myColor.name().equals(e.color()))
-                .filter(e -> "A".equals(e.status()))
+            List<Entity> armedEnemyMissiles, Entity myCarrier, List<Entity> myFighters) {
+        List<Entity> threats = armedEnemyMissiles.stream()
                 .filter(e -> distance(e, myCarrier) < MISSILE_INTERCEPT_RANGE)
                 .sorted((a, b) -> Float.compare(distance(a, myCarrier), distance(b, myCarrier)))
                 .toList();
