@@ -23,7 +23,8 @@ public class ClaudeCommander extends AbstractCommander {
     private static final int DOCK_HEALTH_THRESHOLD = 3;    // fighters start at 10 HP; dock below 30%
     private static final long RECOVERY_MS = 3_000;         // time a docked fighter is left to heal before redeploying
     private static final float FIGHTER_MISSILE_RANGE = 150f;
-    private static final float MISSILE_INTERCEPT_RANGE = 150f;
+    private static final float MISSILE_INTERCEPT_RANGE = 250f;
+    private static final float MISSILE_TARGET_RANGE = 300f;  // distance at which fighters switch to TARGET "M"
     private static final float CARRIER_DODGE_RANGE = 200f;
     private static final float CARRIER_DODGE_DISTANCE = 60f;
     private static final float FORMATION_RADIUS_TIGHT = 50f;   // used until FORMATION_EXPAND_AT fighters are active
@@ -85,7 +86,7 @@ public class ClaudeCommander extends AbstractCommander {
                 .filter(e -> e.type() == Entity.Type.MISSILE)
                 .filter(e -> !myColor.name().equals(e.color()))
                 .filter(e -> "A".equals(e.status()))
-                .anyMatch(e -> distance(e, myCarrier) < 200f);
+                .anyMatch(e -> distance(e, myCarrier) < MISSILE_TARGET_RANGE);
 
         if (nearestEnemyCarrier != null) {
             lastFormationAngle = (float) Math.atan2(
