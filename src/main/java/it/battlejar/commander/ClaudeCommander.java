@@ -223,6 +223,17 @@ public class ClaudeCommander extends AbstractCommander {
             retreatY = Math.max(margin, Math.min(settings.worldHeight() - margin, retreatY));
             sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
                     (int) (retreatX - myCarrier.px()) + "|" + (int) (retreatY - myCarrier.py())));
+        } else if (!hasKilledEnemy && nearestEnemyCarrier != null
+                && health(nearestEnemyCarrier) <= KILL_FOCUS_HP
+                && myFighters.size() >= AGGRESSION_FIGHTER_THRESHOLD / 2
+                && liveEnemyCarriers.size() > 1) {
+            // Pre-kill push: enemy is already wounded by our opening missiles (hp ≤ KILL_FOCUS_HP).
+            // Close in to bring fighters within tighter laser range and finish the kill faster.
+            // Guard: only in 4-way (not 1v1) and only with a fighter screen active.
+            float dist = distance(myCarrier, nearestEnemyCarrier);
+            int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE);
+            int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
+            sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
         } else if (hasKilledEnemy && nearestEnemyCarrier != null) {
             // Use half the fighter threshold in 1v1 — passive PATROL loses every 1v1 in recorded data.
             int effectiveThreshold = liveEnemyCarriers.size() == 1
