@@ -36,9 +36,8 @@ public class ClaudeCommander extends AbstractCommander {
     // A 400-unit target aims past the enemy so the carrier always moves at max speed toward them.
     // CARRIER_MIN_SEPARATION_1V1 catches it at 80 units; combat settles at 80–100 units range.
     private static final float CARRIER_PUSH_DISTANCE_1V1 = 400f;
-    private static final float CARRIER_KITE_RANGE = 150f;    // enemy carrier distance that triggers kite-away
-    private static final int CARRIER_KITE_FIGHTER_MAX = 8;   // kite only when fighter screen is thin
-    private static final float CARRIER_KITE_DISTANCE = 80f;  // how far to move away per kite step
+    private static final float CARRIER_KITE_DISTANCE = 80f;  // retreat distance for 1v1 collision avoidance
+    private static final float CARRIER_CORNER_THRESHOLD = 40f; // within this distance of corner, switch to patrol
     private static final int KILL_FOCUS_HP = 750;        // target enemy carrier if HP ≤ this; missiles deal ~250 HP so post-barrage target is at 750
     private static final float KILL_FOCUS_RANGE = 350f;  // only focus-fire within this distance
     private static final float CARRIER_MIN_SEPARATION_1V1 = 80f; // floor distance in 1v1 to avoid collision
@@ -250,36 +249,13 @@ public class ClaudeCommander extends AbstractCommander {
                 // In 1v1 with too few fighters to push: ATTACK with carrier lasers while waiting for
                 // more fighters to deploy. Carrier auto-moves toward target, supplementing fighter DPS.
                 sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
-            } else if (distance(myCarrier, nearestEnemyCarrier) < CARRIER_KITE_RANGE
-                    && myFighters.size() < CARRIER_KITE_FIGHTER_MAX
-                    && liveEnemyCarriers.size() > 1) {
-                // Kite is dead after first kill in multi-enemy because this branch is never reached
-                // from the post-kill path — replicate it here as the thin-screen fallback.
-                float dist = distance(myCarrier, nearestEnemyCarrier);
-                float retreatX = myCarrier.px() - (nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_KITE_DISTANCE;
-                float retreatY = myCarrier.py() - (nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_KITE_DISTANCE;
-                float margin = BORDER_MARGIN + SAFE_INSET;
-                retreatX = Math.max(margin, Math.min(settings.worldWidth() - margin, retreatX));
-                retreatY = Math.max(margin, Math.min(settings.worldHeight() - margin, retreatY));
-                sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
-                        (int) (retreatX - myCarrier.px()) + "|" + (int) (retreatY - myCarrier.py())));
             } else {
-                sendOrder(new Order(myCarrier.id(), OrderType.PATROL));
+                // Multi-enemy post-kill: return to corner to minimise attack surface.
+                sendCornerOrder(myCarrier);
             }
-        } else if (nearestEnemyCarrier != null
-                && distance(myCarrier, nearestEnemyCarrier) < CARRIER_KITE_RANGE
-                && myFighters.size() < CARRIER_KITE_FIGHTER_MAX
-                && liveEnemyCarriers.size() > 1) {
-            // Kite only when multiple enemies present — in 1v1 kite creates an oscillation loop
-            // that prevents closing range for decisive damage.
-            float dist = distance(myCarrier, nearestEnemyCarrier);
-            float retreatX = myCarrier.px() - (nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_KITE_DISTANCE;
-            float retreatY = myCarrier.py() - (nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_KITE_DISTANCE;
-            float margin = BORDER_MARGIN + SAFE_INSET;
-            retreatX = Math.max(margin, Math.min(settings.worldWidth() - margin, retreatX));
-            retreatY = Math.max(margin, Math.min(settings.worldHeight() - margin, retreatY));
-            sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
-                    (int) (retreatX - myCarrier.px()) + "|" + (int) (retreatY - myCarrier.py())));
+        } else if (liveEnemyCarriers.size() > 1 && hasEnemies) {
+            // Multi-enemy default: hug closest corner to minimise attack surface and face fighters outward.
+            sendCornerOrder(myCarrier);
         } else if (hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.PATROL));
         }
@@ -302,6 +278,39 @@ public class ClaudeCommander extends AbstractCommander {
         } catch (NumberFormatException ex) {
             return Integer.MAX_VALUE;
         }
+    }
+
+    private void sendCornerOrder(Entity carrier) {
+        int[] offset = closestCornerOffset(carrier);
+        float dist = (float) Math.sqrt((float) offset[0] * offset[0] + (float) offset[1] * offset[1]);
+        if (dist > CARRIER_CORNER_THRESHOLD) {
+            sendOrder(new Order(carrier.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
+        } else {
+            sendOrder(new Order(carrier.id(), OrderType.PATROL));
+        }
+    }
+
+    private int[] closestCornerOffset(Entity carrier) {
+        float margin = BORDER_MARGIN + SAFE_INSET;
+        float ww = settings.worldWidth(), wh = settings.worldHeight();
+        float[][] corners = {
+            {margin, margin},
+            {ww - margin, margin},
+            {margin, wh - margin},
+            {ww - margin, wh - margin}
+        };
+        float bestDistSq = Float.MAX_VALUE;
+        float[] best = corners[0];
+        for (float[] c : corners) {
+            float dx = carrier.px() - c[0];
+            float dy = carrier.py() - c[1];
+            float dsq = dx * dx + dy * dy;
+            if (dsq < bestDistSq) {
+                bestDistSq = dsq;
+                best = c;
+            }
+        }
+        return new int[]{Math.round(best[0] - carrier.px()), Math.round(best[1] - carrier.py())};
     }
 
     // When an armed missile is within CARRIER_DODGE_RANGE and heading toward our carrier,
