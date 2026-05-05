@@ -41,7 +41,7 @@ public class ClaudeCommander extends AbstractCommander {
     private static final float CARRIER_KITE_RANGE = 150f;    // enemy carrier distance that triggers kite-away
     private static final int CARRIER_KITE_FIGHTER_MAX = 8;   // kite only when fighter screen is thin
     private static final float CARRIER_KITE_DISTANCE = 80f;  // how far to move away per kite step
-    private static final int KILL_FOCUS_HP = 600;        // target enemy carrier if HP ≤ this
+    private static final int KILL_FOCUS_HP = 750;        // target enemy carrier if HP ≤ this; missiles deal ~250 HP so post-barrage target is at 750
     private static final float KILL_FOCUS_RANGE = 350f;  // only focus-fire within this distance
     private static final float CARRIER_MIN_SEPARATION_1V1 = 80f; // floor distance in 1v1 to avoid collision
     // Enemy fighters are only considered intruders when within this distance of OUR CARRIER.
