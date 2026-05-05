@@ -246,9 +246,10 @@ public class ClaudeCommander extends AbstractCommander {
             int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
             sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
         } else if (hasKilledEnemy && nearestEnemyCarrier != null) {
-            // Use half the fighter threshold in 1v1 — passive PATROL loses every 1v1 in recorded data.
+            // Use a third of the threshold in 1v1: data shows we rarely hit 6 (half) during the 1v1
+            // phase, so we defaulted to slower ATTACK auto-move; explicit MOVE push closes faster.
             int effectiveThreshold = liveEnemyCarriers.size() == 1
-                    ? AGGRESSION_FIGHTER_THRESHOLD / 2
+                    ? AGGRESSION_FIGHTER_THRESHOLD / 3
                     : AGGRESSION_FIGHTER_THRESHOLD;
             if (myFighters.size() >= effectiveThreshold) {
                 float dist = distance(myCarrier, nearestEnemyCarrier);
