@@ -164,13 +164,14 @@ public class ClaudeCommander extends AbstractCommander {
             } else if (!inFormation) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
             } else {
-                // Only treat enemy fighters as intruders when they have actually penetrated the
-                // inner ring (within FIGHTER_INTRUDER_CARRIER_RANGE of our carrier). Carrier-relative
-                // gating prevents all fighters from locking into defensive mode when 30+ enemy
-                // fighters are spread at 100–150 units (outside the ring but within fighter range).
-                // Each fighter picks the nearest qualifying intruder to distribute our squad.
+                // In 1v1 the enemy has fewer fighters but clusters them near our carrier:
+                // ef_near_100 reaches 17 while fighters at 76–100 units fire unchallenged under
+                // the 75-unit multi-enemy gate. Raise to 100 in 1v1 to engage that band.
+                // In multi-enemy keep 75 to avoid locking all fighters into defensive mode
+                // when 30+ enemies fill the 100-unit zone (task-80 fix).
+                float intruderRange = liveEnemyCarriers.size() == 1 ? 100f : FIGHTER_INTRUDER_CARRIER_RANGE;
                 Entity nearbyEnemy = activeEnemyFighters.stream()
-                        .filter(e -> distance(e, myCarrier) < FIGHTER_INTRUDER_CARRIER_RANGE)
+                        .filter(e -> distance(e, myCarrier) < intruderRange)
                         .min((a, b) -> Float.compare(distance(a, fighter), distance(b, fighter)))
                         .orElse(null);
                 if (nearbyEnemy != null) {
