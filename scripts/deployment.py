@@ -50,7 +50,7 @@ def main(jsonl_path: Path):
 
     players = json.loads(lines[0])
     our_color = next(
-        (p["color"] for p in players if p["username"] == "Klaudiusz"), None
+        (p["color"] for p in players if p["username"] == "Klaudia"), None
     )
     if not our_color:
         # Fall back to BLUE if username not found

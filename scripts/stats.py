@@ -83,9 +83,9 @@ def main(jsonl_path: Path):
     players = json.loads(lines[0])  # [{id, color, username}]
     color_to_name = {p["color"]: p["username"] for p in players}
 
-    # Identify our color (Klaudiusz)
+    # Identify our color (Klaudia)
     our_color = next(
-        (p["color"] for p in players if p["username"] == "Klaudiusz"), None
+        (p["color"] for p in players if p["username"] == "Klaudia"), None
     )
 
     frames = [json.loads(l) for l in lines[1:]]

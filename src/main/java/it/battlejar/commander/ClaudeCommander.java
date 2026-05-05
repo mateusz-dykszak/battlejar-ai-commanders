@@ -19,9 +19,7 @@ public class ClaudeCommander extends AbstractCommander {
     private static final long ORDER_COOLDOWN_MS = 150;
     private static final float BORDER_MARGIN = 50f;
     private static final float SAFE_INSET = 30f;      // extra clearance beyond border margin
-    private static final float FORMATION_THRESHOLD = 100f; // increased from 50: reduces slot-chasing after carrier dodge
-    private static final int DOCK_HEALTH_THRESHOLD = 3;    // fighters start at 10 HP; dock below 30%
-    private static final long RECOVERY_MS = 1_500;         // time a docked fighter is left to heal before redeploying
+    private static final float FORMATION_THRESHOLD = 100f;
     private static final float FIGHTER_MISSILE_RANGE = 150f;
     private static final float FIGHTER_LASER_RANGE = 150f;   // per-fighter proximity for TARGET "M" defense
     private static final float MISSILE_INTERCEPT_RANGE = 80f;  // physical move-to-intercept; beyond this rely on lasers
@@ -51,9 +49,6 @@ public class ClaudeCommander extends AbstractCommander {
     private static final float FIGHTER_INTRUDER_CARRIER_RANGE = 75f;
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
-    // fighters we explicitly docked for damage recovery; excluded from deploy orders until RECOVERY_MS passes
-    private final Set<String> recovering = new HashSet<>();
-    private final Map<String, Long> dockTime = new HashMap<>();
     // last known angle to current target carrier; reused when no enemy is visible
     private float lastFormationAngle = 0f;
     // enemy carrier count at game start; used to detect when we have achieved a kill
@@ -151,10 +146,6 @@ public class ClaudeCommander extends AbstractCommander {
 
             if (isNearBorder(fighter)) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, "0|0"));
-            } else if (health(fighter) <= DOCK_HEALTH_THRESHOLD) {
-                recovering.add(fighter.id());
-                dockTime.put(fighter.id(), System.currentTimeMillis());
-                sendOrder(new Order(fighter.id(), OrderType.DOCK));
             } else if (intercept.containsKey(fighter.id())) {
                 int[] mPos = intercept.get(fighter.id());
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, mPos[0] + "|" + mPos[1]));
@@ -189,20 +180,13 @@ public class ClaudeCommander extends AbstractCommander {
         }
 
         // Send formation orders to docked fighters to trigger undocking at the game's configured rate.
-        // Skip fighters still in the recovery window from a damage-retreat DOCK.
-        long now = System.currentTimeMillis();
         entities.stream()
                 .filter(e -> e.type() == Entity.Type.FIGHTER)
                 .filter(e -> myColor.name().equals(e.color()))
                 .filter(e -> "C".equals(e.status()))
                 .forEach(docked -> {
-                    boolean stillRecovering = recovering.contains(docked.id())
-                            && now - dockTime.getOrDefault(docked.id(), 0L) < RECOVERY_MS;
-                    if (!stillRecovering) {
-                        recovering.remove(docked.id());
-                        int[] offset = formationOffset(docked, formation);
-                        sendOrder(new Order(docked.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
-                    }
+                    int[] offset = formationOffset(docked, formation);
+                    sendOrder(new Order(docked.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
                 });
 
         int[] carrierDodge = computeCarrierDodge(entities, myCarrier);
@@ -394,7 +378,6 @@ public class ClaudeCommander extends AbstractCommander {
         for (Entity missile : threats) {
             myFighters.stream()
                     .filter(f -> !assigned.contains(f.id()))
-                    .filter(f -> !recovering.contains(f.id()))
                     .filter(f -> !isNearBorder(f))
                     .min((a, b) -> Float.compare(distance(a, missile), distance(b, missile)))
                     .ifPresent(f -> {
