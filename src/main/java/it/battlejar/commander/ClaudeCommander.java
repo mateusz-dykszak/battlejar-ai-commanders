@@ -259,6 +259,19 @@ public class ClaudeCommander extends AbstractCommander {
                 // In 1v1 with too few fighters to push: ATTACK with carrier lasers while waiting for
                 // more fighters to deploy. Carrier auto-moves toward target, supplementing fighter DPS.
                 sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
+            } else if (distance(myCarrier, nearestEnemyCarrier) < CARRIER_KITE_RANGE
+                    && myFighters.size() < CARRIER_KITE_FIGHTER_MAX
+                    && liveEnemyCarriers.size() > 1) {
+                // Kite is dead after first kill in multi-enemy because this branch is never reached
+                // from the post-kill path — replicate it here as the thin-screen fallback.
+                float dist = distance(myCarrier, nearestEnemyCarrier);
+                float retreatX = myCarrier.px() - (nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_KITE_DISTANCE;
+                float retreatY = myCarrier.py() - (nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_KITE_DISTANCE;
+                float margin = BORDER_MARGIN + SAFE_INSET;
+                retreatX = Math.max(margin, Math.min(settings.worldWidth() - margin, retreatX));
+                retreatY = Math.max(margin, Math.min(settings.worldHeight() - margin, retreatY));
+                sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
+                        (int) (retreatX - myCarrier.px()) + "|" + (int) (retreatY - myCarrier.py())));
             } else {
                 sendOrder(new Order(myCarrier.id(), OrderType.PATROL));
             }
