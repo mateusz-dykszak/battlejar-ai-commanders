@@ -34,6 +34,10 @@ public class ClaudeCommander extends AbstractCommander {
     private static final int FORMATION_SLOTS = 8;
     private static final int AGGRESSION_FIGHTER_THRESHOLD = 12;
     private static final float CARRIER_PUSH_DISTANCE = 80f;
+    // In 1v1, an 80-unit target tracks the retreating enemy at constant distance (net closure ≈ 0).
+    // A 400-unit target aims past the enemy so the carrier always moves at max speed toward them.
+    // CARRIER_MIN_SEPARATION_1V1 catches it at 80 units; combat settles at 80–100 units range.
+    private static final float CARRIER_PUSH_DISTANCE_1V1 = 400f;
     private static final float CARRIER_KITE_RANGE = 150f;    // enemy carrier distance that triggers kite-away
     private static final int CARRIER_KITE_FIGHTER_MAX = 8;   // kite only when fighter screen is thin
     private static final float CARRIER_KITE_DISTANCE = 80f;  // how far to move away per kite step
@@ -254,8 +258,9 @@ public class ClaudeCommander extends AbstractCommander {
                     : AGGRESSION_FIGHTER_THRESHOLD;
             if (myFighters.size() >= effectiveThreshold) {
                 float dist = distance(myCarrier, nearestEnemyCarrier);
-                int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE);
-                int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
+                float pushDist = liveEnemyCarriers.size() == 1 ? CARRIER_PUSH_DISTANCE_1V1 : CARRIER_PUSH_DISTANCE;
+                int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * pushDist);
+                int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * pushDist);
                 sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
             } else if (liveEnemyCarriers.size() == 1) {
                 // In 1v1 with too few fighters to push: ATTACK with carrier lasers while waiting for
