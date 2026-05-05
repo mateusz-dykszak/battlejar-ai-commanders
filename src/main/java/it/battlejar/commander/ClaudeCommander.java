@@ -40,7 +40,11 @@ public class ClaudeCommander extends AbstractCommander {
     private static final int KILL_FOCUS_HP = 600;        // target enemy carrier if HP ≤ this
     private static final float KILL_FOCUS_RANGE = 350f;  // only focus-fire within this distance
     private static final float CARRIER_MIN_SEPARATION_1V1 = 80f; // floor distance in 1v1 to avoid collision
-    private static final float FIGHTER_INTRUDER_RANGE = 120f; // per-fighter: engage nearest enemy fighter within this radius
+    // Enemy fighters are only considered intruders when within this distance of OUR CARRIER.
+    // Using carrier-relative (not fighter-relative) prevents all fighters from locking into
+    // defensive mode when 30+ enemy fighters fill the area at 100–150 units — outside the ring
+    // but within fighter-relative 120 units. Fighters outside this ring keep attacking the carrier.
+    private static final float FIGHTER_INTRUDER_CARRIER_RANGE = 75f;
 
     private final Map<String, Long> lastOrderTime = new HashMap<>();
     // fighters we explicitly docked for damage recovery; excluded from deploy orders until RECOVERY_MS passes
@@ -160,11 +164,13 @@ public class ClaudeCommander extends AbstractCommander {
             } else if (!inFormation) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
             } else {
-                // Each fighter independently targets the nearest enemy fighter within its own
-                // engagement radius, distributing our squad against the swarm instead of all
-                // piling on one shared target while the rest laser the carrier freely.
+                // Only treat enemy fighters as intruders when they have actually penetrated the
+                // inner ring (within FIGHTER_INTRUDER_CARRIER_RANGE of our carrier). Carrier-relative
+                // gating prevents all fighters from locking into defensive mode when 30+ enemy
+                // fighters are spread at 100–150 units (outside the ring but within fighter range).
+                // Each fighter picks the nearest qualifying intruder to distribute our squad.
                 Entity nearbyEnemy = activeEnemyFighters.stream()
-                        .filter(e -> distance(e, fighter) < FIGHTER_INTRUDER_RANGE)
+                        .filter(e -> distance(e, myCarrier) < FIGHTER_INTRUDER_CARRIER_RANGE)
                         .min((a, b) -> Float.compare(distance(a, fighter), distance(b, fighter)))
                         .orElse(null);
                 if (nearbyEnemy != null) {
