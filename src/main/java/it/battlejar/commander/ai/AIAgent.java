@@ -8,11 +8,17 @@ import it.battlejar.api.Color;
 import it.battlejar.commander.map.BattleMap;
 import it.battlejar.commander.map.ColorSectorStatus;
 import it.battlejar.commander.map.Sector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AIAgent {
+
+    private static final Logger log = LoggerFactory.getLogger(AIAgent.class);
 
     public interface CommanderService {
         @SystemMessage("""
@@ -55,7 +61,7 @@ public class AIAgent {
 
         OpenAiChatModel model = OpenAiChatModel.builder()
                 .apiKey(apiKey)
-                .modelName("gpt-4o-mini") // Using 4o-mini as a reasonable default for "5.4-mini"
+                .modelName("gpt-5.4-nano")
                 .build();
 
         this.service = AiServices.create(CommanderService.class, model);
@@ -90,6 +96,15 @@ public class AIAgent {
             }
         }
 
-        return service.getCommands(sb.toString());
+        String userMessage = sb.toString();
+        log.info("Sending map state to LLM:\n{}", userMessage);
+
+        Instant start = Instant.now();
+        String response = service.getCommands(userMessage);
+        Instant end = Instant.now();
+
+        log.info("LLM response received in {}ms:\n{}", Duration.between(start, end).toMillis(), response);
+
+        return response;
     }
 }
