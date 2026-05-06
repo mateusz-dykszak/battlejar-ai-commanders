@@ -10,6 +10,11 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Fires a fighter's missile at the primary target carrier when the fighter is within missile
+ * range. Prioritised before laser defence because burst damage on the carrier stops it from
+ * launching more missiles entirely.
+ */
 public class FighterMissileFireTactic implements Tactic<Entity> {
 
     private final float missileRange;

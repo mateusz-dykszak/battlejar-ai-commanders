@@ -11,6 +11,11 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Highest-priority carrier safety: if the carrier is near the world border, moves it inward
+ * to a safe position. Unlike the fighter variant this cannot use 0|0 — it computes an absolute
+ * inward offset based on world dimensions.
+ */
 public class CarrierBorderEvasionTactic implements Tactic<Entity> {
 
     private final float borderMargin;

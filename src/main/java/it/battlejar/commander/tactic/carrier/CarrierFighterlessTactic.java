@@ -9,6 +9,10 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Last-resort carrier attack when we have no active fighters. The carrier targets the primary
+ * enemy carrier directly, or issues a generic ATTACK if no specific target is available.
+ */
 public class CarrierFighterlessTactic implements Tactic<Entity> {
 
     @Override

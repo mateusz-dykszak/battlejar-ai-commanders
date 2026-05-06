@@ -13,6 +13,10 @@ import it.battlejar.commander.tactic.fighter.*;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Active when exactly one enemy carrier remains. Fighters hold a forward 180° arc toward the
+ * enemy; the carrier kites to avoid collision and pushes aggressively once it has scored a kill.
+ */
 public class OneVsOneStrategy implements Strategy {
 
     private final List<Tactic<Entity>> fighterTactics;

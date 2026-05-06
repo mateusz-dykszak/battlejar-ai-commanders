@@ -10,6 +10,11 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Fallback attack when a fighter is in formation and has no defensive duty. Prefers enemy
+ * fighters that have breached the carrier's inner perimeter (intruder range differs by scenario),
+ * then the primary target carrier, then a generic ATTACK as a last resort.
+ */
 public class FighterAttackTactic implements Tactic<Entity> {
 
     private final float intruderCarrierRange;

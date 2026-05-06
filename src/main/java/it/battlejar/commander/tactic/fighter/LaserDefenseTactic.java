@@ -10,6 +10,11 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Switches a fighter to laser mode (TARGET "M") when an armed enemy missile is within laser
+ * range of that specific fighter. Each fighter defends itself independently, so the rest of
+ * the squad keeps attacking.
+ */
 public class LaserDefenseTactic implements Tactic<Entity> {
 
     private final float laserRange;

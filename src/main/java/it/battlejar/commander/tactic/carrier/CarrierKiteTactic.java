@@ -11,6 +11,10 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Backs the carrier away from the enemy carrier when they are too close. Used in 1v1 to
+ * prevent a collision at point-blank range where neither side can manoeuvre or fire effectively.
+ */
 public class CarrierKiteTactic implements Tactic<Entity> {
 
     private final float minSeparation;

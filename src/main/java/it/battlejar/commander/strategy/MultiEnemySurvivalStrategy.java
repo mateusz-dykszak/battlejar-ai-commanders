@@ -13,6 +13,12 @@ import it.battlejar.commander.tactic.fighter.*;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Active when multiple enemies remain and the carrier has not yet reached a corner. The carrier
+ * retreats to the nearest corner to stay out of crossfire while enemies weaken each other.
+ * Fighters defend and engage opportunistically. Transitions to {@link MultiEnemyHunterStrategy}
+ * once the corner is reached.
+ */
 public class MultiEnemySurvivalStrategy implements Strategy {
 
     private final List<Tactic<Entity>> fighterTactics;

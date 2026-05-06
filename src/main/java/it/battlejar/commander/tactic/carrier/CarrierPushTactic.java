@@ -11,6 +11,11 @@ import it.battlejar.commander.tactic.Tactic;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+/**
+ * Moves the carrier toward the primary target at a configurable push distance. The caller
+ * supplies a condition predicate — this tactic does nothing when the predicate is false,
+ * letting the next tactic in the chain handle the carrier instead.
+ */
 public class CarrierPushTactic implements Tactic<Entity> {
 
     private final float pushDistance;

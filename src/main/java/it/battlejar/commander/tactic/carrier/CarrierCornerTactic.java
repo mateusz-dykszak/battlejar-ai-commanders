@@ -10,6 +10,12 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Moves the carrier to the nearest world corner to stay out of crossfire between enemies.
+ * Once within the corner threshold, sets {@link it.battlejar.commander.CommanderState#carrierReachedCorner}
+ * and switches to PATROL — this flag is permanent and triggers the handoff to
+ * {@link it.battlejar.commander.strategy.MultiEnemyHunterStrategy}.
+ */
 public class CarrierCornerTactic implements Tactic<Entity> {
 
     private final float borderMargin;

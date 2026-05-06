@@ -14,6 +14,12 @@ import it.battlejar.commander.tactic.fighter.*;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Active when multiple enemies remain and the carrier is already in a corner. Pushes toward a
+ * wounded or already-targeted enemy to finish them off; falls back to the corner when push
+ * conditions are not met. Eliminates enemies one by one until only one is left, at which point
+ * {@link OneVsOneStrategy} takes over.
+ */
 public class MultiEnemyHunterStrategy implements Strategy {
 
     private final List<Tactic<Entity>> fighterTactics;

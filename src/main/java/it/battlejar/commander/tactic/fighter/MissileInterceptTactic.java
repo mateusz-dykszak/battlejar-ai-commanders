@@ -9,6 +9,11 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Sends a fighter to physically ram an incoming missile. Assignment is precomputed in
+ * {@link it.battlejar.commander.GameSnapshot#interceptMap()} (one fighter per missile, closest
+ * match wins). Only triggers for missiles already very close to the carrier.
+ */
 public class MissileInterceptTactic implements Tactic<Entity> {
 
     @Override

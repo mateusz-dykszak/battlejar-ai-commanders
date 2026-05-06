@@ -10,6 +10,11 @@ import it.battlejar.commander.tactic.Tactic;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+/**
+ * Issues a targeted ATTACK order against the primary enemy carrier when a caller-supplied
+ * condition is met. Used in 1v1 after a kill has been scored but the fighter count is too low
+ * to justify a full push — the carrier contributes damage directly instead of just patrolling.
+ */
 public class CarrierAttackTactic implements Tactic<Entity> {
 
     private final Predicate<GameSnapshot> condition;

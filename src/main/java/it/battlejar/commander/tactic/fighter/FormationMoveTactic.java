@@ -10,6 +10,11 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Moves a fighter to its assigned formation slot relative to the carrier when it has drifted
+ * too far from that position. Formation layout (radius, arc) is precomputed in
+ * {@link it.battlejar.commander.GameSnapshot#formation()}.
+ */
 public class FormationMoveTactic implements Tactic<Entity> {
 
     private final float formationThreshold;

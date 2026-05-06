@@ -9,6 +9,10 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Fallback carrier behaviour: issues PATROL so the carrier moves unpredictably while fighters
+ * handle the engagement. Fires only when there are still enemies; does nothing in a won game.
+ */
 public class CarrierPatrolTactic implements Tactic<Entity> {
 
     @Override

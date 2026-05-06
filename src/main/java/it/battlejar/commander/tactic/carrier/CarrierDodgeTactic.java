@@ -11,6 +11,12 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Attempts to side-step an incoming missile by moving perpendicular to its velocity. The
+ * carrier is too slow to reliably outrun missiles, so this mainly works when the missile is
+ * still far away. Picks the perpendicular direction with the most interior clearance from
+ * the border; does nothing if both directions are blocked.
+ */
 public class CarrierDodgeTactic implements Tactic<Entity> {
 
     private final float dodgeRange;

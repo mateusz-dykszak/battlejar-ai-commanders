@@ -9,6 +9,11 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Fires the carrier's missile at the primary target. Rate-limited to once per
+ * {@link it.battlejar.commander.GameConfig#CARRIER_MISSILE_FIRE_INTERVAL_MS} so that movement
+ * orders are not continuously blocked — the carrier still moves on the other ticks.
+ */
 public class CarrierMissileFireTactic implements Tactic<Entity> {
 
     private final long fireIntervalMs;

@@ -10,6 +10,10 @@ import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
+/**
+ * Highest-priority safety net: if a fighter is near the world border, sends it back to the
+ * carrier (MOVE 0|0) to prevent a border kill.
+ */
 public class BorderEvasionTactic implements Tactic<Entity> {
 
     private final float borderMargin;

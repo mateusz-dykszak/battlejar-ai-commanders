@@ -9,6 +9,11 @@ import it.battlejar.commander.GameSnapshot;
 import it.battlejar.commander.GameUtils;
 import it.battlejar.commander.OrderSender;
 
+/**
+ * Wraps any strategy and prepends a deployment step: sends every docked fighter a move order
+ * toward the closest incoming threat (missile, then enemy fighter, then enemy carrier) so they
+ * undock facing the right direction instead of idling inside the carrier.
+ */
 public class DeploymentDecorator implements Strategy {
 
     private final Strategy inner;
