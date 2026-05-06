@@ -13,6 +13,9 @@ public class BattleMap {
     private final float worldHeight;
     private final Sector[][] grid;
 
+    private float myCarrierX = -1;
+    private float myCarrierY = -1;
+
     private static final int SIGNIFICANT_LEVEL = 5;
 
     public BattleMap(int rows, int cols, GameSettings settings) {
@@ -23,7 +26,16 @@ public class BattleMap {
         this.grid = new Sector[rows][cols];
     }
 
-    public void update(Collection<Entity> entities) {
+    public void update(Collection<Entity> entities, Color myColor) {
+        // Find our carrier position first
+        for (Entity entity : entities) {
+            if (entity.type() == Entity.Type.CARRIER && myColor.name().equalsIgnoreCase(entity.color())) {
+                myCarrierX = entity.px();
+                myCarrierY = entity.py();
+                break;
+            }
+        }
+
         // Initialize grid with empty sectors
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
@@ -34,11 +46,13 @@ public class BattleMap {
         // Temporary storage for processing
         Map<Color, List<String>>[][] fightersInSector = new Map[rows][cols];
         Map<Color, Boolean>[][] carrierInSector = new Map[rows][cols];
+        Map<Color, List<Entity>>[][] entitiesInSector = new Map[rows][cols];
 
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 fightersInSector[r][c] = new EnumMap<>(Color.class);
                 carrierInSector[r][c] = new EnumMap<>(Color.class);
+                entitiesInSector[r][c] = new EnumMap<>(Color.class);
             }
         }
 
@@ -53,6 +67,7 @@ public class BattleMap {
             c = Math.max(0, Math.min(cols - 1, c));
 
             Color color = Color.valueOf(entity.color().toUpperCase());
+            entitiesInSector[r][c].computeIfAbsent(color, k -> new ArrayList<>()).add(entity);
 
             if (entity.type() == Entity.Type.FIGHTER) {
                 fightersInSector[r][c].computeIfAbsent(color, k -> new ArrayList<>()).add(entity.id());
@@ -76,10 +91,60 @@ public class BattleMap {
                     
                     FleetPresence presence = calculatePresence(color, names.size(), fightersInSector[r][c]);
                     
-                    colorStatuses.put(color, new ColorSectorStatus(hasCarrier, presence, names));
+                    ThreatLevel threat = ThreatLevel.NONE;
+                    if (color != myColor) {
+                        threat = calculateThreat(color, entitiesInSector[r][c].get(color), myColor, entities);
+                    }
+                    
+                    colorStatuses.put(color, new ColorSectorStatus(hasCarrier, presence, names, threat));
                 }
             }
         }
+    }
+
+    private ThreatLevel calculateThreat(Color enemyColor, List<Entity> enemyEntities, Color myColor, Collection<Entity> allEntities) {
+        if (enemyEntities == null || enemyEntities.isEmpty() || myCarrierX == -1) return ThreatLevel.NONE;
+
+        boolean movingTowardsCarrier = false;
+        boolean movingTowardsFighters = false;
+
+        List<Entity> myFighters = allEntities.stream()
+                .filter(e -> e.type() == Entity.Type.FIGHTER && myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
+                .toList();
+
+        for (Entity enemy : enemyEntities) {
+            if (enemy.type() == Entity.Type.MISSILE) continue;
+
+            // Vector from enemy to my carrier
+            float toCarrierX = myCarrierX - enemy.px();
+            float toCarrierY = myCarrierY - enemy.py();
+            
+            // Dot product of velocity and direction to carrier
+            float dotCarrier = enemy.vx() * toCarrierX + enemy.vy() * toCarrierY;
+            if (dotCarrier > 0) {
+                movingTowardsCarrier = true;
+            }
+
+            for (Entity myFighter : myFighters) {
+                float toFighterX = myFighter.px() - enemy.px();
+                float toFighterY = myFighter.py() - enemy.py();
+                float dotFighter = enemy.vx() * toFighterX + enemy.vy() * toFighterY;
+                if (dotFighter > 0) {
+                    float distSq = toFighterX * toFighterX + toFighterY * toFighterY;
+                    if (distSq < 40000) { // arbitrary "close enough" distance (200 units)
+                        movingTowardsFighters = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (movingTowardsCarrier && movingTowardsFighters) break;
+        }
+
+        if (movingTowardsCarrier) return ThreatLevel.HIGH;
+        if (movingTowardsFighters) return ThreatLevel.MEDIUM;
+        
+        return ThreatLevel.LOW; // Present but not moving towards us
     }
 
     private FleetPresence calculatePresence(Color color, int count, Map<Color, List<String>> sectorFighters) {
