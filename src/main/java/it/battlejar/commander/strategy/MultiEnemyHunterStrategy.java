@@ -29,7 +29,6 @@ public class MultiEnemyHunterStrategy implements Strategy {
     private final List<Tactic<Entity>> carrierTactics;
 
     public MultiEnemyHunterStrategy() {
-        int halfThreshold = GameConfig.AGGRESSION_FIGHTER_THRESHOLD / 2;
         int fullThreshold = GameConfig.AGGRESSION_FIGHTER_THRESHOLD;
 
         this.fighterTactics = List.of(
@@ -42,15 +41,11 @@ public class MultiEnemyHunterStrategy implements Strategy {
         );
 
         this.carrierTactics = List.of(
+                new CarrierCornerTactic(GameConfig.BORDER_MARGIN, GameConfig.SAFE_INSET,
+                        GameConfig.CARRIER_CORNER_THRESHOLD),
                 new CarrierBorderEvasionTactic(GameConfig.BORDER_MARGIN, GameConfig.SAFE_INSET),
                 new CarrierMissileFireTactic(GameConfig.CARRIER_MISSILE_FIRE_INTERVAL_MS),
-                // Pre-kill push: wounded enemy, haven't killed anyone yet
-                new CarrierPushTactic(GameConfig.CARRIER_PUSH_DISTANCE,
-                        s -> !s.hasKilledEnemy()
-                                && s.primaryTarget() != null
-                                && GameUtils.health(s.primaryTarget()) <= GameConfig.KILL_FOCUS_HP
-                                && s.myActiveFighters().size() >= halfThreshold),
-                // Post-kill push: already eliminated one, enough fighters to press
+                // Push only after scoring a kill — we have a numbers advantage
                 new CarrierPushTactic(GameConfig.CARRIER_PUSH_DISTANCE,
                         s -> s.hasKilledEnemy() && s.myActiveFighters().size() >= fullThreshold),
                 new CarrierCornerTactic(GameConfig.BORDER_MARGIN, GameConfig.SAFE_INSET,
