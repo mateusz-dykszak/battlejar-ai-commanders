@@ -1,10 +1,13 @@
 package it.battlejar.commander;
 
 import it.battlejar.client.BattleJarContinuous;
-import it.battlejar.api.Player;
+
 import java.util.concurrent.Executors;
 
 public class Main {
+
+    private static final int MAX_GAMES = 3;
+
     public static void main(String[] args) {
         String apiUrl = System.getenv("BATTLEJAR_API_URL");
         if (apiUrl == null || apiUrl.isBlank()) {
@@ -16,7 +19,8 @@ public class Main {
                 apiUrl,
                 null, // Player will be resolved from battlejar.conf
                 AgenticCommander::new,
-                executor
+                executor,
+                    MAX_GAMES
             );
             continuous.run();
         }
