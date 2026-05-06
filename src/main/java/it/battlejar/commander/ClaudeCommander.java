@@ -37,7 +37,7 @@ public class ClaudeCommander extends AbstractCommander {
     // CARRIER_MIN_SEPARATION_1V1 catches it at 80 units; combat settles at 80–100 units range.
     private static final float CARRIER_PUSH_DISTANCE_1V1 = 400f;
     private static final float CARRIER_KITE_DISTANCE = 80f;  // retreat distance for 1v1 collision avoidance
-    private static final float CARRIER_CORNER_THRESHOLD = 40f; // within this distance of corner, switch to patrol
+    private static final float CARRIER_CORNER_THRESHOLD = 10f; // within this distance of corner, switch to patrol
     private static final int KILL_FOCUS_HP = 750;        // target enemy carrier if HP ≤ this; missiles deal ~250 HP so post-barrage target is at 750
     private static final float KILL_FOCUS_RANGE = 350f;  // only focus-fire within this distance
     private static final float CARRIER_MIN_SEPARATION_1V1 = 80f; // floor distance in 1v1 to avoid collision
@@ -210,14 +210,33 @@ public class ClaudeCommander extends AbstractCommander {
             float dx = nearestEnemyCarrier.px() - myCarrier.px();
             float dy = nearestEnemyCarrier.py() - myCarrier.py();
             sendOrder(new Order(myCarrier.id(), OrderType.FIRE_MISSILE, (int) dx + "|" + (int) dy));
+        } else if (liveEnemyCarriers.size() > 1) {
+            // Multi-enemy: corner by default; only break out to push when actually ready to kill.
+            boolean enemyWounded = nearestEnemyCarrier != null && health(nearestEnemyCarrier) <= KILL_FOCUS_HP;
+            if (!hasKilledEnemy && enemyWounded
+                    && myFighters.size() >= AGGRESSION_FIGHTER_THRESHOLD / 2) {
+                // Pre-kill push — enemy is already wounded, close in to finish faster.
+                float dist = distance(myCarrier, nearestEnemyCarrier);
+                int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE);
+                int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
+                sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
+            } else if (hasKilledEnemy && nearestEnemyCarrier != null
+                    && myFighters.size() >= AGGRESSION_FIGHTER_THRESHOLD) {
+                // Post-kill push — enough fighters to press the next target.
+                float dist = distance(myCarrier, nearestEnemyCarrier);
+                int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE);
+                int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
+                sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
+            } else {
+                sendCornerOrder(myCarrier);
+            }
         } else if (myFighters.isEmpty() && nearestEnemyCarrier != null) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
         } else if (myFighters.isEmpty() && hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK));
         } else if (liveEnemyCarriers.size() == 1 && nearestEnemyCarrier != null
                 && distance(myCarrier, nearestEnemyCarrier) < CARRIER_MIN_SEPARATION_1V1) {
-            // Prevent carrier collision in 1v1 — aggression push + enemy ATTACK can drive ec to ~23.
-            // Retreat to restore working separation where even the tight formation doesn't overshoot.
+            // Prevent carrier collision in 1v1.
             float dist = distance(myCarrier, nearestEnemyCarrier);
             float retreatX = myCarrier.px() - (nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_KITE_DISTANCE;
             float retreatY = myCarrier.py() - (nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_KITE_DISTANCE;
@@ -226,40 +245,16 @@ public class ClaudeCommander extends AbstractCommander {
             retreatY = Math.max(margin, Math.min(settings.worldHeight() - margin, retreatY));
             sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
                     (int) (retreatX - myCarrier.px()) + "|" + (int) (retreatY - myCarrier.py())));
-        } else if (!hasKilledEnemy && nearestEnemyCarrier != null
-                && health(nearestEnemyCarrier) <= KILL_FOCUS_HP
-                && myFighters.size() >= AGGRESSION_FIGHTER_THRESHOLD / 2
-                && liveEnemyCarriers.size() > 1) {
-            // Pre-kill push: enemy is already wounded by our opening missiles (hp ≤ KILL_FOCUS_HP).
-            // Close in to bring fighters within tighter laser range and finish the kill faster.
-            // Guard: only in 4-way (not 1v1) and only with a fighter screen active.
-            float dist = distance(myCarrier, nearestEnemyCarrier);
-            int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE);
-            int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
-            sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
         } else if (hasKilledEnemy && nearestEnemyCarrier != null) {
-            // Use a third of the threshold in 1v1: data shows we rarely hit 6 (half) during the 1v1
-            // phase, so we defaulted to slower ATTACK auto-move; explicit MOVE push closes faster.
-            int effectiveThreshold = liveEnemyCarriers.size() == 1
-                    ? AGGRESSION_FIGHTER_THRESHOLD / 3
-                    : AGGRESSION_FIGHTER_THRESHOLD;
-            if (myFighters.size() >= effectiveThreshold) {
+            // 1v1 post-kill push.
+            if (myFighters.size() >= AGGRESSION_FIGHTER_THRESHOLD / 3) {
                 float dist = distance(myCarrier, nearestEnemyCarrier);
-                float pushDist = liveEnemyCarriers.size() == 1 ? CARRIER_PUSH_DISTANCE_1V1 : CARRIER_PUSH_DISTANCE;
-                int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * pushDist);
-                int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * pushDist);
+                int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE_1V1);
+                int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE_1V1);
                 sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
-            } else if (liveEnemyCarriers.size() == 1) {
-                // In 1v1 with too few fighters to push: ATTACK with carrier lasers while waiting for
-                // more fighters to deploy. Carrier auto-moves toward target, supplementing fighter DPS.
-                sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
             } else {
-                // Multi-enemy post-kill: return to corner to minimise attack surface.
-                sendCornerOrder(myCarrier, liveEnemyCarriers);
+                sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
             }
-        } else if (liveEnemyCarriers.size() > 1 && hasEnemies) {
-            // Multi-enemy default: hug closest corner to minimise attack surface and face fighters outward.
-            sendCornerOrder(myCarrier, liveEnemyCarriers);
         } else if (hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.PATROL));
         }
@@ -284,8 +279,8 @@ public class ClaudeCommander extends AbstractCommander {
         }
     }
 
-    private void sendCornerOrder(Entity carrier, List<Entity> enemies) {
-        int[] offset = farthestFromEnemiesCornerOffset(carrier, enemies);
+    private void sendCornerOrder(Entity carrier) {
+        int[] offset = closestCornerOffset(carrier);
         float dist = (float) Math.sqrt((float) offset[0] * offset[0] + (float) offset[1] * offset[1]);
         if (dist > CARRIER_CORNER_THRESHOLD) {
             sendOrder(new Order(carrier.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
@@ -294,9 +289,7 @@ public class ClaudeCommander extends AbstractCommander {
         }
     }
 
-    // Pick the corner that maximises the sum of distances to all live enemy carriers.
-    // This moves us away from the threat cluster rather than toward the geometrically nearest corner.
-    private int[] farthestFromEnemiesCornerOffset(Entity carrier, List<Entity> enemies) {
+    private int[] closestCornerOffset(Entity carrier) {
         float margin = BORDER_MARGIN + SAFE_INSET;
         float ww = settings.worldWidth(), wh = settings.worldHeight();
         float[][] corners = {
@@ -305,17 +298,14 @@ public class ClaudeCommander extends AbstractCommander {
             {margin, wh - margin},
             {ww - margin, wh - margin}
         };
-        float bestScore = -1f;
+        float bestDistSq = Float.MAX_VALUE;
         float[] best = corners[0];
         for (float[] c : corners) {
-            float score = 0f;
-            for (Entity enemy : enemies) {
-                float dx = c[0] - enemy.px();
-                float dy = c[1] - enemy.py();
-                score += (float) Math.sqrt(dx * dx + dy * dy);
-            }
-            if (score > bestScore) {
-                bestScore = score;
+            float dx = carrier.px() - c[0];
+            float dy = carrier.py() - c[1];
+            float dsq = dx * dx + dy * dy;
+            if (dsq < bestDistSq) {
+                bestDistSq = dsq;
                 best = c;
             }
         }
