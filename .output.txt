@@ -1,0 +1,955 @@
+
+> Task :compileJava FAILED
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:3: error: package lombok does not exist
+import lombok.Getter;
+             ^
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:4: error: package lombok.extern.slf4j does not exist
+import lombok.extern.slf4j.Slf4j;
+                          ^
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:19: error: cannot find symbol
+@Slf4j
+ ^
+  symbol: class Slf4j
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:173: error: cannot find symbol
+    @Getter
+     ^
+  symbol:   class Getter
+  location: class HttpGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/EntityJacksonModule.java:12: error: package lombok.extern.slf4j does not exist
+import lombok.extern.slf4j.Slf4j;
+                          ^
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/EntityJacksonModule.java:19: error: cannot find symbol
+@Slf4j
+ ^
+  symbol: class Slf4j
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:9: error: package lombok does not exist
+import lombok.Synchronized;
+             ^
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:10: error: package lombok.extern.slf4j does not exist
+import lombok.extern.slf4j.Slf4j;
+                          ^
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:31: error: cannot find symbol
+@Slf4j
+ ^
+  symbol: class Slf4j
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/GameListener.java:3: error: package lombok.extern.slf4j does not exist
+import lombok.extern.slf4j.Slf4j;
+                          ^
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/GameListener.java:13: error: cannot find symbol
+@Slf4j
+ ^
+  symbol: class Slf4j
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/PingPongListener.java:3: error: package lombok.extern.slf4j does not exist
+import lombok.extern.slf4j.Slf4j;
+                          ^
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/PingPongListener.java:13: error: cannot find symbol
+@Slf4j
+ ^
+  symbol: class Slf4j
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:4: error: package lombok.extern.slf4j does not exist
+import lombok.extern.slf4j.Slf4j;
+                          ^
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:31: error: cannot find symbol
+@Slf4j
+ ^
+  symbol: class Slf4j
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:5: error: package lombok.extern.slf4j does not exist
+import lombok.extern.slf4j.Slf4j;
+                          ^
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:20: error: cannot find symbol
+@Slf4j
+ ^
+  symbol: class Slf4j
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:10: error: package lombok does not exist
+import lombok.Synchronized;
+             ^
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:11: error: package lombok.extern.slf4j does not exist
+import lombok.extern.slf4j.Slf4j;
+                          ^
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:40: error: cannot find symbol
+@Slf4j
+ ^
+  symbol: class Slf4j
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:88: error: cannot find symbol
+    @Synchronized
+     ^
+  symbol:   class Synchronized
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:265: error: cannot find symbol
+    @Synchronized
+     ^
+  symbol:   class Synchronized
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:324: error: cannot find symbol
+    @Synchronized
+     ^
+  symbol:   class Synchronized
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:81: error: cannot find symbol
+            log.error("[{}] Failed to send POST request to {}", gameId, path, e);
+            ^
+  symbol:   variable log
+  location: class HttpGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:102: error: cannot find symbol
+            log.error("[{}] Failed to send GET request to {}", gameId, path, e);
+            ^
+  symbol:   variable log
+  location: class HttpGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:133: error: cannot find symbol
+            log.error("[{}] Failed to send GET request to {}", gameId, path, e);
+            ^
+  symbol:   variable log
+  location: class HttpGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:143: error: cannot find symbol
+                log.debug("[{}] Response from {}: {}", gameId, path, response);
+                ^
+  symbol:   variable log
+  location: class HttpGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:164: error: cannot find symbol
+            log.error("[{}] Failed to read error response", gameId, e);
+            ^
+  symbol:   variable log
+  location: class HttpGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/EntityJacksonModule.java:36: error: cannot find symbol
+                log.error("Error serializing entity", e);
+                ^
+  symbol:   variable log
+  location: class EntitySerializerJackson
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/EntityJacksonModule.java:50: error: cannot find symbol
+                log.error("Error deserializing entity: {}", text, e);
+                ^
+  symbol:   variable log
+  location: class EntityDeserializerJackson
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:97: error: cannot find symbol
+                log.info("[{}] Closing WebSocket", gameId);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:103: error: cannot find symbol
+                log.info("[{}] Closing HTTP client", gameId);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:111: error: cannot find symbol
+            log.error("[{}] Failed to close WebSocket or HTTP client", gameId, e);
+            ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:113: error: cannot find symbol
+            log.info("[{}] Exiting close()", gameId);
+            ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:144: error: cannot find symbol
+                log.error("[{}] Orders processing interrupted - closing connection", gameId, e);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:148: error: cannot find symbol
+                log.error("[{}]Failed to process orders", gameId, e);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:200: error: cannot find symbol
+                            log.debug("[{}] Received JSON from WebSocket: {}", gameId, json);
+                            ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:203: error: cannot find symbol
+                                log.warn("[{}] Parsed WebSocketMessage is null from JSON: {}", gameId, json);
+                                ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:219: error: cannot find symbol
+                                    log.warn("[{}] Unhandled WebSocketMessage type: {}", gameId, wsMessage.getClass().getSimpleName());
+                                    ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:222: error: cannot find symbol
+                            log.error("[{}] Failed to parse WebSocket message JSON: {}", gameId, json, e);
+                            ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:226: error: cannot find symbol
+                        log.debug("[{}] Processing entities: {}, {} skipped", gameId, toProcess, size - 1);
+                        ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:237: error: cannot find symbol
+                log.error("[{}] Failed to process entities", gameId, e);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:243: error: cannot find symbol
+        log.debug("[{}] Send text attempt: {}", gameId, text);
+        ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:245: error: cannot find symbol
+            log.error("[{}] WebSocket is not connected - connect before sending orders...", gameId);
+            ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:247: error: cannot find symbol
+            log.warn("[{}] WebSocket - output is closed", gameId);
+            ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:251: error: cannot find symbol
+                log.debug("[{}] Sending: {}", gameId, text);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:254: error: cannot find symbol
+                log.error("[{}] Failed to send text via WebSocket", gameId, e);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:267: error: cannot find symbol
+        log.info("[{}] Connecting to WebSocket: {}", gameId, wsUrl);
+        ^
+  symbol:   variable log
+  location: class WebSocketGameClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:289: error: cannot find symbol
+                log.info("[{}] Received Ping, responding with Pong: id={}, duration={}ms", gameId, ping.id(), duration);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient.PingPong
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:291: error: cannot find symbol
+                log.warn("[{}] Received Ping, responding with Pong: id={}, duration={}ms (above threshold {}ms)", gameId, ping.id(), duration, PING_WARN_THRESHOLD);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient.PingPong
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:300: error: cannot find symbol
+                log.debug("[{}] Received unexpected or late Pong: id={}", gameId, pong.id());
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient.PingPong
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:307: error: cannot find symbol
+                log.info("[{}] Received Pong from server: id={}, duration={}ms", gameId, pong.id(), duration);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient.PingPong
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:309: error: cannot find symbol
+                log.warn("[{}] Received Pong from server: id={}, duration={}ms (above threshold {}ms)", gameId, pong.id(), duration, PING_WARN_THRESHOLD);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient.PingPong
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:342: error: cannot find symbol
+                    log.error("[{}] Error in connection monitor", gameId, e);
+                    ^
+  symbol:   variable log
+  location: class WebSocketGameClient.PingPong
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:360: error: cannot find symbol
+                log.warn("[{}] Inactive for {}ms. Sending Ping: id={}", gameId, gap, ping.id());
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient.PingPong
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:367: error: cannot find symbol
+                log.error("[{}] Max ping attempts reached. Closing connection.", gameId);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient.PingPong
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:380: error: cannot find symbol
+                log.error("Failed to serialize WebSocket message", e);
+                ^
+  symbol:   variable log
+  location: class WebSocketGameClient.PingPong
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/GameListener.java:35: error: cannot find symbol
+            log.debug("Received message: {}", fullMessage);
+            ^
+  symbol:   variable log
+  location: class GameListener
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/GameListener.java:44: error: cannot find symbol
+        log.error("WebSocket error", error);
+        ^
+  symbol:   variable log
+  location: class GameListener
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/GameListener.java:49: error: cannot find symbol
+        log.info("WebSocket closed: {} {}", statusCode, reason);
+        ^
+  symbol:   variable log
+  location: class GameListener
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:123: error: cannot find symbol
+        log.info("Starting continuous game loop");
+        ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:124: error: cannot find symbol
+        log.info("Server URL: {}", this.serverUrl);
+        ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:126: error: cannot find symbol
+        log.info("Player id: {}", player.id() != null ? player.id() : "(none)");
+        ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:127: error: cannot find symbol
+        log.info("Player name: {}", player.username() != null && !player.username().isBlank() ? player.username() : "(none)");
+        ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:128: error: cannot find symbol
+        log.info("Player color: {}", player.color() != null ? player.color() : "(none)");
+        ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:130: error: cannot find symbol
+            log.info("Game limit: {} (will stop after that many completed games)", maxGames);
+            ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:132: error: cannot find symbol
+            log.info("No game limit (runs until interrupted)");
+            ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:139: error: cannot find symbol
+            log.info("Starting new game session...");
+            ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:144: error: cannot find symbol
+                    log.debug("Registering player with data: {}", player);
+                    ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:146: error: cannot find symbol
+                    log.debug("Registration completed with player data: {}", registeredPlayer);
+                    ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:154: error: cannot find symbol
+                        log.info("Completed {} game(s) (limit: {}). Stopping — client closed, commander finished for this session.", gamesCompleted, maxGames);
+                        ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:157: error: cannot find symbol
+                        log.info("Game session ended. Re-registering... ({} completed so far)", gamesCompleted);
+                        ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:161: error: cannot find symbol
+                log.error("Error in game session: {}. Retrying in 5 seconds...", e.getMessage());
+                ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:166: error: cannot find symbol
+                    log.info("Thread interrupted during retry delay - stopping");
+                    ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:171: error: cannot find symbol
+                    log.info("Thread interrupted - stopping continuous game loop");
+                    ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:175: error: cannot find symbol
+        log.info("Continuous game loop stopped");
+        ^
+  symbol:   variable log
+  location: class BattleJarContinuous
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:49: error: cannot find symbol
+            log.warn("Could not read {}: {}", confPath.toAbsolutePath(), e.getMessage());
+            ^
+  symbol:   variable log
+  location: class BattleJarConf
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:70: error: cannot find symbol
+            log.info("Saved player id to {}", confPath.toAbsolutePath());
+            ^
+  symbol:   variable log
+  location: class BattleJarConf
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:72: error: cannot find symbol
+            log.warn("Could not write player id to {}: {}", confPath.toAbsolutePath(), e.getMessage());
+            ^
+  symbol:   variable log
+  location: class BattleJarConf
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:95: error: cannot find symbol
+            log.warn("Ignoring invalid player.id in config: {}", raw);
+            ^
+  symbol:   variable log
+  location: class BattleJarConf
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:111: error: cannot find symbol
+            log.warn("Ignoring invalid player.color in config: {}", raw);
+            ^
+  symbol:   variable log
+  location: class BattleJarConf
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:104: error: cannot find symbol
+        log.debug("[{}] Registering player {} with color: {}", gameId, player.id(), player.color() == null ? "AUTO" : player.color());
+        ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:109: error: cannot find symbol
+                log.debug("[{}] Registration request payload: {}", gameId, jsonBody);
+                ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:113: error: cannot find symbol
+                log.debug("[{}] Registration response payload: code={}, body={}", gameId, code, jsonBodyResponse);
+                ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:117: error: cannot find symbol
+                    log.debug("[{}] Registration response parsed: id={}, color={}", gameId, response.playerId(), response.color());
+                    ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:123: error: cannot find symbol
+                        log.debug("[{}] Updated player: {}", gameId, this.player);
+                        ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:131: error: cannot find symbol
+                        log.info("[{}] Registration successful - player: {}", gameId, this.player);
+                        ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:139: error: cannot find symbol
+                    log.error("[{}] Registration failed with code {}: {}", gameId, code, jsonBodyResponse);
+                    ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:170: error: cannot find symbol
+            log.info("[{}] Connected to WebSocket: {}", gameId, wsUrl);
+            ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:172: error: cannot find symbol
+            log.info("[{}] Started processing WebSocket messages", gameId);
+            ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:174: error: cannot find symbol
+            log.info("[{}] Started processing entities. Starting sending orders", gameId);
+            ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:176: error: cannot find symbol
+            log.info("[{}] Stopped sending orders. Stopping processing entities", gameId);
+            ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:186: error: cannot find symbol
+                log.info("[{}] Game state is {}, leaving gracefully", gameId, state);
+                ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:191: error: cannot find symbol
+        log.debug("[{}] Processing {} entities for commander", gameId, entities.entities().size());
+        ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:212: error: cannot find symbol
+                log.warn("[{}] History download returned empty body", gameId);
+                ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:216: error: cannot find symbol
+            log.info("[{}] Saved history to {}", gameId, outDir.toAbsolutePath());
+            ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:218: error: cannot find symbol
+            log.warn("[{}] Failed to download or save history", gameId, e);
+            ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:238: error: cannot find symbol
+            log.debug("[{}] {} is not a valid path: {}", gameId, BATTLEJAR_HISTORY_DIR, e.getMessage());
+            ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:244: error: cannot find symbol
+            log.debug("[{}] Cannot create history directory {}: {}", gameId, base, e.getMessage());
+            ^
+  symbol:   variable log
+  location: class BattleJarClient
+/home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:248: error: cannot find symbol
+            log.debug("[{}] History directory is missing, not a directory, or not writable: {}", gameId, base);
+            ^
+  symbol:   variable log
+  location: class BattleJarClient
+100 errors
+[Incubating] Problems report is available at: file:///home/mad/workspace/battlejar-ai-commanders/agentic-commander/build/reports/problems/problems-report.html
+FAILURE: Build failed with an exception.
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:173: error: cannot find symbol
+      @Getter
+       ^
+    symbol:   class Getter
+    location: class HttpGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:88: error: cannot find symbol
+      @Synchronized
+       ^
+    symbol:   class Synchronized
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:265: error: cannot find symbol
+      @Synchronized
+       ^
+    symbol:   class Synchronized
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:324: error: cannot find symbol
+      @Synchronized
+       ^
+    symbol:   class Synchronized
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:81: error: cannot find symbol
+              log.error("[{}] Failed to send POST request to {}", gameId, path, e);
+              ^
+    symbol:   variable log
+    location: class HttpGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:102: error: cannot find symbol
+              log.error("[{}] Failed to send GET request to {}", gameId, path, e);
+              ^
+    symbol:   variable log
+    location: class HttpGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:133: error: cannot find symbol
+              log.error("[{}] Failed to send GET request to {}", gameId, path, e);
+              ^
+    symbol:   variable log
+    location: class HttpGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:143: error: cannot find symbol
+                  log.debug("[{}] Response from {}: {}", gameId, path, response);
+                  ^
+    symbol:   variable log
+    location: class HttpGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:164: error: cannot find symbol
+              log.error("[{}] Failed to read error response", gameId, e);
+              ^
+    symbol:   variable log
+    location: class HttpGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/EntityJacksonModule.java:36: error: cannot find symbol
+                  log.error("Error serializing entity", e);
+                  ^
+    symbol:   variable log
+    location: class EntitySerializerJackson
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/EntityJacksonModule.java:50: error: cannot find symbol
+                  log.error("Error deserializing entity: {}", text, e);
+                  ^
+    symbol:   variable log
+    location: class EntityDeserializerJackson
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:97: error: cannot find symbol
+                  log.info("[{}] Closing WebSocket", gameId);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:103: error: cannot find symbol
+                  log.info("[{}] Closing HTTP client", gameId);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:111: error: cannot find symbol
+              log.error("[{}] Failed to close WebSocket or HTTP client", gameId, e);
+              ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:113: error: cannot find symbol
+              log.info("[{}] Exiting close()", gameId);
+              ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:144: error: cannot find symbol
+                  log.error("[{}] Orders processing interrupted - closing connection", gameId, e);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:148: error: cannot find symbol
+                  log.error("[{}]Failed to process orders", gameId, e);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:200: error: cannot find symbol
+                              log.debug("[{}] Received JSON from WebSocket: {}", gameId, json);
+                              ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:203: error: cannot find symbol
+                                  log.warn("[{}] Parsed WebSocketMessage is null from JSON: {}", gameId, json);
+                                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:219: error: cannot find symbol
+                                      log.warn("[{}] Unhandled WebSocketMessage type: {}", gameId, wsMessage.getClass().getSimpleName());
+                                      ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:222: error: cannot find symbol
+                              log.error("[{}] Failed to parse WebSocket message JSON: {}", gameId, json, e);
+                              ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:226: error: cannot find symbol
+                          log.debug("[{}] Processing entities: {}, {} skipped", gameId, toProcess, size - 1);
+                          ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:237: error: cannot find symbol
+                  log.error("[{}] Failed to process entities", gameId, e);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:243: error: cannot find symbol
+          log.debug("[{}] Send text attempt: {}", gameId, text);
+          ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:245: error: cannot find symbol
+              log.error("[{}] WebSocket is not connected - connect before sending orders...", gameId);
+              ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:247: error: cannot find symbol
+              log.warn("[{}] WebSocket - output is closed", gameId);
+              ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:251: error: cannot find symbol
+                  log.debug("[{}] Sending: {}", gameId, text);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:254: error: cannot find symbol
+                  log.error("[{}] Failed to send text via WebSocket", gameId, e);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:267: error: cannot find symbol
+          log.info("[{}] Connecting to WebSocket: {}", gameId, wsUrl);
+          ^
+    symbol:   variable log
+    location: class WebSocketGameClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:289: error: cannot find symbol
+                  log.info("[{}] Received Ping, responding with Pong: id={}, duration={}ms", gameId, ping.id(), duration);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient.PingPong
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:291: error: cannot find symbol
+                  log.warn("[{}] Received Ping, responding with Pong: id={}, duration={}ms (above threshold {}ms)", gameId, ping.id(), duration, PING_WARN_THRESHOLD);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient.PingPong
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:300: error: cannot find symbol
+                  log.debug("[{}] Received unexpected or late Pong: id={}", gameId, pong.id());
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient.PingPong
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:307: error: cannot find symbol
+                  log.info("[{}] Received Pong from server: id={}, duration={}ms", gameId, pong.id(), duration);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient.PingPong
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:309: error: cannot find symbol
+                  log.warn("[{}] Received Pong from server: id={}, duration={}ms (above threshold {}ms)", gameId, pong.id(), duration, PING_WARN_THRESHOLD);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient.PingPong
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:342: error: cannot find symbol
+                      log.error("[{}] Error in connection monitor", gameId, e);
+                      ^
+    symbol:   variable log
+    location: class WebSocketGameClient.PingPong
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:360: error: cannot find symbol
+                  log.warn("[{}] Inactive for {}ms. Sending Ping: id={}", gameId, gap, ping.id());
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient.PingPong
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:367: error: cannot find symbol
+                  log.error("[{}] Max ping attempts reached. Closing connection.", gameId);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient.PingPong
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:380: error: cannot find symbol
+                  log.error("Failed to serialize WebSocket message", e);
+                  ^
+    symbol:   variable log
+    location: class WebSocketGameClient.PingPong
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/GameListener.java:35: error: cannot find symbol
+              log.debug("Received message: {}", fullMessage);
+              ^
+    symbol:   variable log
+    location: class GameListener
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/GameListener.java:44: error: cannot find symbol
+          log.error("WebSocket error", error);
+          ^
+    symbol:   variable log
+    location: class GameListener
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/GameListener.java:49: error: cannot find symbol
+          log.info("WebSocket closed: {} {}", statusCode, reason);
+          ^
+    symbol:   variable log
+    location: class GameListener
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:123: error: cannot find symbol
+          log.info("Starting continuous game loop");
+          ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:124: error: cannot find symbol
+          log.info("Server URL: {}", this.serverUrl);
+          ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:126: error: cannot find symbol
+          log.info("Player id: {}", player.id() != null ? player.id() : "(none)");
+          ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:127: error: cannot find symbol
+          log.info("Player name: {}", player.username() != null && !player.username().isBlank() ? player.username() : "(none)");
+          ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:128: error: cannot find symbol
+          log.info("Player color: {}", player.color() != null ? player.color() : "(none)");
+          ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:130: error: cannot find symbol
+              log.info("Game limit: {} (will stop after that many completed games)", maxGames);
+              ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:132: error: cannot find symbol
+              log.info("No game limit (runs until interrupted)");
+              ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:139: error: cannot find symbol
+              log.info("Starting new game session...");
+              ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:144: error: cannot find symbol
+                      log.debug("Registering player with data: {}", player);
+                      ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:146: error: cannot find symbol
+                      log.debug("Registration completed with player data: {}", registeredPlayer);
+                      ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:154: error: cannot find symbol
+                          log.info("Completed {} game(s) (limit: {}). Stopping — client closed, commander finished for this session.", gamesCompleted, maxGames);
+                          ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:157: error: cannot find symbol
+                          log.info("Game session ended. Re-registering... ({} completed so far)", gamesCompleted);
+                          ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:161: error: cannot find symbol
+                  log.error("Error in game session: {}. Retrying in 5 seconds...", e.getMessage());
+                  ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:166: error: cannot find symbol
+                      log.info("Thread interrupted during retry delay - stopping");
+                      ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:171: error: cannot find symbol
+                      log.info("Thread interrupted - stopping continuous game loop");
+                      ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:175: error: cannot find symbol
+          log.info("Continuous game loop stopped");
+          ^
+    symbol:   variable log
+    location: class BattleJarContinuous
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:49: error: cannot find symbol
+              log.warn("Could not read {}: {}", confPath.toAbsolutePath(), e.getMessage());
+              ^
+    symbol:   variable log
+    location: class BattleJarConf
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:70: error: cannot find symbol
+              log.info("Saved player id to {}", confPath.toAbsolutePath());
+              ^
+    symbol:   variable log
+    location: class BattleJarConf
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:72: error: cannot find symbol
+              log.warn("Could not write player id to {}: {}", confPath.toAbsolutePath(), e.getMessage());
+              ^
+    symbol:   variable log
+    location: class BattleJarConf
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:95: error: cannot find symbol
+              log.warn("Ignoring invalid player.id in config: {}", raw);
+              ^
+    symbol:   variable log
+    location: class BattleJarConf
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:111: error: cannot find symbol
+              log.warn("Ignoring invalid player.color in config: {}", raw);
+              ^
+    symbol:   variable log
+    location: class BattleJarConf
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:104: error: cannot find symbol
+          log.debug("[{}] Registering player {} with color: {}", gameId, player.id(), player.color() == null ? "AUTO" : player.color());
+          ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:109: error: cannot find symbol
+                  log.debug("[{}] Registration request payload: {}", gameId, jsonBody);
+                  ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:113: error: cannot find symbol
+                  log.debug("[{}] Registration response payload: code={}, body={}", gameId, code, jsonBodyResponse);
+                  ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:117: error: cannot find symbol
+                      log.debug("[{}] Registration response parsed: id={}, color={}", gameId, response.playerId(), response.color());
+                      ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:123: error: cannot find symbol
+                          log.debug("[{}] Updated player: {}", gameId, this.player);
+                          ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:131: error: cannot find symbol
+                          log.info("[{}] Registration successful - player: {}", gameId, this.player);
+                          ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:139: error: cannot find symbol
+                      log.error("[{}] Registration failed with code {}: {}", gameId, code, jsonBodyResponse);
+                      ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:170: error: cannot find symbol
+              log.info("[{}] Connected to WebSocket: {}", gameId, wsUrl);
+              ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:172: error: cannot find symbol
+              log.info("[{}] Started processing WebSocket messages", gameId);
+              ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:174: error: cannot find symbol
+              log.info("[{}] Started processing entities. Starting sending orders", gameId);
+              ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:176: error: cannot find symbol
+              log.info("[{}] Stopped sending orders. Stopping processing entities", gameId);
+              ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:186: error: cannot find symbol
+                  log.info("[{}] Game state is {}, leaving gracefully", gameId, state);
+                  ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:191: error: cannot find symbol
+          log.debug("[{}] Processing {} entities for commander", gameId, entities.entities().size());
+          ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:212: error: cannot find symbol
+                  log.warn("[{}] History download returned empty body", gameId);
+                  ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:216: error: cannot find symbol
+              log.info("[{}] Saved history to {}", gameId, outDir.toAbsolutePath());
+              ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:218: error: cannot find symbol
+              log.warn("[{}] Failed to download or save history", gameId, e);
+              ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:238: error: cannot find symbol
+              log.debug("[{}] {} is not a valid path: {}", gameId, BATTLEJAR_HISTORY_DIR, e.getMessage());
+              ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:244: error: cannot find symbol
+              log.debug("[{}] Cannot create history directory {}: {}", gameId, base, e.getMessage());
+              ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:248: error: cannot find symbol
+              log.debug("[{}] History directory is missing, not a directory, or not writable: {}", gameId, base);
+              ^
+    symbol:   variable log
+    location: class BattleJarClient
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:19: error: cannot find symbol
+  @Slf4j
+   ^
+    symbol: class Slf4j
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/EntityJacksonModule.java:19: error: cannot find symbol
+  @Slf4j
+   ^
+    symbol: class Slf4j
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:31: error: cannot find symbol
+  @Slf4j
+   ^
+    symbol: class Slf4j
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/GameListener.java:13: error: cannot find symbol
+  @Slf4j
+   ^
+    symbol: class Slf4j
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/PingPongListener.java:13: error: cannot find symbol
+  @Slf4j
+   ^
+    symbol: class Slf4j
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:31: error: cannot find symbol
+  @Slf4j
+   ^
+    symbol: class Slf4j
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:20: error: cannot find symbol
+  @Slf4j
+   ^
+    symbol: class Slf4j
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:40: error: cannot find symbol
+  @Slf4j
+   ^
+    symbol: class Slf4j
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:3: error: package lombok does not exist
+  import lombok.Getter;
+               ^
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/http/HttpGameClient.java:4: error: package lombok.extern.slf4j does not exist
+  import lombok.extern.slf4j.Slf4j;
+                            ^
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/EntityJacksonModule.java:12: error: package lombok.extern.slf4j does not exist
+  import lombok.extern.slf4j.Slf4j;
+                            ^
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:9: error: package lombok does not exist
+  import lombok.Synchronized;
+               ^
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/WebSocketGameClient.java:10: error: package lombok.extern.slf4j does not exist
+  import lombok.extern.slf4j.Slf4j;
+                            ^
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/GameListener.java:3: error: package lombok.extern.slf4j does not exist
+  import lombok.extern.slf4j.Slf4j;
+                            ^
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/websocket/PingPongListener.java:3: error: package lombok.extern.slf4j does not exist
+  import lombok.extern.slf4j.Slf4j;
+                            ^
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarContinuous.java:4: error: package lombok.extern.slf4j does not exist
+  import lombok.extern.slf4j.Slf4j;
+                            ^
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarConf.java:5: error: package lombok.extern.slf4j does not exist
+  import lombok.extern.slf4j.Slf4j;
+                            ^
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:10: error: package lombok does not exist
+  import lombok.Synchronized;
+               ^
+  /home/mad/workspace/battlejar-ai-commanders/agentic-commander/battlejar-client-sources/client/it/battlejar/client/BattleJarClient.java:11: error: package lombok.extern.slf4j does not exist
+  import lombok.extern.slf4j.Slf4j;
+                            ^
+  100 errors
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+BUILD FAILED in 2s
+1 actionable task: 1 executed
+bash: history: : cannot create: No such file or directory
