@@ -36,6 +36,13 @@ public class AgenticCommander extends AbstractCommander {
 
         battleMap.update(entities, myColor);
 
+        // Undock docked fighters and position them defensively immediately
+        entities.stream()
+                .filter(e -> e.type() == Entity.Type.FIGHTER && 
+                              myColor.name().equalsIgnoreCase(e.color()) && 
+                              "C".equals(e.status()))
+                .forEach(f -> defend(f, entities));
+
         // Check if our carrier still exists
         boolean carrierAlive = entities.stream()
                 .anyMatch(e -> e.type() == Entity.Type.CARRIER && 
@@ -77,7 +84,7 @@ public class AgenticCommander extends AbstractCommander {
         // Group my fighters by sector
         Map<String, List<Entity>> fightersBySector = new HashMap<>();
         for (Entity e : entities) {
-            if (e.type() == Entity.Type.FIGHTER && myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()) && !"C".equals(e.status())) {
+            if (e.type() == Entity.Type.FIGHTER && myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status())) {
                 int r = (int) (e.py() / (settings.worldHeight() / battleMap.getRows()));
                 int c = (int) (e.px() / (settings.worldWidth() / battleMap.getCols()));
                 r = Math.max(0, Math.min(battleMap.getRows() - 1, r));
