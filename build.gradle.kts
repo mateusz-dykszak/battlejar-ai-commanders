@@ -35,6 +35,10 @@ sourceSets {
 }
 
 dependencies {
+    implementation(platform("dev.langchain4j:langchain4j-bom:0.35.0"))
+    implementation("dev.langchain4j:langchain4j")
+    implementation("dev.langchain4j:langchain4j-open-ai")
+
     implementation("it.battlejar:battlejar-api:0.2.2")
     implementation("it.battlejar:battlejar-client:0.2.2")
     implementation("it.battlejar:battlejar-math:0.2.2")
@@ -64,10 +68,14 @@ tasks.withType<JavaCompile> {
 }
 
 application {
-    mainClass = "it.battlejar.commander.Main"
+    mainClass.set("it.battlejar.commander.Main")
 }
 
+@Suppress("DEPRECATION")
+val mainClassName = "it.battlejar.commander.Main"
+
 tasks.shadowJar {
-    archiveFileName = "commander.jar"
-    destinationDirectory = layout.buildDirectory
+    archiveFileName.set("commander.jar")
+    destinationDirectory.set(layout.buildDirectory)
+    mergeServiceFiles()
 }

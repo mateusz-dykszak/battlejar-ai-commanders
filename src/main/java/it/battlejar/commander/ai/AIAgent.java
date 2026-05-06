@@ -1,0 +1,95 @@
+package it.battlejar.commander.ai;
+
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.UserMessage;
+import it.battlejar.api.Color;
+import it.battlejar.commander.map.BattleMap;
+import it.battlejar.commander.map.ColorSectorStatus;
+import it.battlejar.commander.map.Sector;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class AIAgent {
+
+    public interface CommanderService {
+        @SystemMessage("""
+            You are a space battle commander. You control a carrier and multiple fighters.
+            Your goal is to win the battle by eliminating enemies or outmaneuvering them.
+            
+            You will receive the current battle map state.
+            The map is a grid of sectors.
+            Each sector contains information about your fleet and enemy fleets.
+            
+            Allowed commands for each sector:
+            - MOVE <SectorCoordinates> (e.g., MOVE 1x2)
+            - ATTACK <SectorCoordinates> (e.g., ATTACK 3x1)
+            - DEFEND
+            
+            Rules:
+            1. Carrier can get exactly one command.
+            2. Fighters in a sector can be given multiple commands. If you give N commands to fighters in a sector, the fighters will be split into N equal groups, each following one command.
+            3. Coordinates are 0-indexed: <row>x<col>.
+            
+            Respond ONLY with a list of commands in the following format:
+            CARRIER: <command>
+            SECTOR <row>x<col>: <command1>, <command2>, ...
+            
+            Example:
+            CARRIER: MOVE 1x1
+            SECTOR 0x0: ATTACK 0x1, DEFEND
+            SECTOR 1x1: MOVE 2x2
+            """)
+        String getCommands(@UserMessage String mapState);
+    }
+
+    private final CommanderService service;
+
+    public AIAgent() {
+        String apiKey = System.getenv("OPENAI_API_KEY");
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new IllegalStateException("OPENAI_API_KEY environment variable is not set");
+        }
+
+        OpenAiChatModel model = OpenAiChatModel.builder()
+                .apiKey(apiKey)
+                .modelName("gpt-4o-mini") // Using 4o-mini as a reasonable default for "5.4-mini"
+                .build();
+
+        this.service = AiServices.create(CommanderService.class, model);
+    }
+
+    public String getCommandsFromAI(BattleMap map, Color myColor) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Current Battle Map State (Your color: ").append(myColor).append("):\n");
+        sb.append("Grid: ").append(map.getRows()).append("x").append(map.getCols()).append("\n");
+
+        for (int r = 0; r < map.getRows(); r++) {
+            for (int c = 0; c < map.getCols(); c++) {
+                Sector sector = map.getSector(r, c);
+                ColorSectorStatus myStatus = sector.colorStatuses().get(myColor);
+                
+                if (myStatus != null || !sector.colorStatuses().isEmpty()) {
+                    sb.append("Sector ").append(r).append("x").append(c).append(":\n");
+                    if (myStatus != null) {
+                        sb.append("  Your fleet: Carrier=").append(myStatus.hasCarrier())
+                                .append(", Presence=").append(myStatus.presence())
+                                .append(", Fighters count=").append(myStatus.fighterNames().size()).append("\n");
+                    }
+                    
+                    sector.colorStatuses().forEach((color, status) -> {
+                        if (color != myColor) {
+                            sb.append("  Enemy ").append(color).append(": Carrier=").append(status.hasCarrier())
+                                    .append(", Presence=").append(status.presence())
+                                    .append(", Threat=").append(status.threatLevel()).append("\n");
+                        }
+                    });
+                }
+            }
+        }
+
+        return service.getCommands(sb.toString());
+    }
+}
