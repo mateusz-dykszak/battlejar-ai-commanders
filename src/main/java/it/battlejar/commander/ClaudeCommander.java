@@ -160,9 +160,11 @@ public class ClaudeCommander extends AbstractCommander {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, mPos[0] + "|" + mPos[1]));
             } else if (nearestEnemyCarrier != null && fighter.missiles() > 0
                     && distance(fighter, nearestEnemyCarrier) < FIGHTER_MISSILE_RANGE) {
-                // Fire missiles at close enemy carrier before switching to laser defense —
-                // burst damage on the carrier stops future missile launches entirely.
-                sendOrder(new Order(fighter.id(), OrderType.FIRE_MISSILE));
+                // Explicit direction required — without it the missile fires toward the fighter's
+                // current facing, which is often back toward our carrier (formation slot movement).
+                int fdx = Math.round(nearestEnemyCarrier.px() - fighter.px());
+                int fdy = Math.round(nearestEnemyCarrier.py() - fighter.py());
+                sendOrder(new Order(fighter.id(), OrderType.FIRE_MISSILE, fdx + "|" + fdy));
             } else if (missileCloseToFighter) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
             } else if (!inFormation) {
