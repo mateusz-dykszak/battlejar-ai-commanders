@@ -23,6 +23,17 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    main {
+        java {
+            srcDir("src/main/java")
+            srcDir("battlejar-client-sources/api")
+            srcDir("battlejar-client-sources/client")
+            srcDir("battlejar-client-sources/math")
+        }
+    }
+}
+
 dependencies {
     implementation("it.battlejar:battlejar-api:0.2.2")
     implementation("it.battlejar:battlejar-client:0.2.2")
