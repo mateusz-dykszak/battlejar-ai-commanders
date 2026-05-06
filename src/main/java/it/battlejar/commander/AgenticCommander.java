@@ -36,6 +36,17 @@ public class AgenticCommander extends AbstractCommander {
 
         battleMap.update(entities, myColor);
 
+        // Check if our carrier still exists
+        boolean carrierAlive = entities.stream()
+                .anyMatch(e -> e.type() == Entity.Type.CARRIER && 
+                              myColor.name().equalsIgnoreCase(e.color()) &&
+                              !"D".equals(e.status()));
+
+        if (!carrierAlive) {
+            log.info("Carrier lost! Stopping AI and signaling game end.");
+            return false;
+        }
+
         long now = System.currentTimeMillis();
         if (now - lastAiTick > AI_COOLDOWN_MS) {
             lastAiTick = now;
