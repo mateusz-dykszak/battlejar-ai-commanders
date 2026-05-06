@@ -47,11 +47,14 @@ public class ClaudeCommander extends AbstractCommander {
     // but within fighter-relative 120 units. Fighters outside this ring keep attacking the carrier.
     private static final float FIGHTER_INTRUDER_CARRIER_RANGE = 75f;
 
+    private static final long CARRIER_MISSILE_FIRE_INTERVAL_MS = 800L;
+
     private final Map<String, Long> lastOrderTime = new HashMap<>();
     // last known angle to current target carrier; reused when no enemy is visible
     private float lastFormationAngle = 0f;
     // enemy carrier count at game start; used to detect when we have achieved a kill
     private int initialEnemyCarrierCount = 0;
+    private long lastCarrierMissileFireMs = 0;
 
     @Override
     protected boolean process(Collection<Entity> entities) {
@@ -190,14 +193,8 @@ public class ClaudeCommander extends AbstractCommander {
 
         int[] carrierDodge = computeCarrierDodge(entities, myCarrier);
 
-        if (nearestEnemyCarrier != null && myCarrier.missiles() > 0) {
-            // Fire first — dodge activates on the very next 150 ms cooldown tick.
-            // Keeping this at highest priority ensures the carrier contributes DPS even while under fire.
-            float dx = nearestEnemyCarrier.px() - myCarrier.px();
-            float dy = nearestEnemyCarrier.py() - myCarrier.py();
-            sendOrder(new Order(myCarrier.id(), OrderType.FIRE_MISSILE, (int) dx + "|" + (int) dy));
-        } else if (isNearBorder(myCarrier)) {
-            // Move to nearest safe interior point — stays in spawn quadrant, does not rush to center
+        if (isNearBorder(myCarrier)) {
+            // Border safety first — carrier near edge must move inward before anything else.
             float inner = BORDER_MARGIN + SAFE_INSET;
             float safeX = Math.max(inner, Math.min(settings.worldWidth() - inner, myCarrier.px()));
             float safeY = Math.max(inner, Math.min(settings.worldHeight() - inner, myCarrier.py()));
@@ -206,6 +203,13 @@ public class ClaudeCommander extends AbstractCommander {
         } else if (carrierDodge != null) {
             sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
                     carrierDodge[0] + "|" + carrierDodge[1]));
+        } else if (nearestEnemyCarrier != null && myCarrier.missiles() > 0
+                && System.currentTimeMillis() - lastCarrierMissileFireMs >= CARRIER_MISSILE_FIRE_INTERVAL_MS) {
+            // Rate-limited to 800 ms so movement orders execute on the other ~5 ticks per second.
+            lastCarrierMissileFireMs = System.currentTimeMillis();
+            float dx = nearestEnemyCarrier.px() - myCarrier.px();
+            float dy = nearestEnemyCarrier.py() - myCarrier.py();
+            sendOrder(new Order(myCarrier.id(), OrderType.FIRE_MISSILE, (int) dx + "|" + (int) dy));
         } else if (myFighters.isEmpty() && nearestEnemyCarrier != null) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
         } else if (myFighters.isEmpty() && hasEnemies) {
@@ -251,11 +255,11 @@ public class ClaudeCommander extends AbstractCommander {
                 sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
             } else {
                 // Multi-enemy post-kill: return to corner to minimise attack surface.
-                sendCornerOrder(myCarrier);
+                sendCornerOrder(myCarrier, liveEnemyCarriers);
             }
         } else if (liveEnemyCarriers.size() > 1 && hasEnemies) {
             // Multi-enemy default: hug closest corner to minimise attack surface and face fighters outward.
-            sendCornerOrder(myCarrier);
+            sendCornerOrder(myCarrier, liveEnemyCarriers);
         } else if (hasEnemies) {
             sendOrder(new Order(myCarrier.id(), OrderType.PATROL));
         }
@@ -280,8 +284,8 @@ public class ClaudeCommander extends AbstractCommander {
         }
     }
 
-    private void sendCornerOrder(Entity carrier) {
-        int[] offset = closestCornerOffset(carrier);
+    private void sendCornerOrder(Entity carrier, List<Entity> enemies) {
+        int[] offset = farthestFromEnemiesCornerOffset(carrier, enemies);
         float dist = (float) Math.sqrt((float) offset[0] * offset[0] + (float) offset[1] * offset[1]);
         if (dist > CARRIER_CORNER_THRESHOLD) {
             sendOrder(new Order(carrier.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
@@ -290,7 +294,9 @@ public class ClaudeCommander extends AbstractCommander {
         }
     }
 
-    private int[] closestCornerOffset(Entity carrier) {
+    // Pick the corner that maximises the sum of distances to all live enemy carriers.
+    // This moves us away from the threat cluster rather than toward the geometrically nearest corner.
+    private int[] farthestFromEnemiesCornerOffset(Entity carrier, List<Entity> enemies) {
         float margin = BORDER_MARGIN + SAFE_INSET;
         float ww = settings.worldWidth(), wh = settings.worldHeight();
         float[][] corners = {
@@ -299,14 +305,17 @@ public class ClaudeCommander extends AbstractCommander {
             {margin, wh - margin},
             {ww - margin, wh - margin}
         };
-        float bestDistSq = Float.MAX_VALUE;
+        float bestScore = -1f;
         float[] best = corners[0];
         for (float[] c : corners) {
-            float dx = carrier.px() - c[0];
-            float dy = carrier.py() - c[1];
-            float dsq = dx * dx + dy * dy;
-            if (dsq < bestDistSq) {
-                bestDistSq = dsq;
+            float score = 0f;
+            for (Entity enemy : enemies) {
+                float dx = c[0] - enemy.px();
+                float dy = c[1] - enemy.py();
+                score += (float) Math.sqrt(dx * dx + dy * dy);
+            }
+            if (score > bestScore) {
+                bestScore = score;
                 best = c;
             }
         }
