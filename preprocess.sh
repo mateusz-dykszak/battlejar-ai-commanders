@@ -21,6 +21,6 @@ for F in local_history/*; do
     GAME_ID=$(basename "$F" | sed 's/\..*//')
     if [[ ! -f "history/${GAME_ID}.jsonl" ]]; then
         echo "preprocess: removing orphaned local_history file $(basename "$F")"
-        rm -f "$F"
+        rm -rf "$F"
     fi
 done
