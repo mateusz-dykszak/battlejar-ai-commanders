@@ -12,8 +12,10 @@ import java.util.Optional;
 
 /**
  * Moves the carrier to the nearest world corner to stay out of crossfire between enemies.
- * Once within the corner threshold, sets {@link it.battlejar.commander.CommanderState#carrierReachedCorner}
- * and switches to PATROL — this flag is permanent and triggers the handoff to
+ * Always sends MOVE toward the corner — never PATROL — so the carrier oscillates near
+ * the corner rather than overshooting due to approach momentum. Sets
+ * {@link it.battlejar.commander.CommanderState#carrierReachedCorner} permanently once within
+ * the threshold, which triggers the handoff to
  * {@link it.battlejar.commander.strategy.MultiEnemyHunterStrategy}.
  */
 public class CarrierCornerTactic implements Tactic<Entity> {
@@ -33,10 +35,11 @@ public class CarrierCornerTactic implements Tactic<Entity> {
         float margin = borderMargin + safeInset;
         int[] offset = GameUtils.closestCornerOffset(carrier, snapshot.settings(), margin);
         float dist = (float) Math.sqrt((float) offset[0] * offset[0] + (float) offset[1] * offset[1]);
-        if (dist > cornerThreshold) {
-            return Optional.of(new Order(carrier.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
+        if (dist <= cornerThreshold) {
+            state.carrierReachedCorner = true;
         }
-        state.carrierReachedCorner = true;
-        return Optional.of(new Order(carrier.id(), OrderType.PATROL));
+        // Always MOVE toward the corner (never PATROL). PATROL maintains current velocity and
+        // causes the carrier to overshoot the corner, then drift to a different corner.
+        return Optional.of(new Order(carrier.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
     }
 }

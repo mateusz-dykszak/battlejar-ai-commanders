@@ -31,28 +31,11 @@ public class FighterMissileFireTactic implements Tactic<Entity> {
                 || GameUtils.distance(fighter, target) >= missileRange) {
             return Optional.empty();
         }
-        if (isBetweenCarrierAndTarget(fighter, snapshot.myCarrier(), target)) {
+        // FIRE_MISSILE auto-homes to the nearest carrier. Skip if our carrier is closer to this
+        // fighter than the enemy — the missile would lock onto us instead.
+        if (GameUtils.distance(fighter, snapshot.myCarrier()) <= GameUtils.distance(fighter, target)) {
             return Optional.empty();
         }
         return Optional.of(new Order(fighter.id(), OrderType.FIRE_MISSILE));
-    }
-
-    /**
-     * Returns true when the fighter sits between our carrier and the target along the
-     * carrier→target axis — i.e. firing would risk the missile locking onto our carrier.
-     */
-    private static boolean isBetweenCarrierAndTarget(Entity fighter, Entity carrier, Entity target) {
-        // Vector from carrier to target
-        float axisX = target.px() - carrier.px();
-        float axisY = target.py() - carrier.py();
-        // Vector from carrier to fighter
-        float toFighterX = fighter.px() - carrier.px();
-        float toFighterY = fighter.py() - carrier.py();
-        // Scalar projection of fighter onto the carrier→target axis
-        float axisDotSelf = axisX * axisX + axisY * axisY;
-        if (axisDotSelf == 0f) return false;
-        float t = (toFighterX * axisX + toFighterY * axisY) / axisDotSelf;
-        // Fighter is between carrier (t=0) and target (t=1) on that axis
-        return t > 0f && t < 1f;
     }
 }
