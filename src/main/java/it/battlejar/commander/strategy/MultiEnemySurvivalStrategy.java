@@ -7,6 +7,7 @@ import it.battlejar.commander.GameConfig;
 import it.battlejar.commander.GameSnapshot;
 import it.battlejar.commander.OrderSender;
 import it.battlejar.commander.tactic.Tactic;
+import it.battlejar.commander.tactic.carrier.CarrierBorderEvasionTactic;
 import it.battlejar.commander.tactic.carrier.CarrierCornerTactic;
 import it.battlejar.commander.tactic.fighter.*;
 
@@ -35,7 +36,8 @@ public class MultiEnemySurvivalStrategy implements Strategy {
         );
 
         this.carrierTactics = List.of(
-                new CarrierCornerTactic(GameConfig.BORDER_MARGIN, GameConfig.SAFE_INSET,
+                new CarrierBorderEvasionTactic(GameConfig.CARRIER_BORDER_SAFETY, 0f),
+                new CarrierCornerTactic(GameConfig.CARRIER_CORNER_MARGIN,
                         GameConfig.CARRIER_CORNER_THRESHOLD)
         );
     }
