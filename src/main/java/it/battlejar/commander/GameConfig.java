@@ -23,6 +23,7 @@ public static final float FORMATION_RADIUS_TIGHT = 50f;
     public static final float KILL_FOCUS_RANGE = 350f;
     public static final float CARRIER_MIN_SEPARATION_1V1 = 80f;
     public static final float FIGHTER_INTRUDER_CARRIER_RANGE = 75f;
+    public static final float FIGHTER_INTRUDER_CARRIER_RANGE_SURVIVAL = 150f;
     public static final float FIGHTER_INTRUDER_CARRIER_RANGE_1V1 = 100f;
     public static final long  CARRIER_MISSILE_FIRE_INTERVAL_MS = 800L;
     public static final float DEPLOY_OFFSET = 30f;

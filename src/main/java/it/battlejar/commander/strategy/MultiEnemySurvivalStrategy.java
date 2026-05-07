@@ -31,8 +31,7 @@ public class MultiEnemySurvivalStrategy implements Strategy {
                 new MissileInterceptTactic(),
                 new FighterMissileFireTactic(GameConfig.FIGHTER_MISSILE_RANGE),
                 new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),
-                new FormationMoveTactic(GameConfig.FORMATION_THRESHOLD),
-                new FighterAttackTactic(GameConfig.FIGHTER_INTRUDER_CARRIER_RANGE)
+                new FighterAttackTactic(GameConfig.FIGHTER_INTRUDER_CARRIER_RANGE_SURVIVAL)
         );
 
         this.carrierTactics = List.of(
