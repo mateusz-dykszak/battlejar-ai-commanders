@@ -20,6 +20,11 @@ for JSONL in "${jsonl_files[@]}"; do
         continue
     fi
 
+    if ! grep -q '"Klaudia"' "$JSONL"; then
+        echo "postprocess: $GAME_ID — not our game, skipping"
+        continue
+    fi
+
     echo "postprocess: analyzing $GAME_ID"
     python3 scripts/stats.py             "$JSONL"
     python3 scripts/deployment.py        "$JSONL"
