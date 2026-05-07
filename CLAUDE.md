@@ -86,6 +86,7 @@ Scripts run in this order in `postprocess.sh`. Each script's file begins with a 
 | `scripts/threats.py` | `<gameId>.threats.csv` | Per-second: our HP, fighter counts, nearest enemy carrier dist/HP, missile counts within 200 and 80 units, enemy fighters near carrier, HP delta. | lines 2–23 |
 | `scripts/all_carriers.py` | `<gameId>.all_carriers.csv` | Per-second per-carrier: HP, distance to us, active fighters, position — all players in long format. | lines 2–26 |
 | `scripts/phases.py` | `<gameId>.phases.json` | Per-game phase summary: 1v1 start time, HP and EC distance at 1v1, seconds survived in 1v1, death-cause label (fighters/missiles/combined). Reads threats.csv — must run after threats.py. | lines 2–37 |
+| `scripts/spacecraft_orders.py` | `<gameId>_spacecraft/<entityId>.jsonl` | Per-spacecraft order log: one line per order received, with entity position at that tick and the order sent (type + details). One file per entity that received at least one order. | lines 2–36 |
 
 ## Adding a new script
 

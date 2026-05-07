@@ -21,9 +21,10 @@ for JSONL in "${jsonl_files[@]}"; do
     fi
 
     echo "postprocess: analyzing $GAME_ID"
-    python3 scripts/stats.py        "$JSONL"
-    python3 scripts/deployment.py   "$JSONL"
-    python3 scripts/threats.py      "$JSONL"
-    python3 scripts/all_carriers.py "$JSONL"
-    python3 scripts/phases.py       "$JSONL"
+    python3 scripts/stats.py             "$JSONL"
+    python3 scripts/deployment.py        "$JSONL"
+    python3 scripts/threats.py           "$JSONL"
+    python3 scripts/all_carriers.py      "$JSONL"
+    python3 scripts/phases.py            "$JSONL"
+    python3 scripts/spacecraft_orders.py "$JSONL"
 done
