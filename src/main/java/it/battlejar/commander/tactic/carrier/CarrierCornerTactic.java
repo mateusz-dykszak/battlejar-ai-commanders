@@ -20,20 +20,17 @@ import java.util.Optional;
  */
 public class CarrierCornerTactic implements Tactic<Entity> {
 
-    private final float borderMargin;
-    private final float safeInset;
+    private final float cornerMargin;
     private final float cornerThreshold;
 
-    public CarrierCornerTactic(float borderMargin, float safeInset, float cornerThreshold) {
-        this.borderMargin = borderMargin;
-        this.safeInset = safeInset;
+    public CarrierCornerTactic(float cornerMargin, float cornerThreshold) {
+        this.cornerMargin = cornerMargin;
         this.cornerThreshold = cornerThreshold;
     }
 
     @Override
     public Optional<Order> apply(Entity carrier, GameSnapshot snapshot, CommanderState state) {
-        float margin = borderMargin + safeInset;
-        int[] offset = GameUtils.closestCornerOffset(carrier, snapshot.settings(), margin);
+        int[] offset = GameUtils.closestCornerOffset(carrier, snapshot.settings(), cornerMargin);
         float dist = (float) Math.sqrt((float) offset[0] * offset[0] + (float) offset[1] * offset[1]);
         if (dist <= cornerThreshold) {
             state.carrierReachedCorner = true;

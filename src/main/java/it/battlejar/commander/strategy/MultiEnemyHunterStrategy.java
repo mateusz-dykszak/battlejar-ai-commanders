@@ -41,14 +41,14 @@ public class MultiEnemyHunterStrategy implements Strategy {
         );
 
         this.carrierTactics = List.of(
-                new CarrierCornerTactic(GameConfig.BORDER_MARGIN, GameConfig.SAFE_INSET,
+                new CarrierCornerTactic(GameConfig.CARRIER_CORNER_MARGIN,
                         GameConfig.CARRIER_CORNER_THRESHOLD),
                 new CarrierBorderEvasionTactic(GameConfig.BORDER_MARGIN, GameConfig.SAFE_INSET),
                 new CarrierMissileFireTactic(GameConfig.CARRIER_MISSILE_FIRE_INTERVAL_MS),
                 // Push only after scoring a kill — we have a numbers advantage
                 new CarrierPushTactic(GameConfig.CARRIER_PUSH_DISTANCE,
                         s -> s.hasKilledEnemy() && s.myActiveFighters().size() >= fullThreshold),
-                new CarrierCornerTactic(GameConfig.BORDER_MARGIN, GameConfig.SAFE_INSET,
+                new CarrierCornerTactic(GameConfig.CARRIER_CORNER_MARGIN,
                         GameConfig.CARRIER_CORNER_THRESHOLD)
         );
     }
