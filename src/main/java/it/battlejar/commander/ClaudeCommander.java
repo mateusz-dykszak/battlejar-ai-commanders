@@ -26,7 +26,7 @@ public class ClaudeCommander extends AbstractCommander {
     private static final float FIGHTER_LASER_RANGE = 150f;   // per-fighter proximity for TARGET "M" defense
     private static final float MISSILE_INTERCEPT_RANGE = 80f;  // physical move-to-intercept; beyond this rely on lasers
     private static final float MISSILE_TARGET_RANGE = 300f;    // carrier-relative range for intercept assignments
-    private static final float FORMATION_RADIUS_TIGHT = 50f;   // used until FORMATION_EXPAND_AT fighters are active
+    private static final float FORMATION_RADIUS_TIGHT = 80f;   // used until FORMATION_EXPAND_AT fighters are active
     private static final float FORMATION_RADIUS_WIDE = 150f;   // directional arc once screen is established
     private static final int FORMATION_EXPAND_AT = 8;
     private static final int FORMATION_SLOTS = 8;
@@ -52,6 +52,8 @@ public class ClaudeCommander extends AbstractCommander {
     // fighters we explicitly docked for damage recovery; excluded from deploy orders until RECOVERY_MS passes
     private final Set<String> recovering = new HashSet<>();
     private final Map<String, Long> dockTime = new HashMap<>();
+    // fighters issued TURN_XY toward enemy carrier; fire FIRE_MISSILE on the next tick
+    private final Set<String> preFireSet = new HashSet<>();
     // last known angle to current target carrier; reused when no enemy is visible
     private float lastFormationAngle = 0f;
     // enemy carrier count at game start; used to detect when we have achieved a kill
@@ -166,11 +168,18 @@ public class ClaudeCommander extends AbstractCommander {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, mPos[0] + "|" + mPos[1]));
             } else if (nearestEnemyCarrier != null && fighter.missiles() > 0
                     && distance(fighter, nearestEnemyCarrier) < FIGHTER_MISSILE_RANGE) {
-                // Explicit direction required — without it the missile fires toward the fighter's
-                // current facing, which is often back toward our carrier (formation slot movement).
-                int fdx = Math.round(nearestEnemyCarrier.px() - fighter.px());
-                int fdy = Math.round(nearestEnemyCarrier.py() - fighter.py());
-                sendOrder(new Order(fighter.id(), OrderType.FIRE_MISSILE, fdx + "|" + fdy));
+                // Fighters fire along current heading — direction arg is carriers-only (HOWTO).
+                // We issue TURN_XY toward the enemy carrier first, then fire on the next tick
+                // (150 ms later) once the fighter has had time to rotate.
+                if (preFireSet.remove(fighter.id())) {
+                    sendOrder(new Order(fighter.id(), OrderType.FIRE_MISSILE));
+                } else {
+                    float toEcX = nearestEnemyCarrier.px() - fighter.px();
+                    float toEcY = nearestEnemyCarrier.py() - fighter.py();
+                    sendOrder(new Order(fighter.id(), OrderType.TURN_XY,
+                            Math.round(toEcX) + "|" + Math.round(toEcY)));
+                    preFireSet.add(fighter.id());
+                }
             } else if (missileCloseToFighter) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
             } else if (!inFormation) {
