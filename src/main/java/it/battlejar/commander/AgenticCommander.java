@@ -7,6 +7,7 @@ import it.battlejar.client.AbstractCommander;
 import it.battlejar.commander.ai.AIAgent;
 import it.battlejar.commander.ai.AICommandParser;
 import it.battlejar.commander.map.BattleMap;
+import it.battlejar.commander.map.ColorSectorStatus;
 import it.battlejar.commander.map.Sector;
 import it.battlejar.commander.map.ThreatLevel;
 import org.slf4j.Logger;
@@ -25,7 +26,8 @@ public class AgenticCommander extends AbstractCommander {
     private BattleMap battleMap;
     private AIAgent aiAgent;
     private long lastAiTick = 0;
-    private static final long AI_COOLDOWN_MS = 2000; // Run AI every 2 seconds
+    private long currentAiCooldownMs = 2000;
+    private static final long DEFAULT_AI_COOLDOWN_MS = 2000;
     private static final long ENTITY_COOLDOWN_MS = 150; // Per-entity order cooldown
     private final Map<String, Long> entityLastOrderTime = new HashMap<>();
 
@@ -72,16 +74,21 @@ public class AgenticCommander extends AbstractCommander {
         }
 
         long now = System.currentTimeMillis();
-        if (now - lastAiTick > AI_COOLDOWN_MS) {
+        if (now - lastAiTick > currentAiCooldownMs) {
             lastAiTick = now;
             try {
                 String aiOutput = aiAgent.getCommandsFromAI(battleMap, myColor);
                 log.info("AI Output: {}", aiOutput);
                 AICommandParser.AIResponse aiResponse = AICommandParser.parse(aiOutput);
                 executeAiResponse(aiResponse, entities);
+                
+                // Update adaptive cooldown for next tick
+                currentAiCooldownMs = calculateAdaptiveAiCooldown();
+                log.info("Next AI tick in {}ms", currentAiCooldownMs);
             } catch (Exception e) {
                 log.error("Error getting or executing AI commands", e);
                 executeDefensiveManeuvers(entities);
+                currentAiCooldownMs = DEFAULT_AI_COOLDOWN_MS;
             }
         }
 
@@ -275,6 +282,26 @@ public class AgenticCommander extends AbstractCommander {
                 defend(e, entities);
             }
         }
+    }
+
+    private long calculateAdaptiveAiCooldown() {
+        ThreatLevel maxThreat = ThreatLevel.NONE;
+        for (int r = 0; r < battleMap.getRows(); r++) {
+            for (int c = 0; c < battleMap.getCols(); c++) {
+                Sector sector = battleMap.getSector(r, c);
+                for (ColorSectorStatus status : sector.colorStatuses().values()) {
+                    if (status.threatLevel().ordinal() > maxThreat.ordinal()) {
+                        maxThreat = status.threatLevel();
+                    }
+                }
+            }
+        }
+
+        return switch (maxThreat) {
+            case HIGH -> 1000L;
+            case MEDIUM -> 1500L;
+            default -> 2000L;
+        };
     }
 
     private void initializeBattleMap() {
