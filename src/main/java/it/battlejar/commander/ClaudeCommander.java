@@ -26,8 +26,6 @@ public class ClaudeCommander extends AbstractCommander {
     private static final float FIGHTER_LASER_RANGE = 150f;   // per-fighter proximity for TARGET "M" defense
     private static final float MISSILE_INTERCEPT_RANGE = 80f;  // physical move-to-intercept; beyond this rely on lasers
     private static final float MISSILE_TARGET_RANGE = 300f;    // carrier-relative range for intercept assignments
-    private static final float CARRIER_DODGE_RANGE = 200f;
-    private static final float CARRIER_DODGE_DISTANCE = 60f;
     private static final float FORMATION_RADIUS_TIGHT = 50f;   // used until FORMATION_EXPAND_AT fighters are active
     private static final float FORMATION_RADIUS_WIDE = 150f;   // directional arc once screen is established
     private static final int FORMATION_EXPAND_AT = 8;
@@ -215,11 +213,7 @@ public class ClaudeCommander extends AbstractCommander {
                     }
                 });
 
-        int[] carrierDodge = computeCarrierDodge(entities, myCarrier);
-
         if (nearestEnemyCarrier != null && myCarrier.missiles() > 0) {
-            // Fire first — dodge activates on the very next 150 ms cooldown tick.
-            // Keeping this at highest priority ensures the carrier contributes DPS even while under fire.
             float dx = nearestEnemyCarrier.px() - myCarrier.px();
             float dy = nearestEnemyCarrier.py() - myCarrier.py();
             sendOrder(new Order(myCarrier.id(), OrderType.FIRE_MISSILE, (int) dx + "|" + (int) dy));
@@ -230,9 +224,6 @@ public class ClaudeCommander extends AbstractCommander {
             float safeY = Math.max(inner, Math.min(settings.worldHeight() - inner, myCarrier.py()));
             sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
                     (int) (safeX - myCarrier.px()) + "|" + (int) (safeY - myCarrier.py())));
-        } else if (carrierDodge != null) {
-            sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
-                    carrierDodge[0] + "|" + carrierDodge[1]));
         } else if (myFighters.isEmpty() && nearestEnemyCarrier != null) {
             sendOrder(new Order(myCarrier.id(), OrderType.ATTACK, nearestEnemyCarrier.id()));
         } else if (myFighters.isEmpty() && hasEnemies) {
@@ -328,64 +319,6 @@ public class ClaudeCommander extends AbstractCommander {
         } catch (NumberFormatException ex) {
             return Integer.MAX_VALUE;
         }
-    }
-
-    // When an armed missile is within CARRIER_DODGE_RANGE and heading toward our carrier,
-    // return a carrier-relative offset perpendicular to the missile's velocity.
-    // Returns null if no dodge is needed or both perpendicular directions hit the border.
-    private int[] computeCarrierDodge(Collection<Entity> entities, Entity myCarrier) {
-        Entity missile = entities.stream()
-                .filter(e -> e.type() == Entity.Type.MISSILE)
-                .filter(e -> "A".equals(e.status()))
-                .filter(e -> distance(e, myCarrier) < CARRIER_DODGE_RANGE)
-                .filter(e -> {
-                    float toCx = myCarrier.px() - e.px();
-                    float toCy = myCarrier.py() - e.py();
-                    return e.vx() * toCx + e.vy() * toCy > 0;
-                })
-                .min((a, b) -> Float.compare(distance(a, myCarrier), distance(b, myCarrier)))
-                .orElse(null);
-
-        if (missile == null) return null;
-
-        float vLen = (float) Math.sqrt(missile.vx() * missile.vx() + missile.vy() * missile.vy());
-        if (vLen < 0.001f) return null;
-
-        // Unit perpendiculars to missile velocity
-        float px1 = -missile.vy() / vLen,  py1 =  missile.vx() / vLen;
-        float px2 =  missile.vy() / vLen,  py2 = -missile.vx() / vLen;
-
-        float margin = BORDER_MARGIN + SAFE_INSET;
-        float ww = settings.worldWidth(), wh = settings.worldHeight();
-
-        float tx1 = myCarrier.px() + px1 * CARRIER_DODGE_DISTANCE;
-        float ty1 = myCarrier.py() + py1 * CARRIER_DODGE_DISTANCE;
-        float tx2 = myCarrier.px() + px2 * CARRIER_DODGE_DISTANCE;
-        float ty2 = myCarrier.py() + py2 * CARRIER_DODGE_DISTANCE;
-
-        boolean ok1 = tx1 > margin && ty1 > margin && tx1 < ww - margin && ty1 < wh - margin;
-        boolean ok2 = tx2 > margin && ty2 > margin && tx2 < ww - margin && ty2 < wh - margin;
-
-        float[] chosen;
-        if (ok1 && !ok2) {
-            chosen = new float[]{px1, py1};
-        } else if (ok2 && !ok1) {
-            chosen = new float[]{px2, py2};
-        } else if (ok1) {
-            // Both clear — pick the one with more interior clearance
-            float c1 = Math.min(Math.min(tx1 - margin, ww - margin - tx1),
-                                Math.min(ty1 - margin, wh - margin - ty1));
-            float c2 = Math.min(Math.min(tx2 - margin, ww - margin - tx2),
-                                Math.min(ty2 - margin, wh - margin - ty2));
-            chosen = c1 >= c2 ? new float[]{px1, py1} : new float[]{px2, py2};
-        } else {
-            return null; // Both directions hit the border; skip dodge
-        }
-
-        return new int[]{
-            Math.round(chosen[0] * CARRIER_DODGE_DISTANCE),
-            Math.round(chosen[1] * CARRIER_DODGE_DISTANCE)
-        };
     }
 
     // For each armed enemy missile within MISSILE_INTERCEPT_RANGE of our carrier,
