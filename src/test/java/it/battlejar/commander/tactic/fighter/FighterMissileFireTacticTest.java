@@ -100,6 +100,37 @@ class FighterMissileFireTacticTest {
         assertFalse(order.isPresent());
     }
 
+    /**
+     * Multi-enemy: target is the closest carrier — missile should fire.
+     */
+    @Test
+    void multiEnemy_targetClosest_fires() {
+        Entity myCarrier = carrier(100, 200);
+        Entity fighter = fighter(100, 100, 1);
+        Entity target = enemy("enemy1", 100, 60);    // 40 units from fighter
+        Entity bystander = enemy("enemy2", 0, 100);  // ~100 units from fighter
+
+        Optional<Order> order = tactic.apply(fighter, snapshotMulti(myCarrier, fighter, target, List.of(target, bystander)), state);
+
+        assertTrue(order.isPresent(), "Should fire when target is closest carrier");
+    }
+
+    /**
+     * Multi-enemy: a non-target enemy carrier is closer to the fighter than the intended target.
+     * Missile would home to that carrier instead — must not fire.
+     */
+    @Test
+    void multiEnemy_bystanderCloser_doesNotFire() {
+        Entity myCarrier = carrier(100, 200);
+        Entity fighter = fighter(100, 100, 1);
+        Entity target = enemy("enemy1", 100, 0);     // 100 units from fighter
+        Entity bystander = enemy("enemy2", 100, 70); // 30 units from fighter — closer
+
+        Optional<Order> order = tactic.apply(fighter, snapshotMulti(myCarrier, fighter, target, List.of(target, bystander)), state);
+
+        assertFalse(order.isPresent(), "Should not fire when a non-target carrier is closer");
+    }
+
     /** No primary target — never fire. */
     @Test
     void noTarget_doesNotFire() {
@@ -120,12 +151,23 @@ class FighterMissileFireTacticTest {
     }
 
     private static Entity enemy(float px, float py) {
-        return new Entity("enemy1", Entity.Type.CARRIER, "RED", px, py, 0, 0, null, 0, 0, 0, "1000");
+        return enemy("enemy1", px, py);
+    }
+
+    private static Entity enemy(String id, float px, float py) {
+        return new Entity(id, Entity.Type.CARRIER, "RED", px, py, 0, 0, null, 0, 0, 0, "1000");
     }
 
     private static GameSnapshot snapshot(Entity myCarrier, Entity fighter, Entity target) {
         return new GameSnapshot(
                 myCarrier, List.of(fighter), List.of(), List.of(target), List.of(), List.of(),
+                target, 0f, true, false, Map.of(), new int[0][0], SETTINGS);
+    }
+
+    private static GameSnapshot snapshotMulti(Entity myCarrier, Entity fighter, Entity target,
+                                              List<Entity> allEnemyCarriers) {
+        return new GameSnapshot(
+                myCarrier, List.of(fighter), List.of(), allEnemyCarriers, List.of(), List.of(),
                 target, 0f, true, false, Map.of(), new int[0][0], SETTINGS);
     }
 

@@ -31,10 +31,17 @@ public class FighterMissileFireTactic implements Tactic<Entity> {
                 || GameUtils.distance(fighter, target) >= missileRange) {
             return Optional.empty();
         }
-        // FIRE_MISSILE auto-homes to the nearest carrier. Skip if our carrier is closer to this
-        // fighter than the enemy — the missile would lock onto us instead.
-        if (GameUtils.distance(fighter, snapshot.myCarrier()) <= GameUtils.distance(fighter, target)) {
+        // FIRE_MISSILE auto-homes to the nearest carrier. Only fire if the intended target is
+        // the closest carrier to the fighter — otherwise the missile locks onto a closer carrier.
+        float distToTarget = GameUtils.distance(fighter, target);
+        if (GameUtils.distance(fighter, snapshot.myCarrier()) <= distToTarget) {
             return Optional.empty();
+        }
+        for (Entity carrier : snapshot.liveEnemyCarriers()) {
+            if (!carrier.id().equals(target.id())
+                    && GameUtils.distance(fighter, carrier) <= distToTarget) {
+                return Optional.empty();
+            }
         }
         return Optional.of(new Order(fighter.id(), OrderType.FIRE_MISSILE));
     }
