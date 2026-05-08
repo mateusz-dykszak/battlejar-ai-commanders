@@ -186,6 +186,17 @@ public class BattleMap {
         return FleetPresence.SIGNIFICANT;
     }
 
+    public int getEntityCount(int row, int col) {
+        if (row < 0 || row >= rows || col < 0 || col >= cols) return 0;
+        int count = 0;
+        Sector sector = grid[row][col];
+        for (ColorSectorStatus status : sector.colorStatuses().values()) {
+            if (status.hasCarrier()) count += 10; // Carrier counts as many entities for density
+            count += status.fighterNames().size();
+        }
+        return count;
+    }
+
     public Sector getSector(int row, int col) {
         return grid[row][col];
     }

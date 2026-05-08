@@ -73,7 +73,11 @@ public class AgenticCommander extends AbstractCommander {
             return false;
         }
 
+        // Missile evasion can also move carrier
         executeMissileEvasion(entities);
+
+        // Periodic collision check for carrier even if no AI command is active
+        applyPassiveCarrierAvoidance(entities);
 
         long now = System.currentTimeMillis();
         if (now - lastAiTick > currentAiCooldownMs) {
@@ -191,20 +195,27 @@ public class AgenticCommander extends AbstractCommander {
     }
 
     void issueCommand(Entity entity, AICommandParser.Command cmd, Collection<Entity> allEntities) {
+        if (entity.type() == Entity.Type.CARRIER && "MOVE".equals(cmd.type())) {
+            float[] targetPos = parseSectorCoords(cmd.target());
+            if (targetPos != null) {
+                float[] adjusted = applyCollisionAvoidance(targetPos[0], targetPos[1], allEntities);
+                if (adjusted[0] != targetPos[0] || adjusted[1] != targetPos[1]) {
+                    log.info("Carrier move adjusted for collision/border avoidance: from {} to target pos [{}, {}]", 
+                            cmd.target(), adjusted[0], adjusted[1]);
+                    // Create a new command with specific coordinates if possible, but issueCommand uses sector coords string.
+                    // Let's modify issueCommand to handle specific targetPos if it's already adjusted.
+                    issueMoveCommand(entity, adjusted[0], adjusted[1], allEntities);
+                    return;
+                }
+            }
+        }
+        
         switch (cmd.type()) {
             case "MOVE" -> {
                 if (cmd.target() != null) {
                     float[] targetPos = parseSectorCoords(cmd.target());
                     if (targetPos != null) {
-                        // MOVE coordinates are relative to carrier
-                        Entity myCarrier = allEntities.stream()
-                                .filter(e -> e.type() == Entity.Type.CARRIER && myColor.name().equalsIgnoreCase(e.color()))
-                                .findFirst().orElse(null);
-                        if (myCarrier != null) {
-                            float relX = targetPos[0] - myCarrier.px();
-                            float relY = targetPos[1] - myCarrier.py();
-                            order(new Order(entity.id(), OrderType.MOVE, relX + "|" + relY));
-                        }
+                        issueMoveCommand(entity, targetPos[0], targetPos[1], allEntities);
                     }
                 }
             }
@@ -218,20 +229,99 @@ public class AgenticCommander extends AbstractCommander {
                             order(new Order(entity.id(), OrderType.ATTACK, target.id()));
                         } else {
                             // If no specific target, move there
-                            issueCommand(entity, new AICommandParser.Command("MOVE", cmd.target()), allEntities);
+                            issueMoveCommand(entity, targetPos[0], targetPos[1], allEntities);
                         }
                     }
                 }
             }
             case "REGROUP" -> {
                 if (cmd.target() != null) {
-                    issueCommand(entity, new AICommandParser.Command("MOVE", cmd.target()), allEntities);
+                    float[] targetPos = parseSectorCoords(cmd.target());
+                    if (targetPos != null) {
+                        issueMoveCommand(entity, targetPos[0], targetPos[1], allEntities);
+                    }
                 } else {
                     defend(entity, allEntities);
                 }
             }
             case "DEFEND" -> defend(entity, allEntities);
         }
+    }
+
+    private void issueMoveCommand(Entity entity, float targetX, float targetY, Collection<Entity> allEntities) {
+        // MOVE coordinates are relative to carrier
+        Entity myCarrier = allEntities.stream()
+                .filter(e -> e.type() == Entity.Type.CARRIER && myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
+                .findFirst().orElse(null);
+        if (myCarrier != null) {
+            float relX = targetX - myCarrier.px();
+            float relY = targetY - myCarrier.py();
+            order(new Order(entity.id(), OrderType.MOVE, relX + "|" + relY));
+        }
+    }
+
+    private void applyPassiveCarrierAvoidance(Collection<Entity> allEntities) {
+        Entity myCarrier = allEntities.stream()
+                .filter(e -> e.type() == Entity.Type.CARRIER && myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
+                .findFirst().orElse(null);
+        if (myCarrier == null) return;
+
+        float[] currentPos = new float[]{myCarrier.px(), myCarrier.py()};
+        float[] adjusted = applyCollisionAvoidance(currentPos[0], currentPos[1], allEntities);
+
+        if (adjusted[0] != currentPos[0] || adjusted[1] != currentPos[1]) {
+            log.info("Passive carrier avoidance: moving from [{}, {}] to [{}, {}]", 
+                    currentPos[0], currentPos[1], adjusted[0], adjusted[1]);
+            issueMoveCommand(myCarrier, adjusted[0], adjusted[1], allEntities);
+        }
+    }
+
+    private float[] applyCollisionAvoidance(float targetX, float targetY, Collection<Entity> allEntities) {
+        float adjustedX = targetX;
+        float adjustedY = targetY;
+
+        // 1. Border avoidance
+        float margin = 100;
+        adjustedX = Math.max(margin, Math.min(settings.worldWidth() - margin, adjustedX));
+        adjustedY = Math.max(margin, Math.min(settings.worldHeight() - margin, adjustedY));
+
+        // 2. High density avoidance
+        int r = (int) (adjustedY / (settings.worldHeight() / battleMap.getRows()));
+        int c = (int) (adjustedX / (settings.worldWidth() / battleMap.getCols()));
+        r = Math.max(0, Math.min(battleMap.getRows() - 1, r));
+        c = Math.max(0, Math.min(battleMap.getCols() - 1, c));
+
+        if (battleMap.getEntityCount(r, c) > 15) { // Threshold for high density
+            log.info("High density detected in sector {}x{}, looking for alternative", r, c);
+            // Look at neighbor sectors
+            int bestR = r, bestC = c;
+            int minCount = battleMap.getEntityCount(r, c);
+
+            for (int dr = -1; dr <= 1; dr++) {
+                for (int dc = -1; dc <= 1; dc++) {
+                    int nr = r + dr;
+                    int nc = c + dc;
+                    if (nr >= 0 && nr < battleMap.getRows() && nc >= 0 && nc < battleMap.getCols()) {
+                        int count = battleMap.getEntityCount(nr, nc);
+                        if (count < minCount) {
+                            minCount = count;
+                            bestR = nr;
+                            bestC = nc;
+                        }
+                    }
+                }
+            }
+
+            if (bestR != r || bestC != c) {
+                float[] betterPos = parseSectorCoords(bestR + "x" + bestC);
+                if (betterPos != null) {
+                    adjustedX = betterPos[0];
+                    adjustedY = betterPos[1];
+                }
+            }
+        }
+
+        return new float[]{adjustedX, adjustedY};
     }
 
     Entity findTargetInSector(float centerX, float centerY, Collection<Entity> entities) {

@@ -196,4 +196,56 @@ class AgenticCommanderTest {
         // Rel coord to (500, 500) from carrier at (500, 500) is 0|0
         assertEquals("0.0|0.0", order.details());
     }
+
+    @Test
+    void testCarrierBorderAvoidance() {
+        commander.process(Collections.emptyList());
+        
+        // Carrier near top-left border (10, 10)
+        Entity carrier = new Entity("carrier1", Entity.Type.CARRIER, "RED", 10, 10, 0, 0, null, 0, 0, 0, "100");
+        Collection<Entity> entities = List.of(carrier);
+        
+        // Passive avoidance should trigger
+        commander.process(entities);
+        
+        Order order = orderSender.lastOrder;
+        assertEquals("carrier1", order.id());
+        assertEquals(OrderType.MOVE, order.type());
+        
+        // Margin is 100. Target should be (100, 100)
+        // Relative: 100-10 = 90
+        String[] parts = order.details().split("\\|");
+        assertEquals(90.0f, Float.parseFloat(parts[0]), 0.1f);
+        assertEquals(90.0f, Float.parseFloat(parts[1]), 0.1f);
+    }
+
+    @Test
+    void testCarrierDensityAvoidance() {
+        commander.process(Collections.emptyList());
+        
+        // Carrier at (500, 500) which is sector 1x1
+        Entity carrier = new Entity("carrier1", Entity.Type.CARRIER, "RED", 500, 500, 0, 0, null, 0, 0, 0, "100");
+        
+        // Create 20 fighters in sector 1x1 to exceed threshold (15)
+        java.util.List<Entity> entities = new java.util.ArrayList<>();
+        entities.add(carrier);
+        for (int i = 0; i < 20; i++) {
+            entities.add(new Entity("f"+i, Entity.Type.FIGHTER, "BLUE", 500, 500, 0, 0, null, 0, 0, 0, "100"));
+        }
+        
+        // Passive avoidance should trigger
+        commander.process(entities);
+        
+        Order order = orderSender.lastOrder;
+        assertEquals("carrier1", order.id());
+        assertEquals(OrderType.MOVE, order.type());
+        
+        // Should move to a neighbor sector. 0x0, 0x1, 0x2, 1x0, 1x2, 2x0, 2x1, 2x2
+        // Neighbor 0x0 center is (166.6, 166.6). Relative: 166.6 - 500 = -333.3
+        String[] parts = order.details().split("\\|");
+        // It should have moved somewhere
+        float relX = Float.parseFloat(parts[0]);
+        float relY = Float.parseFloat(parts[1]);
+        org.junit.jupiter.api.Assertions.assertTrue(relX != 0 || relY != 0, "Carrier should have moved");
+    }
 }

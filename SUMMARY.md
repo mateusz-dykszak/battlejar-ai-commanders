@@ -16,3 +16,10 @@
 - Implemented missile evasion logic for the carrier. It now moves away from incoming enemy missiles that are within 400 units and heading towards it.
 - Integrated evasion logic into the main game loop and defensive maneuvers.
 - Added unit test for missile evasion.
+
+### 2026-05-08
+- Implemented carrier collision avoidance.
+  - Carrier now avoids world borders (100 unit margin).
+  - Carrier avoids high-density sectors (>15 entities, carrier counts as 10).
+  - Passive avoidance ensures carrier stays safe even when idle.
+  - Verified with unit tests.
