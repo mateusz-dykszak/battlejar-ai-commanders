@@ -147,10 +147,20 @@ public class ClaudeCommander extends AbstractCommander {
                 .filter(e -> !"D".equals(e.status()) && !"C".equals(e.status()))
                 .toList();
 
+        // Safe zone inner margin — same constant used by carrier border avoidance.
+        float safeInner = BORDER_MARGIN + SAFE_INSET;
+
         for (Entity fighter : myFighters) {
             int[] offset = formationOffset(fighter, formation);
-            boolean inFormation = distanceTo(fighter,
-                    myCarrier.px() + offset[0], myCarrier.py() + offset[1]) < FORMATION_THRESHOLD;
+            // Clamp absolute slot position to the safe zone. At spawn the carrier sits
+            // 30+ units outside the border threshold, so unmodified slots on the south/east
+            // side are outside the map. Without clamping those fighters spend all ticks on
+            // MOVE("0|0") instead of ATTACK. Clamping keeps them valid and attacking.
+            float slotAbsX = Math.max(safeInner, Math.min(settings.worldWidth()  - safeInner, myCarrier.px() + offset[0]));
+            float slotAbsY = Math.max(safeInner, Math.min(settings.worldHeight() - safeInner, myCarrier.py() + offset[1]));
+            int safeOffX = (int)(slotAbsX - myCarrier.px());
+            int safeOffY = (int)(slotAbsY - myCarrier.py());
+            boolean inFormation = distanceTo(fighter, slotAbsX, slotAbsY) < FORMATION_THRESHOLD;
             // Only this specific fighter defends if a missile is close to IT — others keep attacking.
             boolean missileCloseToFighter = armedEnemyMissiles.stream()
                     .anyMatch(m -> distance(m, fighter) < FIGHTER_LASER_RANGE);
@@ -184,7 +194,7 @@ public class ClaudeCommander extends AbstractCommander {
             } else if (missileCloseToFighter) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
             } else if (!inFormation) {
-                sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
+                sendOrder(new Order(fighter.id(), OrderType.MOVE, safeOffX + "|" + safeOffY));
             } else if (missileCosAngle > 0.5f) {
                 // Fighter is in formation and naturally facing the enemy carrier — fire now.
                 // Alignment comes from prior ATTACK orders, not repeated TURN_XY; TURN_XY sent
@@ -223,8 +233,11 @@ public class ClaudeCommander extends AbstractCommander {
                             && now - dockTime.getOrDefault(docked.id(), 0L) < RECOVERY_MS;
                     if (!stillRecovering) {
                         recovering.remove(docked.id());
-                        int[] offset = formationOffset(docked, formation);
-                        sendOrder(new Order(docked.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
+                        int[] off = formationOffset(docked, formation);
+                        float absX = Math.max(safeInner, Math.min(settings.worldWidth()  - safeInner, myCarrier.px() + off[0]));
+                        float absY = Math.max(safeInner, Math.min(settings.worldHeight() - safeInner, myCarrier.py() + off[1]));
+                        sendOrder(new Order(docked.id(), OrderType.MOVE,
+                                (int)(absX - myCarrier.px()) + "|" + (int)(absY - myCarrier.py())));
                     }
                 });
 
