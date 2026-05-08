@@ -8,9 +8,9 @@ public final class GameConfig {
     public static final float FIGHTER_MISSILE_RANGE = 150f;
     public static final float FIGHTER_LASER_RANGE = 150f;
     public static final float MISSILE_INTERCEPT_RANGE = 80f;
-public static final float FORMATION_RADIUS_TIGHT = 50f;
+    public static final float FORMATION_RADIUS_TIGHT = 50f;
     public static final float FORMATION_RADIUS_WIDE = 150f;
-    public static final int   FORMATION_EXPAND_AT = 8;
+    public static final int   FORMATION_EXPAND_AT = 3;
     public static final int   FORMATION_SLOTS = 8;
     public static final int   AGGRESSION_FIGHTER_THRESHOLD = 12;
     public static final float CARRIER_PUSH_DISTANCE = 80f;
