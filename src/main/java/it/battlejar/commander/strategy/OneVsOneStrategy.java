@@ -48,7 +48,13 @@ public class OneVsOneStrategy implements Strategy {
                 new CarrierFighterlessTactic(),
                 new CarrierKiteTactic(GameConfig.CARRIER_MIN_SEPARATION_1V1, GameConfig.CARRIER_KITE_DISTANCE,
                         GameConfig.BORDER_MARGIN, GameConfig.SAFE_INSET),
-                // Push hard only when clearly winning: 300+ HP advantage AND more fighters
+                // Ram: all-out charge when overwhelmingly superior — healthy, enemy wounded, fighters ≥6
+                new CarrierPushTactic(GameConfig.CARRIER_PUSH_DISTANCE_1V1,
+                        s -> s.primaryTarget() != null
+                                && GameUtils.health(s.myCarrier()) > 600
+                                && GameUtils.health(s.primaryTarget()) < 400
+                                && s.myActiveFighters().size() >= 6),
+                // Push: advance when clearly winning on both HP and fighter count
                 new CarrierPushTactic(GameConfig.CARRIER_PUSH_DISTANCE_1V1,
                         s -> s.hasKilledEnemy()
                                 && s.primaryTarget() != null
