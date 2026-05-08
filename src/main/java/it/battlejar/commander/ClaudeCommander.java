@@ -96,11 +96,19 @@ public class ClaudeCommander extends AbstractCommander {
         // Wounded carrier within range takes priority; otherwise nearest
         Entity nearestEnemyCarrier = selectTarget(liveEnemyCarriers, myCarrier);
 
-        // Precompute once; per-fighter proximity check replaces the old shared flag.
+        // Threatening missiles: armed and moving toward our carrier (dot product > 0).
+        // Ownership does not matter — our own outgoing missiles fly away (dot product < 0)
+        // and are filtered out; enemy missiles targeting another player are also ignored.
+        // A missile that loses its target can change direction quickly, so direction is
+        // re-evaluated every tick regardless of who fired it.
         List<Entity> armedEnemyMissiles = entities.stream()
                 .filter(e -> e.type() == Entity.Type.MISSILE)
-                .filter(e -> !myColor.name().equals(e.color()))
                 .filter(e -> "A".equals(e.status()))
+                .filter(e -> {
+                    float toCx = myCarrier.px() - e.px();
+                    float toCy = myCarrier.py() - e.py();
+                    return e.vx() * toCx + e.vy() * toCy > 0;
+                })
                 .toList();
 
         if (nearestEnemyCarrier != null) {
@@ -328,7 +336,6 @@ public class ClaudeCommander extends AbstractCommander {
     private int[] computeCarrierDodge(Collection<Entity> entities, Entity myCarrier) {
         Entity missile = entities.stream()
                 .filter(e -> e.type() == Entity.Type.MISSILE)
-                .filter(e -> !myColor.name().equals(e.color()))
                 .filter(e -> "A".equals(e.status()))
                 .filter(e -> distance(e, myCarrier) < CARRIER_DODGE_RANGE)
                 .filter(e -> {
