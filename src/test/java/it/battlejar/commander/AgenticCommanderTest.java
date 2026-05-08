@@ -136,15 +136,17 @@ class AgenticCommanderTest {
         commander.issueCommand(fighter, cmd, entities);
         
         Order order = orderSender.lastOrder;
-        // defend() should issue a MOVE order between carrier and threat
-        // Carrier at 500,500. Enemy at 100,100.
-        // Dir = (-400, -400), len = 565.68
-        // target = 500 + (-400/565)*50 = 500 - 35.35 = 464.65
-        // Rel = -35.35
+        // hash of "fighter1" determines distance
+        int hash = Math.abs("fighter1".hashCode());
+        float expectedDistance = (hash % 2 == 0) ? 40 : 80;
+        expectedDistance += (hash % 10 - 5) * 2;
+        
+        float expectedRel = (float)((-400.0 / 565.6854) * expectedDistance);
+        
         assertEquals("fighter1", order.id());
         assertEquals(OrderType.MOVE, order.type());
         String[] parts = order.details().split("\\|");
-        assertEquals(-35.35f, Float.parseFloat(parts[0]), 0.1f);
-        assertEquals(-35.35f, Float.parseFloat(parts[1]), 0.1f);
+        assertEquals(expectedRel, Float.parseFloat(parts[0]), 0.1f);
+        assertEquals(expectedRel, Float.parseFloat(parts[1]), 0.1f);
     }
 }

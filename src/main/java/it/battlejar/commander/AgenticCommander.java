@@ -26,6 +26,20 @@ public class AgenticCommander extends AbstractCommander {
     private AIAgent aiAgent;
     private long lastAiTick = 0;
     private static final long AI_COOLDOWN_MS = 2000; // Run AI every 2 seconds
+    private static final long ENTITY_COOLDOWN_MS = 150; // Per-entity order cooldown
+    private final Map<String, Long> entityLastOrderTime = new HashMap<>();
+
+    @Override
+    protected void order(Order order) {
+        long now = System.currentTimeMillis();
+        Long lastOrderTime = entityLastOrderTime.get(order.id());
+        if (lastOrderTime == null || now - lastOrderTime >= ENTITY_COOLDOWN_MS) {
+            entityLastOrderTime.put(order.id(), now);
+            super.order(order);
+        } else {
+            log.debug("Cooldown active for entity {}, skipping order", order.id());
+        }
+    }
 
     @Override
     protected boolean process(Collection<Entity> entities) {
