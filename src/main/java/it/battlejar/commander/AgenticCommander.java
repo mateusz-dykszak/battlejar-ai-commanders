@@ -267,13 +267,107 @@ public class AgenticCommander extends AbstractCommander {
         if (myCarrier == null) return;
 
         float[] currentPos = new float[]{myCarrier.px(), myCarrier.py()};
-        float[] adjusted = applyCollisionAvoidance(currentPos[0], currentPos[1], allEntities);
+        float[] adjusted = calculateCarrierManeuver(myCarrier, allEntities);
 
         if (adjusted[0] != currentPos[0] || adjusted[1] != currentPos[1]) {
-            log.info("Passive carrier avoidance: moving from [{}, {}] to [{}, {}]", 
+            log.info("Carrier maneuver: moving from [{}, {}] to [{}, {}]", 
                     currentPos[0], currentPos[1], adjusted[0], adjusted[1]);
             issueMoveCommand(myCarrier, adjusted[0], adjusted[1], allEntities);
         }
+    }
+
+    private float[] calculateCarrierManeuver(Entity myCarrier, Collection<Entity> allEntities) {
+        float curX = myCarrier.px();
+        float curY = myCarrier.py();
+        float safeDistance = 15.0f;
+
+        // 1. Priority: Border avoidance
+        float targetX = curX;
+        float targetY = curY;
+        boolean nearBorder = false;
+
+        if (curX < safeDistance) { targetX = safeDistance; nearBorder = true; }
+        else if (curX > settings.worldWidth() - safeDistance) { targetX = settings.worldWidth() - safeDistance; nearBorder = true; }
+        
+        if (curY < safeDistance) { targetY = safeDistance; nearBorder = true; }
+        else if (curY > settings.worldHeight() - safeDistance) { targetY = settings.worldHeight() - safeDistance; nearBorder = true; }
+
+        if (nearBorder) {
+            return new float[]{targetX, targetY};
+        }
+
+        // 2. Move away from two closest enemy carriers
+        List<Entity> enemyCarriers = allEntities.stream()
+                .filter(e -> e.type() == Entity.Type.CARRIER && !myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
+                .sorted(Comparator.comparingDouble(e -> Math.pow(e.px() - curX, 2) + Math.pow(e.py() - curY, 2)))
+                .limit(2)
+                .toList();
+
+        if (enemyCarriers.isEmpty()) {
+            return new float[]{curX, curY};
+        }
+
+        float avoidX = 0, avoidY = 0;
+        if (enemyCarriers.size() == 1) {
+            // Move directly away from the only enemy carrier
+            Entity enemy = enemyCarriers.get(0);
+            float dx = curX - enemy.px();
+            float dy = curY - enemy.py();
+            float dist = (float) Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0) {
+                avoidX = dx / dist;
+                avoidY = dy / dist;
+            }
+        } else {
+            // Find two closest enemy carriers and move away from the line joining them
+            Entity e1 = enemyCarriers.get(0);
+            Entity e2 = enemyCarriers.get(1);
+            
+            // Vector of the line joining them
+            float lx = e2.px() - e1.px();
+            float ly = e2.py() - e1.py();
+            float lLenSq = lx * lx + ly * ly;
+            
+            if (lLenSq < 0.01f) {
+                // They are at the same spot, move away from that spot
+                float dx = curX - e1.px();
+                float dy = curY - e1.py();
+                float dist = (float) Math.sqrt(dx * dx + dy * dy);
+                if (dist > 0) {
+                    avoidX = dx / dist;
+                    avoidY = dy / dist;
+                }
+            } else {
+                // Projection of current carrier onto the line
+                float t = ((curX - e1.px()) * lx + (curY - e1.py()) * ly) / lLenSq;
+                float projX = e1.px() + t * lx;
+                float projY = e1.py() + t * ly;
+                
+                // Vector from projection to current position (perpendicular to the line)
+                avoidX = curX - projX;
+                avoidY = curY - projY;
+                float dist = (float) Math.sqrt(avoidX * avoidX + avoidY * avoidY);
+                if (dist > 0) {
+                    avoidX /= dist;
+                    avoidY /= dist;
+                } else {
+                    // Carrier is exactly on the line, pick a perpendicular vector
+                    avoidX = -ly / (float) Math.sqrt(lLenSq);
+                    avoidY = lx / (float) Math.sqrt(lLenSq);
+                }
+            }
+        }
+
+        // Move some distance in the avoid direction
+        float moveDist = 50.0f;
+        targetX = curX + avoidX * moveDist;
+        targetY = curY + avoidY * moveDist;
+
+        // Final check for borders
+        targetX = Math.max(safeDistance, Math.min(settings.worldWidth() - safeDistance, targetX));
+        targetY = Math.max(safeDistance, Math.min(settings.worldHeight() - safeDistance, targetY));
+
+        return new float[]{targetX, targetY};
     }
 
     private float[] applyCollisionAvoidance(float targetX, float targetY, Collection<Entity> allEntities) {

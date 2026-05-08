@@ -213,42 +213,48 @@ class AgenticCommanderTest {
         assertEquals("carrier1", order.id());
         assertEquals(OrderType.MOVE, order.type());
         
-        // Margin is 100. Target should be (100, 100)
-        // Relative: 100-10 = 90
+        // Margin is now 15. Target should be (15, 15)
+        // Relative: 15-10 = 5
         String[] parts = order.details().split("\\|");
-        assertEquals(90.0f, Float.parseFloat(parts[0]), 0.1f);
-        assertEquals(90.0f, Float.parseFloat(parts[1]), 0.1f);
+        assertEquals(5.0f, Float.parseFloat(parts[0]), 0.1f);
+        assertEquals(5.0f, Float.parseFloat(parts[1]), 0.1f);
     }
 
     @Test
-    void testCarrierDensityAvoidance() {
+    void testCarrierManeuverAwayFromEnemyCarriers() {
         commander.process(Collections.emptyList());
         
-        // Carrier at (500, 500) which is sector 1x1
-        Entity carrier = new Entity("carrier1", Entity.Type.CARRIER, "RED", 500, 500, 0, 0, null, 0, 0, 0, "100");
+        // My carrier at (500, 500)
+        Entity myCarrier = new Entity("myCarrier", Entity.Type.CARRIER, "RED", 500, 500, 0, 0, null, 0, 0, 0, "100");
+        // Enemy carriers at (400, 500) and (500, 400)
+        // Line joining them: from (400, 500) to (500, 400). Vector (100, -100)
+        // Midpoint: (450, 450)
+        // My carrier at (500, 500) is already somewhat "away" from (450, 450)
+        // Projection of (500, 500) onto the line:
+        // lx=100, ly=-100, lLenSq=20000
+        // t = ((500-400)*100 + (500-500)*(-100)) / 20000 = 10000 / 20000 = 0.5
+        // Proj: (400 + 0.5*100, 500 + 0.5*-100) = (450, 450)
+        // Avoid vector from (450, 450) to (500, 500) is (50, 50)
+        // Normalized: (1/sqrt(2), 1/sqrt(2))
+        // Move dist 50: (35.35, 35.35)
+        // New target: (535.35, 535.35)
+        // Rel: 35.35, 35.35
         
-        // Create 20 fighters in sector 1x1 to exceed threshold (15)
-        java.util.List<Entity> entities = new java.util.ArrayList<>();
-        entities.add(carrier);
-        for (int i = 0; i < 20; i++) {
-            entities.add(new Entity("f"+i, Entity.Type.FIGHTER, "BLUE", 500, 500, 0, 0, null, 0, 0, 0, "100"));
-        }
+        Entity enemy1 = new Entity("enemy1", Entity.Type.CARRIER, "BLUE", 400, 500, 0, 0, null, 0, 0, 0, "100");
+        Entity enemy2 = new Entity("enemy2", Entity.Type.CARRIER, "GREEN", 500, 400, 0, 0, null, 0, 0, 0, "100");
         
-        // Passive avoidance should trigger
+        Collection<Entity> entities = List.of(myCarrier, enemy1, enemy2);
+        
         commander.process(entities);
         
         Order order = orderSender.lastOrder;
-        assertEquals("carrier1", order.id());
+        assertEquals("myCarrier", order.id());
         assertEquals(OrderType.MOVE, order.type());
-        
-        // Should move to a neighbor sector. 0x0, 0x1, 0x2, 1x0, 1x2, 2x0, 2x1, 2x2
-        // Neighbor 0x0 center is (166.6, 166.6). Relative: 166.6 - 500 = -333.3
         String[] parts = order.details().split("\\|");
-        // It should have moved somewhere
-        float relX = Float.parseFloat(parts[0]);
-        float relY = Float.parseFloat(parts[1]);
-        org.junit.jupiter.api.Assertions.assertTrue(relX != 0 || relY != 0, "Carrier should have moved");
+        assertEquals(35.35f, Float.parseFloat(parts[0]), 0.1f);
+        assertEquals(35.35f, Float.parseFloat(parts[1]), 0.1f);
     }
+
     @Test
     void testFindTargetInSectorPrioritization() {
         commander.process(Collections.emptyList());

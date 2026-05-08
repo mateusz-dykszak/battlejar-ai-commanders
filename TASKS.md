@@ -47,3 +47,7 @@ Execute one of the following tasks, commit and push to github when task is compl
 - [x] Implement collision avoidance for carriers: avoid moving into sectors with high density of entities or near borders.
 - [x] Implement target prioritization for fighters: prioritize enemy carriers and low-health entities.
 
+
+- [x] Implement carrier's logic: 
+  Try to get as far as it can from the other carriers and avoid hitting borders (safe distance is 15 units - if it's closer the safe border logic should take priority). 
+  Where to move away should be calculated by finding two closest enemy carriers and move away from the line joining them.
