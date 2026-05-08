@@ -155,6 +155,23 @@ public class ClaudeCommander extends AbstractCommander {
             boolean missileCloseToFighter = armedEnemyMissiles.stream()
                     .anyMatch(m -> distance(m, fighter) < FIGHTER_LASER_RANGE);
 
+            // Compute missile alignment once — used lower in the chain.
+            // Missiles fire in the fighter's velocity direction. We only fire when the fighter
+            // is already moving toward the enemy (cosAngle > 0.5, ~60°) so the missile finds
+            // the enemy carrier in its forward cone instead of homing to ours.
+            // Computed here so the check is zero-cost if we short-circuit earlier.
+            float missileCosAngle = 0f;
+            if (nearestEnemyCarrier != null && fighter.missiles() > 0
+                    && distance(fighter, nearestEnemyCarrier) < FIGHTER_MISSILE_RANGE) {
+                float toEcX = nearestEnemyCarrier.px() - fighter.px();
+                float toEcY = nearestEnemyCarrier.py() - fighter.py();
+                float toEcLen = (float) Math.sqrt(toEcX * toEcX + toEcY * toEcY);
+                float speed = (float) Math.sqrt(fighter.vx() * fighter.vx() + fighter.vy() * fighter.vy());
+                missileCosAngle = (speed > 0f && toEcLen > 0f)
+                        ? (fighter.vx() * toEcX + fighter.vy() * toEcY) / (speed * toEcLen)
+                        : 0f;
+            }
+
             if (isNearBorder(fighter)) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, "0|0"));
             } else if (health(fighter) <= DOCK_HEALTH_THRESHOLD) {
@@ -164,31 +181,15 @@ public class ClaudeCommander extends AbstractCommander {
             } else if (intercept.containsKey(fighter.id())) {
                 int[] mPos = intercept.get(fighter.id());
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, mPos[0] + "|" + mPos[1]));
-            } else if (nearestEnemyCarrier != null && fighter.missiles() > 0
-                    && distance(fighter, nearestEnemyCarrier) < FIGHTER_MISSILE_RANGE) {
-                // Fighters fire along their velocity direction (not a direction arg — that is
-                // carriers-only). Missiles lock on carriers in their forward cone; if none is
-                // found they home on the nearest carrier (possibly ours). We must confirm the
-                // fighter's velocity is actually pointing toward the enemy before firing.
-                // TURN_XY changes velocity gradually, so we keep re-issuing it each tick until
-                // the cosine of the angle between velocity and enemy direction exceeds 0.7 (~45°).
-                float toEcX = nearestEnemyCarrier.px() - fighter.px();
-                float toEcY = nearestEnemyCarrier.py() - fighter.py();
-                float toEcLen = (float) Math.sqrt(toEcX * toEcX + toEcY * toEcY);
-                float speed = (float) Math.sqrt(fighter.vx() * fighter.vx() + fighter.vy() * fighter.vy());
-                float cosAngle = (speed > 0f && toEcLen > 0f)
-                        ? (fighter.vx() * toEcX + fighter.vy() * toEcY) / (speed * toEcLen)
-                        : 0f;
-                if (cosAngle > 0.7f) {
-                    sendOrder(new Order(fighter.id(), OrderType.FIRE_MISSILE));
-                } else {
-                    sendOrder(new Order(fighter.id(), OrderType.TURN_XY,
-                            Math.round(toEcX) + "|" + Math.round(toEcY)));
-                }
             } else if (missileCloseToFighter) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
             } else if (!inFormation) {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));
+            } else if (missileCosAngle > 0.5f) {
+                // Fighter is in formation and naturally facing the enemy carrier — fire now.
+                // Alignment comes from prior ATTACK orders, not repeated TURN_XY; TURN_XY sent
+                // every 150 ms prevents itself from completing (HOWTO warning).
+                sendOrder(new Order(fighter.id(), OrderType.FIRE_MISSILE));
             } else {
                 // In 1v1 the enemy has fewer fighters but clusters them near our carrier:
                 // ef_near_100 reaches 17 while fighters at 76–100 units fire unchallenged under
