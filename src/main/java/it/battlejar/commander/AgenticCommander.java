@@ -139,14 +139,55 @@ public class AgenticCommander extends AbstractCommander {
             }
         }
         
-        // Fighters without AI instructions -> defend
+        // Fighters without AI instructions
         fightersBySector.forEach((sectorKey, sectorFighters) -> {
             if (!response.sectorCommands().containsKey(sectorKey)) {
-                for (Entity f : sectorFighters) {
-                    defend(f, entities);
+                // Auto-regroup if presence is SMALL
+                String[] parts = sectorKey.split("x");
+                int r = Integer.parseInt(parts[0]);
+                int c = Integer.parseInt(parts[1]);
+                Sector sector = battleMap.getSector(r, c);
+                ColorSectorStatus status = sector.colorStatuses().get(myColor);
+                
+                if (status != null && status.presence() == it.battlejar.commander.map.FleetPresence.SMALL) {
+                    // Find a sector with SIGNIFICANT or DOMINANCE presence to regroup to
+                    String targetSector = findRegroupTarget(r, c);
+                    for (Entity f : sectorFighters) {
+                        issueCommand(f, new AICommandParser.Command("REGROUP", targetSector), entities);
+                    }
+                } else {
+                    // Default to defend
+                    for (Entity f : sectorFighters) {
+                        defend(f, entities);
+                    }
                 }
             }
         });
+    }
+
+    private String findRegroupTarget(int currentR, int currentC) {
+        // Try to find a sector with SIGNIFICANT or DOMINANCE presence
+        for (int r = 0; r < battleMap.getRows(); r++) {
+            for (int c = 0; c < battleMap.getCols(); c++) {
+                Sector s = battleMap.getSector(r, c);
+                ColorSectorStatus status = s.colorStatuses().get(myColor);
+                if (status != null && (status.presence() == it.battlejar.commander.map.FleetPresence.SIGNIFICANT 
+                        || status.presence() == it.battlejar.commander.map.FleetPresence.DOMINANCE)) {
+                    return r + "x" + c;
+                }
+            }
+        }
+        // Fallback to carrier sector
+        for (int r = 0; r < battleMap.getRows(); r++) {
+            for (int c = 0; c < battleMap.getCols(); c++) {
+                Sector s = battleMap.getSector(r, c);
+                ColorSectorStatus status = s.colorStatuses().get(myColor);
+                if (status != null && status.hasCarrier()) {
+                    return r + "x" + c;
+                }
+            }
+        }
+        return currentR + "x" + currentC; // Stay put if no better place
     }
 
     void issueCommand(Entity entity, AICommandParser.Command cmd, Collection<Entity> allEntities) {
@@ -180,6 +221,13 @@ public class AgenticCommander extends AbstractCommander {
                             issueCommand(entity, new AICommandParser.Command("MOVE", cmd.target()), allEntities);
                         }
                     }
+                }
+            }
+            case "REGROUP" -> {
+                if (cmd.target() != null) {
+                    issueCommand(entity, new AICommandParser.Command("MOVE", cmd.target()), allEntities);
+                } else {
+                    defend(entity, allEntities);
                 }
             }
             case "DEFEND" -> defend(entity, allEntities);

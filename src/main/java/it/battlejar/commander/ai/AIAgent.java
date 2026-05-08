@@ -30,6 +30,7 @@ public class AIAgent {
             Allowed commands for each sector:
             - MOVE <SectorCoordinates> (e.g., MOVE 1x2)
             - ATTACK <SectorCoordinates> (e.g., ATTACK 3x1)
+            - REGROUP <SectorCoordinates> (e.g., REGROUP 1x1)
             - DEFEND
             
             Rules:
@@ -45,6 +46,7 @@ public class AIAgent {
             1. Target Prioritization: Prioritize attacking enemy carriers. If an enemy carrier is detected in a sector or nearby, focus fire on it. Eliminating the enemy carrier is the fastest way to win.
             2. Aggression: If you have a SIGNIFICANT or DOMINANCE presence, be aggressive. Use ATTACK commands to push into enemy-held sectors, especially those with enemy carriers.
             3. Carrier Safety: Keep your carrier safe. Use MOVE to reposition away from HIGH threat levels, and use DEFEND to keep fighters as a screen.
+            4. Fighter Regrouping: If your fighters in a sector are spread thin (Presence=SMALL), use REGROUP or MOVE commands to regroup them into a stronger sector (Presence=SIGNIFICANT or DOMINANCE) or a safer sector near your carrier.
             
             Example:
             CARRIER: MOVE 1x1

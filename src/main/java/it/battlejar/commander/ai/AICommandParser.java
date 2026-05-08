@@ -18,9 +18,9 @@ public class AICommandParser {
         Map<String, List<Command>> sectorCommands = new HashMap<>();
 
         String[] lines = aiOutput.split("\n");
-        Pattern carrierPattern = Pattern.compile("CARRIER:\\s*(MOVE|ATTACK|DEFEND)\\s*(\\d+x\\d+)?", Pattern.CASE_INSENSITIVE);
+        Pattern carrierPattern = Pattern.compile("CARRIER:\\s*(MOVE|ATTACK|REGROUP|DEFEND)\\s*(\\d+x\\d+)?", Pattern.CASE_INSENSITIVE);
         Pattern sectorPattern = Pattern.compile("SECTOR\\s*(\\d+x\\d+):\\s*(.*)", Pattern.CASE_INSENSITIVE);
-        Pattern commandPattern = Pattern.compile("(MOVE|ATTACK|DEFEND)\\s*(\\d+x\\d+)?", Pattern.CASE_INSENSITIVE);
+        Pattern commandPattern = Pattern.compile("(MOVE|ATTACK|REGROUP|DEFEND)\\s*(\\d+x\\d+)?", Pattern.CASE_INSENSITIVE);
 
         for (String line : lines) {
             line = line.trim();

@@ -174,4 +174,26 @@ class AgenticCommanderTest {
         assertEquals(70.71f, Float.parseFloat(parts[0]), 0.1f);
         assertEquals(70.71f, Float.parseFloat(parts[1]), 0.1f);
     }
+
+    @Test
+    void testIssueRegroupCommand() {
+        commander.process(Collections.emptyList());
+        
+        Entity carrier = new Entity("carrier1", Entity.Type.CARRIER, "RED", 500, 500, 0, 0, null, 0, 0, 0, "100");
+        Entity fighter = new Entity("fighter1", Entity.Type.FIGHTER, "RED", 500, 500, 0, 0, null, 0, 0, 0, "100");
+        Collection<Entity> entities = List.of(carrier, fighter);
+        
+        AICommandParser.Command cmd = new AICommandParser.Command("REGROUP", "1x1");
+        
+        commander.issueCommand(fighter, cmd, entities);
+        
+        Order order = orderSender.lastOrder;
+        assertEquals("fighter1", order.id());
+        assertEquals(OrderType.MOVE, order.type());
+        
+        // 1x1 center is (500, 500) in 3x3 1000x1000 grid.
+        // Wait, parseSectorCoords(1x1) -> { (1.5)*333.3, (1.5)*333.3 } = { 500, 500 }
+        // Rel coord to (500, 500) from carrier at (500, 500) is 0|0
+        assertEquals("0.0|0.0", order.details());
+    }
 }
