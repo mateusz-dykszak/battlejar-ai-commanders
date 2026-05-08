@@ -52,8 +52,6 @@ public class ClaudeCommander extends AbstractCommander {
     // fighters we explicitly docked for damage recovery; excluded from deploy orders until RECOVERY_MS passes
     private final Set<String> recovering = new HashSet<>();
     private final Map<String, Long> dockTime = new HashMap<>();
-    // fighters issued TURN_XY toward enemy carrier; fire FIRE_MISSILE on the next tick
-    private final Set<String> preFireSet = new HashSet<>();
     // last known angle to current target carrier; reused when no enemy is visible
     private float lastFormationAngle = 0f;
     // enemy carrier count at game start; used to detect when we have achieved a kill
@@ -168,17 +166,24 @@ public class ClaudeCommander extends AbstractCommander {
                 sendOrder(new Order(fighter.id(), OrderType.MOVE, mPos[0] + "|" + mPos[1]));
             } else if (nearestEnemyCarrier != null && fighter.missiles() > 0
                     && distance(fighter, nearestEnemyCarrier) < FIGHTER_MISSILE_RANGE) {
-                // Fighters fire along current heading — direction arg is carriers-only (HOWTO).
-                // We issue TURN_XY toward the enemy carrier first, then fire on the next tick
-                // (150 ms later) once the fighter has had time to rotate.
-                if (preFireSet.remove(fighter.id())) {
+                // Fighters fire along their velocity direction (not a direction arg — that is
+                // carriers-only). Missiles lock on carriers in their forward cone; if none is
+                // found they home on the nearest carrier (possibly ours). We must confirm the
+                // fighter's velocity is actually pointing toward the enemy before firing.
+                // TURN_XY changes velocity gradually, so we keep re-issuing it each tick until
+                // the cosine of the angle between velocity and enemy direction exceeds 0.7 (~45°).
+                float toEcX = nearestEnemyCarrier.px() - fighter.px();
+                float toEcY = nearestEnemyCarrier.py() - fighter.py();
+                float toEcLen = (float) Math.sqrt(toEcX * toEcX + toEcY * toEcY);
+                float speed = (float) Math.sqrt(fighter.vx() * fighter.vx() + fighter.vy() * fighter.vy());
+                float cosAngle = (speed > 0f && toEcLen > 0f)
+                        ? (fighter.vx() * toEcX + fighter.vy() * toEcY) / (speed * toEcLen)
+                        : 0f;
+                if (cosAngle > 0.7f) {
                     sendOrder(new Order(fighter.id(), OrderType.FIRE_MISSILE));
                 } else {
-                    float toEcX = nearestEnemyCarrier.px() - fighter.px();
-                    float toEcY = nearestEnemyCarrier.py() - fighter.py();
                     sendOrder(new Order(fighter.id(), OrderType.TURN_XY,
                             Math.round(toEcX) + "|" + Math.round(toEcY)));
-                    preFireSet.add(fighter.id());
                 }
             } else if (missileCloseToFighter) {
                 sendOrder(new Order(fighter.id(), OrderType.TARGET, "M"));
