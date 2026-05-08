@@ -14,6 +14,7 @@ import it.battlejar.commander.tactic.fighter.FighterAttackTactic;
 import it.battlejar.commander.tactic.fighter.FighterMissileFireTactic;
 import it.battlejar.commander.tactic.fighter.LaserDefenseTactic;
 import it.battlejar.commander.tactic.fighter.MissileInterceptTactic;
+import it.battlejar.commander.tactic.fighter.StrikerPositioningTactic;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +44,7 @@ public class MultiEnemySurvivalStrategy implements Strategy {
         this.strikerTactics = List.of(
                 new BorderEvasionTactic(GameConfig.BORDER_MARGIN),
                 new MissileInterceptTactic(),
+                new StrikerPositioningTactic(GameConfig.STRIKER_POSITION_RANGE),
                 new FighterMissileFireTactic(GameConfig.FIGHTER_MISSILE_RANGE),
                 new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),
                 new FighterAttackTactic(0f)
