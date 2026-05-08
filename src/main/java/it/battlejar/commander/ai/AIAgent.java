@@ -41,6 +41,11 @@ public class AIAgent {
             CARRIER: <command>
             SECTOR <row>x<col>: <command1>, <command2>, ...
             
+            Strategy Guidelines:
+            1. Target Prioritization: Prioritize attacking enemy carriers. If an enemy carrier is detected in a sector or nearby, focus fire on it. Eliminating the enemy carrier is the fastest way to win.
+            2. Aggression: If you have a SIGNIFICANT or DOMINANCE presence, be aggressive. Use ATTACK commands to push into enemy-held sectors, especially those with enemy carriers.
+            3. Carrier Safety: Keep your carrier safe. Use MOVE to reposition away from HIGH threat levels, and use DEFEND to keep fighters as a screen.
+            
             Example:
             CARRIER: MOVE 1x1
             SECTOR 0x0: ATTACK 0x1, DEFEND
