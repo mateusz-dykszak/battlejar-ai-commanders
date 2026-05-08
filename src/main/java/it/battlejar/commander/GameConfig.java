@@ -22,6 +22,7 @@ public final class GameConfig {
     public static final int   KILL_FOCUS_HP = 750;
     public static final float KILL_FOCUS_RANGE = 350f;
     public static final float CARRIER_MIN_SEPARATION_1V1 = 80f;
+    public static final float CARRIER_HOLD_DISTANCE_1V1  = 250f;
     public static final float FIGHTER_INTRUDER_CARRIER_RANGE = 75f;
     public static final float FIGHTER_INTRUDER_CARRIER_RANGE_SURVIVAL = 150f;
     public static final float FIGHTER_INTRUDER_CARRIER_RANGE_1V1 = 100f;

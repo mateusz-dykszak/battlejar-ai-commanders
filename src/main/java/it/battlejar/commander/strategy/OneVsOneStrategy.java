@@ -7,9 +7,10 @@ import it.battlejar.commander.GameConfig;
 import it.battlejar.commander.GameSnapshot;
 import it.battlejar.commander.OrderSender;
 import it.battlejar.commander.tactic.Tactic;
-import it.battlejar.commander.tactic.carrier.CarrierAttackTactic;
+import it.battlejar.commander.GameUtils;
 import it.battlejar.commander.tactic.carrier.CarrierBorderEvasionTactic;
 import it.battlejar.commander.tactic.carrier.CarrierFighterlessTactic;
+import it.battlejar.commander.tactic.carrier.CarrierHoldDistanceTactic;
 import it.battlejar.commander.tactic.carrier.CarrierKiteTactic;
 import it.battlejar.commander.tactic.carrier.CarrierMissileFireTactic;
 import it.battlejar.commander.tactic.carrier.CarrierPatrolTactic;
@@ -33,8 +34,6 @@ public class OneVsOneStrategy implements Strategy {
     private final List<Tactic<Entity>> carrierTactics;
 
     public OneVsOneStrategy() {
-        int minFightersForPush = GameConfig.AGGRESSION_FIGHTER_THRESHOLD / 3;
-
         this.fighterTactics = List.of(
                 new BorderEvasionTactic(GameConfig.BORDER_MARGIN),
                 new MissileInterceptTactic(),
@@ -49,11 +48,14 @@ public class OneVsOneStrategy implements Strategy {
                 new CarrierFighterlessTactic(),
                 new CarrierKiteTactic(GameConfig.CARRIER_MIN_SEPARATION_1V1, GameConfig.CARRIER_KITE_DISTANCE,
                         GameConfig.BORDER_MARGIN, GameConfig.SAFE_INSET),
+                // Push hard only when clearly winning: 300+ HP advantage AND more fighters
                 new CarrierPushTactic(GameConfig.CARRIER_PUSH_DISTANCE_1V1,
                         s -> s.hasKilledEnemy()
                                 && s.primaryTarget() != null
-                                && s.myActiveFighters().size() >= minFightersForPush),
-                new CarrierAttackTactic(GameSnapshot::hasKilledEnemy),
+                                && GameUtils.health(s.myCarrier()) - GameUtils.health(s.primaryTarget()) > 300
+                                && s.myActiveFighters().size() > s.activeEnemyFighters().size() * 1.5f),
+                // Default: hold at safe distance so fighters do the damage
+                new CarrierHoldDistanceTactic(GameConfig.CARRIER_HOLD_DISTANCE_1V1),
                 new CarrierPatrolTactic()
         );
     }
