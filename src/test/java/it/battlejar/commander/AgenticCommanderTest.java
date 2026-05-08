@@ -149,4 +149,29 @@ class AgenticCommanderTest {
         assertEquals(expectedRel, Float.parseFloat(parts[0]), 0.1f);
         assertEquals(expectedRel, Float.parseFloat(parts[1]), 0.1f);
     }
+
+    @Test
+    void testMissileEvasion() {
+        commander.process(Collections.emptyList());
+        
+        Entity carrier = new Entity("carrier1", Entity.Type.CARRIER, "RED", 500, 500, 0, 0, null, 0, 0, 0, "100");
+        // Missile at 400, 400 moving towards 500, 500
+        // Velocity (10, 10)
+        Entity missile = new Entity("missile1", Entity.Type.MISSILE, "BLUE", 400, 400, 10, 10, null, 0, 0, 0, "100");
+        
+        Collection<Entity> entities = List.of(carrier, missile);
+        
+        commander.process(entities);
+        
+        Order order = orderSender.lastOrder;
+        assertEquals("carrier1", order.id());
+        assertEquals(OrderType.MOVE, order.type());
+        
+        // Evade vector: carrier(500,500) - missile(400,400) = (100, 100)
+        // Normalized: (1/sqrt(2), 1/sqrt(2))
+        // Move dist 100: (70.71, 70.71)
+        String[] parts = order.details().split("\\|");
+        assertEquals(70.71f, Float.parseFloat(parts[0]), 0.1f);
+        assertEquals(70.71f, Float.parseFloat(parts[1]), 0.1f);
+    }
 }

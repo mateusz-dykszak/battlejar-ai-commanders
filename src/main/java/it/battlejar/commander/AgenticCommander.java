@@ -73,6 +73,8 @@ public class AgenticCommander extends AbstractCommander {
             return false;
         }
 
+        executeMissileEvasion(entities);
+
         long now = System.currentTimeMillis();
         if (now - lastAiTick > currentAiCooldownMs) {
             lastAiTick = now;
@@ -277,9 +279,62 @@ public class AgenticCommander extends AbstractCommander {
     }
 
     private void executeDefensiveManeuvers(Collection<Entity> entities) {
+        executeMissileEvasion(entities);
         for (Entity e : entities) {
             if (myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()) && !"C".equals(e.status())) {
                 defend(e, entities);
+            }
+        }
+    }
+
+    private void executeMissileEvasion(Collection<Entity> entities) {
+        Entity myCarrier = entities.stream()
+                .filter(e -> e.type() == Entity.Type.CARRIER && myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
+                .findFirst().orElse(null);
+
+        if (myCarrier == null) return;
+
+        float evadeX = 0;
+        float evadeY = 0;
+        int missileCount = 0;
+
+        for (Entity entity : entities) {
+            if (entity.type() == Entity.Type.MISSILE && !myColor.name().equalsIgnoreCase(entity.color()) && !"D".equals(entity.status())) {
+                float toCarrierX = myCarrier.px() - entity.px();
+                float toCarrierY = myCarrier.py() - entity.py();
+                float distSq = toCarrierX * toCarrierX + toCarrierY * toCarrierY;
+
+                if (distSq < 160000) { // 400 units
+                    float dot = entity.vx() * toCarrierX + entity.vy() * toCarrierY;
+                    if (dot > 0) {
+                        // Missile is moving towards carrier. Move away from missile's current position.
+                        float dist = (float) Math.sqrt(distSq);
+                        if (dist > 0) {
+                            evadeX += (toCarrierX / dist);
+                            evadeY += (toCarrierY / dist);
+                            missileCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (missileCount > 0) {
+            float moveDist = 100; // Move 100 units away
+            float len = (float) Math.sqrt(evadeX * evadeX + evadeY * evadeY);
+            if (len > 0) {
+                float targetRelX = (evadeX / len) * moveDist;
+                float targetRelY = (evadeY / len) * moveDist;
+
+                // Ensure we don't move out of bounds
+                float targetAbsX = myCarrier.px() + targetRelX;
+                float targetAbsY = myCarrier.py() + targetRelY;
+
+                targetAbsX = Math.max(50, Math.min(settings.worldWidth() - 50, targetAbsX));
+                targetAbsY = Math.max(50, Math.min(settings.worldHeight() - 50, targetAbsY));
+
+                log.info("Missile evasion: moving carrier to relative {}|{}", targetAbsX - myCarrier.px(), targetAbsY - myCarrier.py());
+                order(new Order(myCarrier.id(), OrderType.MOVE, (targetAbsX - myCarrier.px()) + "|" + (targetAbsY - myCarrier.py())));
             }
         }
     }

@@ -42,5 +42,5 @@ Execute one of the following tasks, commit and push to github when task is compl
 - [x] Enhance AIAgent prompt: encourage LLM to prioritize target prioritization (e.g., focus fire on enemy carrier if it's within reach).
 - [x] Implement per-entity cooldown management: current `issueCommand` doesn't explicitly track the 150ms cooldown per entity mentioned in AGENTS.md.
 - [x] Optimize AI tick rate: currently fixed at 2000ms. Consider adaptive rate based on battle intensity or game phase.
-- [ ] Implement missile evasion logic: carriers should attempt to move away from incoming missiles detected in the BattleMap.
+- [x] Implement missile evasion logic: carriers should attempt to move away from incoming missiles detected in the BattleMap.
 - [ ] Fighter regrouping: add a command or logic for fighters to regroup in a specific sector if their presence falls below SMALL, to regain combat effectiveness.
