@@ -107,7 +107,7 @@ public class ClaudeCommander extends AbstractCommander {
         }
 
         float effectiveWideRadius = GameConfig.FORMATION_RADIUS_WIDE;
-        if (liveEnemyCarriers.size() == 1 && primaryTarget != null) {
+        if (primaryTarget != null) {
             float ec = GameUtils.distance(myCarrier, primaryTarget);
             if (ec < GameConfig.FORMATION_RADIUS_WIDE) {
                 effectiveWideRadius = Math.max(80f, ec / 2f);
@@ -115,9 +115,7 @@ public class ClaudeCommander extends AbstractCommander {
         }
         boolean expanded = myActiveFighters.size() >= GameConfig.FORMATION_EXPAND_AT;
         float formRadius = expanded ? effectiveWideRadius : GameConfig.FORMATION_RADIUS_TIGHT;
-        float formArc = (expanded && liveEnemyCarriers.size() == 1)
-                ? (float) Math.PI
-                : 2f * (float) Math.PI;
+        float formArc = expanded ? (float) Math.PI : 2f * (float) Math.PI;
         int[][] formation = buildFormation(state.lastFormationAngle, formRadius, formArc);
 
         Map<String, int[]> interceptMap = buildInterceptMap(armedEnemyMissiles, myCarrier, myActiveFighters);
