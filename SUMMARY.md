@@ -23,3 +23,10 @@
   - Carrier avoids high-density sectors (>15 entities, carrier counts as 10).
   - Passive avoidance ensures carrier stays safe even when idle.
   - Verified with unit tests.
+
+## 2026-05-09
+- Analyzed game history: identified early carrier destruction (often < 20s) as a primary failure mode.
+- Added new tasks to TASKS.md focused on carrier survival, automated post-run analysis, and improved AI tactical context.
+- Implemented automatic history analysis in `postprocess.sh`.
+  - Created `scripts/analyze_history.py` to extract survival time and death counts from game logs.
+  - Configured `postprocess.sh` to run the analysis automatically after each session.

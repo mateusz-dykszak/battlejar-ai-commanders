@@ -46,6 +46,11 @@ Execute one of the following tasks, commit and push to github when task is compl
 - [x] Fighter regrouping: add a command or logic for fighters to regroup in a specific sector if their presence falls below SMALL, to regain combat effectiveness.
 - [x] Implement collision avoidance for carriers: avoid moving into sectors with high density of entities or near borders.
 - [x] Implement target prioritization for fighters: prioritize enemy carriers and low-health entities.
+- [x] Implement automatic history analysis in `postprocess.sh`: Add a script to summarize `history/*.jsonl` files and extract survival time and kill/death ratios.
+- [ ] Improve Carrier Kiting: Refine carrier movement to not only avoid enemies and borders but actively maintain maximum distance from all active threats while staying within safe boundaries.
+- [ ] Implement "Emergency Screen" behavior: If carrier health drops below a threshold or a high threat is very close, force all fighters to orbit the carrier tightly (e.g., 30 units) regardless of AI orders.
+- [ ] Enhanced AI Strategic Prompting: Update the LLM prompt to include its own carrier's health and the number of active vs docked fighters to allow it to switch between aggressive and defensive mindsets.
+- [ ] Fighter "Harassment" logic: Add logic for a small group of fighters to stay near enemy carriers to disrupt their fighter launches or intercept newly launched units.
 
 
 - [x] Implement carrier's logic: 
