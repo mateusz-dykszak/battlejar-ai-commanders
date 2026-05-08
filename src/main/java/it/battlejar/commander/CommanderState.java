@@ -10,4 +10,6 @@ public class CommanderState {
     public long lastCarrierMissileFireMs = 0L;
     public float lastFormationAngle = 0f;
     public boolean carrierReachedCorner = false;
+    /** missileId → fighterId: persisted across ticks so the same fighter stays on the same missile. */
+    public final Map<String, String> missileInterceptAssignments = new HashMap<>();
 }

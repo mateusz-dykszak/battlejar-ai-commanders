@@ -15,7 +15,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class ClaudeCommander extends AbstractCommander {
@@ -118,7 +120,7 @@ public class ClaudeCommander extends AbstractCommander {
         float formArc = expanded ? (float) Math.PI : 2f * (float) Math.PI;
         int[][] formation = buildFormation(state.lastFormationAngle, formRadius, formArc);
 
-        Map<String, int[]> interceptMap = buildInterceptMap(armedEnemyMissiles, myCarrier, myActiveFighters);
+        Map<String, int[]> interceptMap = buildInterceptMap(armedEnemyMissiles, myCarrier, myActiveFighters, state);
 
         return new GameSnapshot(
                 myCarrier, myActiveFighters, myDockedFighters,
@@ -154,7 +156,18 @@ public class ClaudeCommander extends AbstractCommander {
     }
 
     private Map<String, int[]> buildInterceptMap(
-            List<Entity> armedEnemyMissiles, Entity myCarrier, List<Entity> myFighters) {
+            List<Entity> armedEnemyMissiles, Entity myCarrier, List<Entity> myFighters,
+            CommanderState state) {
+        Set<String> activeMissileIds = armedEnemyMissiles.stream()
+                .map(Entity::id).collect(Collectors.toSet());
+        Set<String> activeFighterIds = myFighters.stream()
+                .map(Entity::id).collect(Collectors.toSet());
+
+        // Drop assignments for missiles that are gone or fighters that are gone
+        state.missileInterceptAssignments.keySet().retainAll(activeMissileIds);
+        state.missileInterceptAssignments.entrySet()
+                .removeIf(e -> !activeFighterIds.contains(e.getValue()));
+
         List<Entity> threats = armedEnemyMissiles.stream()
                 .filter(e -> GameUtils.distance(e, myCarrier) < GameConfig.MISSILE_INTERCEPT_RANGE)
                 .sorted((a, b) -> Float.compare(
@@ -162,19 +175,28 @@ public class ClaudeCommander extends AbstractCommander {
                 .toList();
 
         Map<String, int[]> result = new HashMap<>();
-        Set<String> assigned = new HashSet<>();
+        // Fighters already committed — don't double-assign
+        Set<String> assignedFighters = new HashSet<>(state.missileInterceptAssignments.values());
+
         for (Entity missile : threats) {
-            myFighters.stream()
-                    .filter(f -> !assigned.contains(f.id()))
-                    .filter(f -> !GameUtils.isNearBorder(f, settings, GameConfig.BORDER_MARGIN))
-                    .min((a, b) -> Float.compare(GameUtils.distance(a, missile), GameUtils.distance(b, missile)))
-                    .ifPresent(f -> {
-                        assigned.add(f.id());
-                        result.put(f.id(), new int[]{
-                            Math.round(missile.px() - myCarrier.px()),
-                            Math.round(missile.py() - myCarrier.py())
-                        });
-                    });
+            String fighterId = state.missileInterceptAssignments.get(missile.id());
+            if (fighterId == null || !activeFighterIds.contains(fighterId)) {
+                // Need a new assignment: closest-to-carrier, not already assigned, not near border
+                Optional<Entity> candidate = myFighters.stream()
+                        .filter(f -> !assignedFighters.contains(f.id()))
+                        .filter(f -> !GameUtils.isNearBorder(f, settings, GameConfig.BORDER_MARGIN))
+                        .min((a, b) -> Float.compare(
+                                GameUtils.distance(a, myCarrier), GameUtils.distance(b, myCarrier)));
+                if (candidate.isEmpty()) continue;
+                fighterId = candidate.get().id();
+                assignedFighters.add(fighterId);
+                state.missileInterceptAssignments.put(missile.id(), fighterId);
+            }
+            // Intercept point = midpoint of missile → carrier (carrier-relative)
+            result.put(fighterId, new int[]{
+                Math.round((missile.px() - myCarrier.px()) / 2f),
+                Math.round((missile.py() - myCarrier.py()) / 2f)
+            });
         }
         return result;
     }
