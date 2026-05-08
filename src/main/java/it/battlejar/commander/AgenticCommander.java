@@ -32,8 +32,9 @@ public class AgenticCommander extends AbstractCommander {
         if (battleMap == null) {
             initializeBattleMap();
         }
+
         if (aiAgent == null) {
-            aiAgent = new AIAgent("dummy");
+            aiAgent = new AIAgent();
         }
 
         battleMap.update(entities, myColor);
