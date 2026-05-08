@@ -110,7 +110,7 @@ public class ClaudeCommander extends AbstractCommander {
         if (liveEnemyCarriers.size() == 1 && primaryTarget != null) {
             float ec = GameUtils.distance(myCarrier, primaryTarget);
             if (ec < GameConfig.FORMATION_RADIUS_WIDE) {
-                effectiveWideRadius = Math.max(GameConfig.FORMATION_RADIUS_TIGHT, ec / 2f);
+                effectiveWideRadius = Math.max(80f, ec / 2f);
             }
         }
         boolean expanded = myActiveFighters.size() >= GameConfig.FORMATION_EXPAND_AT;

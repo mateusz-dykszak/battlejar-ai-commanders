@@ -38,9 +38,18 @@ public class DeploymentDecorator implements Strategy {
         List<Entity> docked = snapshot.myDockedFighters();
         if (docked.isEmpty()) return;
         int[][] formation = snapshot.formation();
-        for (int i = 0; i < docked.size(); i++) {
-            int[] slot = formation[i % formation.length];
-            sender.send(new Order(docked.get(i).id(), OrderType.MOVE, slot[0] + "|" + slot[1]));
+        for (Entity fighter : docked) {
+            int[] slot = slotFor(fighter, formation);
+            sender.send(new Order(fighter.id(), OrderType.MOVE, slot[0] + "|" + slot[1]));
+        }
+    }
+
+    private static int[] slotFor(Entity fighter, int[][] formation) {
+        try {
+            int num = Integer.parseInt(fighter.id().split("-")[1]);
+            return formation[num % formation.length];
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            return formation[0];
         }
     }
 }
