@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -248,4 +249,30 @@ class AgenticCommanderTest {
         float relY = Float.parseFloat(parts[1]);
         org.junit.jupiter.api.Assertions.assertTrue(relX != 0 || relY != 0, "Carrier should have moved");
     }
+    @Test
+    void testFindTargetInSectorPrioritization() {
+        commander.process(Collections.emptyList());
+        List<Entity> entities = new ArrayList<>();
+        // Sector 0x0 center: (166.6, 166.6) for 3x3 map of 1000x1000
+        float cx = 166.66f;
+        float cy = 166.66f;
+
+        Entity enemyFighterHighHealth = new Entity("enemy1", Entity.Type.FIGHTER, "BLUE", cx + 5, cy + 5, 0, 0, null, 0, 0, 0, "100");
+        Entity enemyFighterLowHealth = new Entity("enemy2", Entity.Type.FIGHTER, "BLUE", cx - 5, cy - 5, 0, 0, null, 0, 0, 0, "10");
+        Entity enemyCarrier = new Entity("enemyCarrier", Entity.Type.CARRIER, "BLUE", cx + 10, cy + 10, 0, 0, null, 0, 0, 0, "100");
+
+        entities.add(enemyFighterHighHealth);
+        entities.add(enemyFighterLowHealth);
+        entities.add(enemyCarrier);
+
+        // Should prioritize Carrier
+        Entity target = commander.findTargetInSector(cx, cy, entities);
+        assertEquals("enemyCarrier", target.id());
+
+        // Without carrier, should prioritize low health
+        entities.remove(enemyCarrier);
+        target = commander.findTargetInSector(cx, cy, entities);
+        assertEquals("enemy2", target.id());
+    }
+
 }

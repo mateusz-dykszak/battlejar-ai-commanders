@@ -45,5 +45,5 @@ Execute one of the following tasks, commit and push to github when task is compl
 - [x] Implement missile evasion logic: carriers should attempt to move away from incoming missiles detected in the BattleMap.
 - [x] Fighter regrouping: add a command or logic for fighters to regroup in a specific sector if their presence falls below SMALL, to regain combat effectiveness.
 - [x] Implement collision avoidance for carriers: avoid moving into sectors with high density of entities or near borders.
-- [ ] Implement target prioritization for fighters: prioritize enemy carriers and low-health entities.
-- [ ] Add fuel/energy management: if applicable, return entities to carrier when low on resources.
+- [x] Implement target prioritization for fighters: prioritize enemy carriers and low-health entities.
+

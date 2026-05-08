@@ -332,6 +332,13 @@ public class AgenticCommander extends AbstractCommander {
                 .filter(e -> !myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
                 .filter(e -> Math.abs(e.px() - centerX) <= sectorW / 2 && Math.abs(e.py() - centerY) <= sectorH / 2)
                 .min(Comparator.comparingInt((Entity e) -> e.type() == Entity.Type.CARRIER ? 0 : 1)
+                        .thenComparingDouble(e -> {
+                            try {
+                                return Double.parseDouble(e.status());
+                            } catch (NumberFormatException ex) {
+                                return 999.0; // Treat non-numeric as high health
+                            }
+                        })
                         .thenComparingDouble(e -> Math.pow(e.px() - centerX, 2) + Math.pow(e.py() - centerY, 2)))
                 .orElse(null);
     }
