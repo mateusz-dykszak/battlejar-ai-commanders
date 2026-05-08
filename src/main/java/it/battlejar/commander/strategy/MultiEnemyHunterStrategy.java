@@ -12,6 +12,7 @@ import it.battlejar.commander.tactic.carrier.CarrierCornerTactic;
 import it.battlejar.commander.tactic.carrier.CarrierMissileFireTactic;
 import it.battlejar.commander.tactic.carrier.CarrierPushTactic;
 import it.battlejar.commander.tactic.fighter.BorderEvasionTactic;
+import it.battlejar.commander.tactic.fighter.DistributedAttackTactic;
 import it.battlejar.commander.tactic.fighter.FighterAttackTactic;
 import it.battlejar.commander.tactic.fighter.FighterMissileFireTactic;
 import it.battlejar.commander.tactic.fighter.LaserDefenseTactic;
@@ -50,13 +51,11 @@ public class MultiEnemyHunterStrategy implements Strategy {
                 new MissileInterceptTactic(),
                 new FighterMissileFireTactic(GameConfig.FIGHTER_MISSILE_RANGE),
                 new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),
-                new FighterAttackTactic(0f)
+                new DistributedAttackTactic()
         );
 
         this.carrierTactics = List.of(
-                new CarrierCornerTactic(GameConfig.CARRIER_CORNER_MARGIN,
-                        GameConfig.CARRIER_CORNER_THRESHOLD),
-                new CarrierBorderEvasionTactic(GameConfig.BORDER_MARGIN, GameConfig.SAFE_INSET),
+                new CarrierBorderEvasionTactic(GameConfig.CARRIER_CORNER_MARGIN, GameConfig.CARRIER_BORDER_SAFETY_INSET),
                 new CarrierMissileFireTactic(GameConfig.CARRIER_MISSILE_FIRE_INTERVAL_MS),
                 // Push only after scoring a kill — we have a numbers advantage
                 new CarrierPushTactic(GameConfig.CARRIER_PUSH_DISTANCE,

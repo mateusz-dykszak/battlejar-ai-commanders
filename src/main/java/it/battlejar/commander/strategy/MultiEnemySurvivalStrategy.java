@@ -10,6 +10,7 @@ import it.battlejar.commander.tactic.Tactic;
 import it.battlejar.commander.tactic.carrier.CarrierBorderEvasionTactic;
 import it.battlejar.commander.tactic.carrier.CarrierCornerTactic;
 import it.battlejar.commander.tactic.fighter.BorderEvasionTactic;
+import it.battlejar.commander.tactic.fighter.DistributedAttackTactic;
 import it.battlejar.commander.tactic.fighter.FighterAttackTactic;
 import it.battlejar.commander.tactic.fighter.FighterMissileFireTactic;
 import it.battlejar.commander.tactic.fighter.LaserDefenseTactic;
@@ -45,11 +46,11 @@ public class MultiEnemySurvivalStrategy implements Strategy {
                 new MissileInterceptTactic(),
                 new FighterMissileFireTactic(GameConfig.FIGHTER_MISSILE_RANGE),
                 new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),
-                new FighterAttackTactic(0f)
+                new DistributedAttackTactic()
         );
 
         this.carrierTactics = List.of(
-                new CarrierBorderEvasionTactic(GameConfig.CARRIER_BORDER_SAFETY, 0f),
+                new CarrierBorderEvasionTactic(GameConfig.CARRIER_CORNER_MARGIN, GameConfig.CARRIER_BORDER_SAFETY_INSET),
                 new CarrierCornerTactic(GameConfig.CARRIER_CORNER_MARGIN,
                         GameConfig.CARRIER_CORNER_THRESHOLD)
         );
