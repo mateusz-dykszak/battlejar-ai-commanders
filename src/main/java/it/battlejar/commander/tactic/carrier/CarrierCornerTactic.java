@@ -7,8 +7,11 @@ import it.battlejar.commander.CommanderState;
 import it.battlejar.commander.GameSnapshot;
 import it.battlejar.commander.GameUtils;
 import it.battlejar.commander.tactic.Tactic;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
+
+@Slf4j
 
 /**
  * Moves the carrier to the nearest world corner to stay out of crossfire between enemies.
@@ -35,6 +38,8 @@ public class CarrierCornerTactic implements Tactic<Entity> {
         if (dist <= cornerThreshold) {
             state.carrierReachedCorner = true;
         }
+        log.debug("corner offset {},{} dist={} carrier=({},{})",
+                offset[0], offset[1], dist, (int) carrier.px(), (int) carrier.py());
         // Always MOVE toward the corner (never PATROL). PATROL maintains current velocity and
         // causes the carrier to overshoot the corner, then drift to a different corner.
         return Optional.of(new Order(carrier.id(), OrderType.MOVE, offset[0] + "|" + offset[1]));

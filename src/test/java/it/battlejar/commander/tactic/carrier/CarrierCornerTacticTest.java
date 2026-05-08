@@ -110,6 +110,35 @@ class CarrierCornerTacticTest {
     }
 
     /**
+     * Actual game spawn positions must map to the correct corner offset.
+     * Spawn positions: (282,18), (102,18), (282,198), (102,198).
+     * World 384×216, margin=20 → corners at (20,20), (364,20), (20,196), (364,196).
+     */
+    @ParameterizedTest
+    @MethodSource("actualSpawnArguments")
+    void actualSpawnPositions_moveToCorrectCorner(float spawnX, float spawnY, int expectedDx, int expectedDy) {
+        Entity carrier = carrier(spawnX, spawnY);
+        Optional<Order> order = tactic.apply(carrier, snapshot(carrier), state);
+
+        assertTrue(order.isPresent());
+        String[] parts = order.get().details().split("\\|");
+        int dx = Integer.parseInt(parts[0]);
+        int dy = Integer.parseInt(parts[1]);
+        assertEquals(expectedDx, dx, "Wrong dx from spawn (" + spawnX + "," + spawnY + ")");
+        assertEquals(expectedDy, dy, "Wrong dy from spawn (" + spawnX + "," + spawnY + ")");
+    }
+
+    static Stream<Arguments> actualSpawnArguments() {
+        // Spawn → nearest corner → expected offset
+        return Stream.of(
+            Arguments.of(282f, 18f,   82,  2),   // → top-right  (364,20)
+            Arguments.of(102f, 18f,  -82,  2),   // → top-left   (20,20)
+            Arguments.of(282f, 198f,  82, -2),   // → bottom-right (364,196)
+            Arguments.of(102f, 198f, -82, -2)    // → bottom-left (20,196)
+        );
+    }
+
+    /**
      * Carrier overshot past corner (above it) still gets MOVE back toward the corner.
      */
     @Test
