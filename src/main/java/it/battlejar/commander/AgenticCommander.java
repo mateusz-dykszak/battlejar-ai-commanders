@@ -1,21 +1,23 @@
 package it.battlejar.commander;
 
-import it.battlejar.api.*;
+import it.battlejar.api.Entity;
+import it.battlejar.api.Order;
+import it.battlejar.api.OrderType;
 import it.battlejar.client.AbstractCommander;
 import it.battlejar.commander.ai.AIAgent;
 import it.battlejar.commander.ai.AICommandParser;
 import it.battlejar.commander.map.BattleMap;
-import it.battlejar.commander.map.ColorSectorStatus;
 import it.battlejar.commander.map.Sector;
 import it.battlejar.commander.map.ThreatLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AgenticCommander extends AbstractCommander {
     private static final Logger log = LoggerFactory.getLogger(AgenticCommander.class);
@@ -31,7 +33,7 @@ public class AgenticCommander extends AbstractCommander {
             initializeBattleMap();
         }
         if (aiAgent == null) {
-            aiAgent = new AIAgent();
+            aiAgent = new AIAgent("dummy");
         }
 
         battleMap.update(entities, myColor);
@@ -123,7 +125,7 @@ public class AgenticCommander extends AbstractCommander {
         });
     }
 
-    private void issueCommand(Entity entity, AICommandParser.Command cmd, Collection<Entity> allEntities) {
+    void issueCommand(Entity entity, AICommandParser.Command cmd, Collection<Entity> allEntities) {
         switch (cmd.type()) {
             case "MOVE" -> {
                 if (cmd.target() != null) {
@@ -160,7 +162,7 @@ public class AgenticCommander extends AbstractCommander {
         }
     }
 
-    private Entity findTargetInSector(float centerX, float centerY, Collection<Entity> entities) {
+    Entity findTargetInSector(float centerX, float centerY, Collection<Entity> entities) {
         float sectorW = settings.worldWidth() / battleMap.getCols();
         float sectorH = settings.worldHeight() / battleMap.getRows();
         
@@ -172,7 +174,7 @@ public class AgenticCommander extends AbstractCommander {
                 .orElse(null);
     }
 
-    private float[] parseSectorCoords(String coords) {
+    float[] parseSectorCoords(String coords) {
         try {
             String[] parts = coords.split("x");
             int r = Integer.parseInt(parts[0]);
@@ -185,7 +187,7 @@ public class AgenticCommander extends AbstractCommander {
         }
     }
 
-    private void defend(Entity entity, Collection<Entity> allEntities) {
+    void defend(Entity entity, Collection<Entity> allEntities) {
         // stay in current sector but placed between carrier and closest threat sector
         Entity myCarrier = allEntities.stream()
                 .filter(e -> e.type() == Entity.Type.CARRIER && myColor.name().equalsIgnoreCase(e.color()))

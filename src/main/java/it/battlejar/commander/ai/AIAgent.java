@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 public class AIAgent {
 
@@ -54,9 +52,13 @@ public class AIAgent {
     private final CommanderService service;
 
     public AIAgent() {
-        String apiKey = System.getenv("OPENAI_API_KEY");
+        this(System.getenv("OPENAI_API_KEY"));
+    }
+
+    public AIAgent(String apiKey) {
         if (apiKey == null || apiKey.isBlank()) {
-            throw new IllegalStateException("OPENAI_API_KEY environment variable is not set");
+            this.service = null;
+            return;
         }
 
         OpenAiChatModel model = OpenAiChatModel.builder()

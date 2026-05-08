@@ -35,4 +35,5 @@ Execute one of the following tasks, commit and push to github when task is compl
 - [x] Set log level to warn. Add Agent logs to see how long it takes LLM to process the request. Log user message and LLM's response
 - [x] Stop sending requests to LLM when you've already lost (do not have a carrier)
 - [x] Undock fighters and position them between carrier and enemies without waiting for LLM
+- [x] Create unit tests to issueCommand method
 - [ ] Analyze history and add more tasks
