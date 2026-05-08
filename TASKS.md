@@ -37,8 +37,8 @@ Execute one of the following tasks, commit and push to github when task is compl
 - [x] Undock fighters and position them between carrier and enemies without waiting for LLM
 - [x] Create unit tests to issueCommand method
 - [x] Analyze history and add more tasks
-- [ ] Improve carrier defense logic: currently fighters stay 50 units away from carrier. Experiment with dynamic distance or multiple layers (close screen and outer patrol).
-- [ ] Add missile threat to BattleMap: currently missiles are ignored in threat calculation. They should contribute to HIGH threat if heading towards carrier.
+- [x] Improve carrier defense logic: currently fighters stay 50 units away from carrier. Experiment with dynamic distance or multiple layers (close screen and outer patrol).
+- [x] Add missile threat to BattleMap: currently missiles are ignored in threat calculation. They should contribute to HIGH threat if heading towards carrier.
 - [ ] Enhance AIAgent prompt: encourage LLM to prioritize target prioritization (e.g., focus fire on enemy carrier if it's within reach).
 - [ ] Implement per-entity cooldown management: current `issueCommand` doesn't explicitly track the 150ms cooldown per entity mentioned in AGENTS.md.
 - [ ] Optimize AI tick rate: currently fixed at 2000ms. Consider adaptive rate based on battle intensity or game phase.

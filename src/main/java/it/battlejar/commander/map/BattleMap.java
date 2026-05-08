@@ -107,13 +107,28 @@ public class BattleMap {
 
         boolean movingTowardsCarrier = false;
         boolean movingTowardsFighters = false;
+        boolean missileTargetingCarrier = false;
 
         List<Entity> myFighters = allEntities.stream()
                 .filter(e -> e.type() == Entity.Type.FIGHTER && myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
                 .toList();
 
         for (Entity enemy : enemyEntities) {
-            if (enemy.type() == Entity.Type.MISSILE) continue;
+            if (enemy.type() == Entity.Type.MISSILE) {
+                // Vector from missile to my carrier
+                float toCarrierX = myCarrierX - enemy.px();
+                float toCarrierY = myCarrierY - enemy.py();
+                
+                // Dot product of velocity and direction to carrier
+                float dotCarrier = enemy.vx() * toCarrierX + enemy.vy() * toCarrierY;
+                if (dotCarrier > 0) {
+                    float distSq = toCarrierX * toCarrierX + toCarrierY * toCarrierY;
+                    if (distSq < 160000) { // 400 units, missiles are dangerous
+                        missileTargetingCarrier = true;
+                    }
+                }
+                continue;
+            }
 
             // Vector from enemy to my carrier
             float toCarrierX = myCarrierX - enemy.px();
@@ -138,10 +153,10 @@ public class BattleMap {
                 }
             }
             
-            if (movingTowardsCarrier && movingTowardsFighters) break;
+            if (movingTowardsCarrier && movingTowardsFighters && missileTargetingCarrier) break;
         }
 
-        if (movingTowardsCarrier) return ThreatLevel.HIGH;
+        if (missileTargetingCarrier || movingTowardsCarrier) return ThreatLevel.HIGH;
         if (movingTowardsFighters) return ThreatLevel.MEDIUM;
         
         return ThreatLevel.LOW; // Present but not moving towards us

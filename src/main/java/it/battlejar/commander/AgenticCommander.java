@@ -234,8 +234,22 @@ public class AgenticCommander extends AbstractCommander {
             float dirY = threatY - myCarrier.py();
             float len = (float) Math.sqrt(dirX * dirX + dirY * dirY);
             if (len > 0) {
-                float targetX = myCarrier.px() + (dirX / len) * 50; // 50 units away from carrier
-                float targetY = myCarrier.py() + (dirY / len) * 50;
+                // Determine distance based on entity ID to create layers/variety
+                // We use hash of ID to consistently assign a fighter to a layer
+                int hash = Math.abs(entity.id().hashCode());
+                float distance;
+                if (hash % 2 == 0) {
+                    distance = 40; // Inner layer
+                } else {
+                    distance = 80; // Outer layer
+                }
+
+                // Add some small individual offset to avoid overlapping perfectly
+                float offset = (hash % 10 - 5) * 2; // -10 to 10
+                distance += offset;
+
+                float targetX = myCarrier.px() + (dirX / len) * distance;
+                float targetY = myCarrier.py() + (dirY / len) * distance;
                 order(new Order(entity.id(), OrderType.MOVE, (targetX - myCarrier.px()) + "|" + (targetY - myCarrier.py())));
             }
         }
