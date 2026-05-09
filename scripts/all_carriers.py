@@ -68,7 +68,10 @@ def main(jsonl_path: Path):
     color_to_name = {p["color"]: p["username"] for p in players}
     our_color = next(
         (p["color"] for p in players if p["username"] == "Klaudiusz"), None
-    ) or "BLUE"
+    )
+    if our_color is None:
+        print("Klaudiusz not in this game, skipping")
+        return
 
     frames = [json.loads(l) for l in lines[1:]]
     if not frames:

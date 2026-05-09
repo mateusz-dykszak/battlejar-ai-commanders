@@ -53,8 +53,8 @@ def main(jsonl_path: Path):
         (p["color"] for p in players if p["username"] == "Klaudiusz"), None
     )
     if not our_color:
-        # Fall back to BLUE if username not found
-        our_color = "BLUE"
+        print("Klaudiusz not in this game, skipping")
+        return
 
     frames = [json.loads(l) for l in lines[1:]]
     if not frames:
