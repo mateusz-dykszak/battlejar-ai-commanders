@@ -12,4 +12,6 @@ public class CommanderState {
     public boolean carrierReachedCorner = false;
     /** missileId → fighterId: persisted across ticks so the same fighter stays on the same missile. */
     public final Map<String, String> missileInterceptAssignments = new HashMap<>();
+    /** Absolute world corner target chosen once when the carrier first reaches a corner; null = use closest corner. */
+    public float[] preferredCorner = null;
 }

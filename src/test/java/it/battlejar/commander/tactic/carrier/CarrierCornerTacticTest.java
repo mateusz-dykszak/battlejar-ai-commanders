@@ -160,6 +160,6 @@ class CarrierCornerTacticTest {
     private static GameSnapshot snapshot(Entity carrier) {
         return new GameSnapshot(
                 carrier, List.of(), List.of(), List.of(), List.of(), List.of(),
-                null, 0f, false, false, Map.of(), new int[0][0], SETTINGS);
+                null, 0f, false, false, Map.of(), new int[0][0], new int[0][0], SETTINGS);
     }
 }

@@ -37,7 +37,7 @@ public class DeploymentDecorator implements Strategy {
     private void deployDockedFighters(GameSnapshot snapshot, OrderSender sender) {
         List<Entity> docked = snapshot.myDockedFighters();
         if (docked.isEmpty()) return;
-        int[][] formation = snapshot.formation();
+        int[][] formation = snapshot.deploymentFormation();
         for (Entity fighter : docked) {
             int[] slot = slotFor(fighter, formation);
             sender.send(new Order(fighter.id(), OrderType.MOVE, slot[0] + "|" + slot[1]));

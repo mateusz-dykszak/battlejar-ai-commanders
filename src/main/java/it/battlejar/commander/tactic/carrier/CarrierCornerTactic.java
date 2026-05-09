@@ -32,10 +32,22 @@ public class CarrierCornerTactic implements Tactic<Entity> {
 
     @Override
     public Optional<Order> apply(Entity carrier, GameSnapshot snapshot, CommanderState state) {
-        if (isInCornerSquare(carrier, snapshot.settings())) {
+        if (isInCornerSquare(carrier, snapshot.settings()) && !state.carrierReachedCorner) {
             state.carrierReachedCorner = true;
+            // Pick the corner sector with the fewest live enemies so the hunter phase starts
+            // from the safest position rather than simply the nearest corner.
+            state.preferredCorner = GameUtils.safestCorner(
+                    snapshot.liveEnemyCarriers(), snapshot.settings(), cornerMargin);
         }
-        int[] offset = GameUtils.closestCornerOffset(carrier, snapshot.settings(), cornerMargin);
+        int[] offset;
+        if (state.preferredCorner != null) {
+            offset = new int[]{
+                Math.round(state.preferredCorner[0] - carrier.px()),
+                Math.round(state.preferredCorner[1] - carrier.py())
+            };
+        } else {
+            offset = GameUtils.closestCornerOffset(carrier, snapshot.settings(), cornerMargin);
+        }
         log.debug("corner offset {},{} carrier=({},{})",
                 offset[0], offset[1], (int) carrier.px(), (int) carrier.py());
         // Always MOVE toward the corner (never PATROL). PATROL maintains current velocity and

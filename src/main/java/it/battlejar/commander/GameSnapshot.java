@@ -19,5 +19,6 @@ public record GameSnapshot(
         boolean hasKilledEnemy,
         Map<String, int[]> interceptMap,
         int[][] formation,
+        int[][] deploymentFormation,
         GameSettings settings
 ) {}

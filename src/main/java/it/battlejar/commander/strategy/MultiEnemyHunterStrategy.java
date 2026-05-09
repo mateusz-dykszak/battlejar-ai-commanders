@@ -39,7 +39,7 @@ public class MultiEnemyHunterStrategy implements Strategy {
         int fullThreshold = GameConfig.AGGRESSION_FIGHTER_THRESHOLD;
 
         this.interceptorTactics = List.of(
-                new BorderEvasionTactic(GameConfig.BORDER_MARGIN),
+                new BorderEvasionTactic(GameConfig.BORDER_MARGIN_ACTIVE),
                 new MissileInterceptTactic(),
                 new FighterMissileFireTactic(),
                 new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),
@@ -47,7 +47,7 @@ public class MultiEnemyHunterStrategy implements Strategy {
         );
 
         this.strikerTactics = List.of(
-                new BorderEvasionTactic(GameConfig.BORDER_MARGIN),
+                new BorderEvasionTactic(GameConfig.BORDER_MARGIN_ACTIVE),
                 new MissileInterceptTactic(),
                 new FighterMissileFireTactic(),
                 new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),

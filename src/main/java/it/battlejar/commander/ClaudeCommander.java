@@ -122,12 +122,26 @@ public class ClaudeCommander extends AbstractCommander {
 
         Map<String, int[]> interceptMap = buildInterceptMap(armedEnemyMissiles, myCarrier, myActiveFighters, state);
 
+        // When an enemy carrier is very close, deploy fighters in the opposite direction so they
+        // turn around toward the enemy — giving missiles time to arm before reaching the target.
+        float deployAngle = state.lastFormationAngle;
+        if (primaryTarget != null
+                && GameUtils.distance(myCarrier, primaryTarget) < GameConfig.ENEMY_CLOSE_DEPLOY_THRESHOLD) {
+            float flippedAngle = deployAngle + (float) Math.PI;
+            float slotX = myCarrier.px() + formRadius * (float) Math.cos(flippedAngle);
+            float slotY = myCarrier.py() + formRadius * (float) Math.sin(flippedAngle);
+            if (!GameUtils.isNearBorder(slotX, slotY, settings, GameConfig.BORDER_MARGIN)) {
+                deployAngle = flippedAngle;
+            }
+        }
+        int[][] deploymentFormation = buildFormation(deployAngle, formRadius, formArc);
+
         return new GameSnapshot(
                 myCarrier, myActiveFighters, myDockedFighters,
                 liveEnemyCarriers, activeEnemyFighters, armedEnemyMissiles,
                 primaryTarget, state.lastFormationAngle,
                 hasEnemies, hasKilledEnemy,
-                interceptMap, formation, settings);
+                interceptMap, formation, deploymentFormation, settings);
     }
 
     private Entity selectTarget(List<Entity> liveEnemyCarriers, Entity myCarrier) {

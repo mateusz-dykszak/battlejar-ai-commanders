@@ -3,7 +3,9 @@ package it.battlejar.commander;
 public final class GameConfig {
 
     public static final float BORDER_MARGIN = 50f;
+    public static final float BORDER_MARGIN_ACTIVE = 55f;   // hunter/1v1 fighter border margin (survival uses BORDER_MARGIN)
     public static final float SAFE_INSET = 30f;
+    public static final float ENEMY_CLOSE_DEPLOY_THRESHOLD = 150f; // flip deployment direction when enemy this close
     public static final float FORMATION_THRESHOLD = 100f;
     public static final float FIGHTER_LASER_RANGE = 150f;
     public static final float MISSILE_INTERCEPT_RANGE = 150f;

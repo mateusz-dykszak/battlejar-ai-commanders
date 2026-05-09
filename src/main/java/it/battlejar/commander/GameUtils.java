@@ -3,6 +3,8 @@ package it.battlejar.commander;
 import it.battlejar.api.Entity;
 import it.battlejar.api.GameSettings;
 
+import java.util.List;
+
 public final class GameUtils {
 
     private GameUtils() {}
@@ -28,10 +30,46 @@ public final class GameUtils {
     }
 
     public static boolean isNearBorder(Entity e, GameSettings settings, float margin) {
-        return e.px() < margin
-                || e.py() < margin
-                || e.px() > settings.worldWidth() - margin
-                || e.py() > settings.worldHeight() - margin;
+        return isNearBorder(e.px(), e.py(), settings, margin);
+    }
+
+    public static boolean isNearBorder(float x, float y, GameSettings settings, float margin) {
+        return x < margin || y < margin
+                || x > settings.worldWidth() - margin
+                || y > settings.worldHeight() - margin;
+    }
+
+    /**
+     * Returns the world corner (as absolute coords) that has the fewest live enemy carriers in
+     * its Voronoi region. Tie-broken by first in list order: TL, TR, BL, BR. When the enemy
+     * list is empty, returns the first corner (top-left).
+     */
+    public static float[] safestCorner(List<Entity> enemies, GameSettings settings, float margin) {
+        float ww = settings.worldWidth(), wh = settings.worldHeight();
+        float[][] corners = {
+            {margin, margin},
+            {ww - margin, margin},
+            {margin, wh - margin},
+            {ww - margin, wh - margin}
+        };
+        if (enemies.isEmpty()) return corners[0];
+        int[] counts = new int[4];
+        for (Entity enemy : enemies) {
+            int best = 0;
+            float bestDsq = Float.MAX_VALUE;
+            for (int i = 0; i < 4; i++) {
+                float dx = enemy.px() - corners[i][0];
+                float dy = enemy.py() - corners[i][1];
+                float dsq = dx * dx + dy * dy;
+                if (dsq < bestDsq) { bestDsq = dsq; best = i; }
+            }
+            counts[best]++;
+        }
+        int bestCorner = 0;
+        for (int i = 1; i < 4; i++) {
+            if (counts[i] < counts[bestCorner]) bestCorner = i;
+        }
+        return corners[bestCorner];
     }
 
     public static int[] closestCornerOffset(Entity carrier, GameSettings settings, float margin) {

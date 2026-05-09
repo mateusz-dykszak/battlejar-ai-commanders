@@ -161,19 +161,19 @@ class FighterMissileFireTacticTest {
     private static GameSnapshot snapshot(Entity myCarrier, Entity fighter, Entity target) {
         return new GameSnapshot(
                 myCarrier, List.of(fighter), List.of(), List.of(target), List.of(), List.of(),
-                target, 0f, true, false, Map.of(), new int[0][0], SETTINGS);
+                target, 0f, true, false, Map.of(), new int[0][0], new int[0][0], SETTINGS);
     }
 
     private static GameSnapshot snapshotMulti(Entity myCarrier, Entity fighter, Entity target,
                                               List<Entity> allEnemyCarriers) {
         return new GameSnapshot(
                 myCarrier, List.of(fighter), List.of(), allEnemyCarriers, List.of(), List.of(),
-                target, 0f, true, false, Map.of(), new int[0][0], SETTINGS);
+                target, 0f, true, false, Map.of(), new int[0][0], new int[0][0], SETTINGS);
     }
 
     private static GameSnapshot snapshotNoTarget(Entity myCarrier, Entity fighter) {
         return new GameSnapshot(
                 myCarrier, List.of(fighter), List.of(), List.of(), List.of(), List.of(),
-                null, 0f, false, false, Map.of(), new int[0][0], SETTINGS);
+                null, 0f, false, false, Map.of(), new int[0][0], new int[0][0], SETTINGS);
     }
 }
