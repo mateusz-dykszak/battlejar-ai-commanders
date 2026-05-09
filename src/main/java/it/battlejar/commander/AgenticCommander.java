@@ -78,7 +78,7 @@ public class AgenticCommander extends AbstractCommander {
 
         // Periodic collision check for carrier even if no AI command is active
         applyPassiveCarrierAvoidance(entities);
-        lastAiTick = System.currentTimeMillis(); // Reset tick after avoidance check to simulate it being part of the flow
+        // lastAiTick = System.currentTimeMillis(); // DO NOT RESET HERE - Bug fixed
 
         // Emergency Screen behavior
         if (isEmergencyScreenRequired(entities)) {

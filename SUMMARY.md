@@ -69,3 +69,4 @@
     - The carrier is moving towards the border (detected via dot product of velocity and border normal).
     - OR the carrier is nearly stationary and within the safety margin.
 - Added regression tests in `AgenticCommanderTest` to verify the fix.
+- Fixed a critical bug in `AgenticCommander.java` where the AI agent was almost never used because `lastAiTick` was being reset every loop, preventing the cooldown from expiring.
