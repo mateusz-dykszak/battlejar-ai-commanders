@@ -249,6 +249,21 @@ class AgenticCommanderTest {
     }
 
     @Test
+    void testCarrierBorderAvoidanceMovingAway() throws Exception {
+        // Carrier at (10, 500) moving RIGHT (away from left border)
+        Entity movingCarrier = new Entity("carrier1", Entity.Type.CARRIER, "RED", 10, 500, 10, 0, null, 0, 0, 0, "100");
+        Collection<Entity> entities = List.of(movingCarrier);
+
+        java.lang.reflect.Method method = AgenticCommander.class.getDeclaredMethod("calculateCarrierManeuver", Entity.class, Collection.class);
+        method.setAccessible(true);
+        float[] maneuver = (float[]) method.invoke(commander, movingCarrier, entities);
+
+        // Should NOT trigger avoidance because it's moving away from the left border
+        // (Currently it might trigger because distLeft < safeDistance)
+        assertEquals(null, maneuver, "Should not trigger avoidance when moving away from border");
+    }
+
+    @Test
     void testCarrierManeuverAwayFromLineJoiningEnemyCarriers() {
         commander.process(Collections.emptyList());
         

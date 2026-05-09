@@ -408,7 +408,7 @@ public class AgenticCommander extends AbstractCommander {
         // Passive trigger: if stopped or moving very slowly, use safeDistance
         float passiveTd = (Math.abs(myCarrier.vx()) < 0.1f && Math.abs(myCarrier.vy()) < 0.1f) ? safeDistance : -1;
 
-        if (distLeft < safeDistance || (tdLeft > 0 && distLeft < tdLeft) || (passiveTd > 0 && distLeft < passiveTd)) {
+        if ((tdLeft > 0 && distLeft < tdLeft) || (passiveTd > 0 && distLeft < passiveTd)) {
             // ONLY trigger if actually moving towards or if extremely close and not moving away
             float effectiveTd = Math.max(safeDistance, Math.max(tdLeft, passiveTd));
             if (triggerDistance == -1 || effectiveTd > triggerDistance) {
@@ -420,7 +420,7 @@ public class AgenticCommander extends AbstractCommander {
         // Right border (x=worldWidth)
         float distRight = settings.worldWidth() - curX;
         float tdRight = calculateBorderTriggerDistance(distRight, 1, 0, myCarrier.vx(), myCarrier.vy());
-        if (distRight < safeDistance || (tdRight > 0 && distRight < tdRight) || (passiveTd > 0 && distRight < passiveTd)) {
+        if ((tdRight > 0 && distRight < tdRight) || (passiveTd > 0 && distRight < passiveTd)) {
             float effectiveTd = Math.max(safeDistance, Math.max(tdRight, passiveTd));
             if (triggerDistance == -1 || effectiveTd > triggerDistance) {
                 triggerDistance = effectiveTd;
@@ -431,7 +431,7 @@ public class AgenticCommander extends AbstractCommander {
         // Top border (y=0)
         float distTop = curY;
         float tdTop = calculateBorderTriggerDistance(distTop, 0, -1, myCarrier.vx(), myCarrier.vy());
-        if (distTop < safeDistance || (tdTop > 0 && distTop < tdTop) || (passiveTd > 0 && distTop < passiveTd)) {
+        if ((tdTop > 0 && distTop < tdTop) || (passiveTd > 0 && distTop < passiveTd)) {
             float effectiveTd = Math.max(safeDistance, Math.max(tdTop, passiveTd));
             if (triggerDistance == -1 || effectiveTd > triggerDistance) {
                 triggerDistance = effectiveTd;
@@ -442,7 +442,7 @@ public class AgenticCommander extends AbstractCommander {
         // Bottom border (y=worldHeight)
         float distBottom = settings.worldHeight() - curY;
         float tdBottom = calculateBorderTriggerDistance(distBottom, 0, 1, myCarrier.vx(), myCarrier.vy());
-        if (distBottom < safeDistance || (tdBottom > 0 && distBottom < tdBottom) || (passiveTd > 0 && distBottom < passiveTd)) {
+        if ((tdBottom > 0 && distBottom < tdBottom) || (passiveTd > 0 && distBottom < passiveTd)) {
             float effectiveTd = Math.max(safeDistance, Math.max(tdBottom, passiveTd));
             if (triggerDistance == -1 || effectiveTd > triggerDistance) {
                 triggerDistance = effectiveTd;

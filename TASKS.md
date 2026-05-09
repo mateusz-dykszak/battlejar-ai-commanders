@@ -83,3 +83,4 @@ Execute one of the following tasks, commit and push to github when task is compl
     - [x] Refine border avoidance to trigger only when moving towards borders (already check dot product, but distance check is too aggressive).
     - [x] Make Emergency Screen trigger more conservative (only at low health or extremely close high threat).
     - [x] Remove ineffective carrier missile evasion as per instructions.
+- [x] Fix: Carrier border avoidance triggered at beginning of the game when moving away from border.

@@ -61,3 +61,11 @@
   - Implemented `patrol` and `findNearestEnemy` logic for idle fighters to keep them active and spread out.
   - Adjusted `defend` formation spacing to be more relaxed (wider layers) when no immediate threat is detected.
   - Updated `AIAgent` system prompt to emphasize aggressive positioning when the carrier is not under attack.
+
+### 2026-05-10
+- Refined carrier border avoidance logic to prevent false positives when the carrier is moving away from the border.
+- Removed the legacy absolute distance check (`dist < safeDistance`) that bypassed the movement direction check.
+- Now, border avoidance only triggers if:
+    - The carrier is moving towards the border (detected via dot product of velocity and border normal).
+    - OR the carrier is nearly stationary and within the safety margin.
+- Added regression tests in `AgenticCommanderTest` to verify the fix.
