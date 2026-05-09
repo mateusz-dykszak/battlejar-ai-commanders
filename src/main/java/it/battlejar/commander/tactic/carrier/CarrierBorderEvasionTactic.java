@@ -76,7 +76,7 @@ public class CarrierBorderEvasionTactic implements Tactic<Entity> {
      * @param parallel  velocity component along the border (either sign)
      */
     static float triggerThreshold(float approach, float parallel) {
-        if (approach <= 0) return 0;
+        if (approach < 0) return 0f;
         double angleDeg = Math.toDegrees(Math.atan2(approach, Math.abs(parallel)));
         if (angleDeg < 5)  return 5f;
         if (angleDeg < 45) return 10f;
