@@ -79,3 +79,7 @@ Execute one of the following tasks, commit and push to github when task is compl
   - Updated AIAgent prompt to discourage unnecessary defensive formations.
 - [x] Filter history analysis: Only process games where "Agentic Junie" is a player.
 - [x] Support `BJ_CLIENT_MAX_GAMES` environment variable in `Main.java`.
+- [x] Fix logic issues in `AgenticCommander.java`:
+    - [x] Refine border avoidance to trigger only when moving towards borders (already check dot product, but distance check is too aggressive).
+    - [x] Make Emergency Screen trigger more conservative (only at low health or extremely close high threat).
+    - [x] Remove ineffective carrier missile evasion as per instructions.

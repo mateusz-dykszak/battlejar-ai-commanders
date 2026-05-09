@@ -76,12 +76,7 @@ public class AgenticCommander extends AbstractCommander {
             return false;
         }
 
-        // Missile evasion can also move carrier
-        executeMissileEvasion(entities);
-
         // Periodic collision check for carrier even if no AI command is active
-        // But only if we didn't just issue an AI command which already checks maneuver
-        // Force it for tests if needed, but here we just make sure it's not blocked by time in test
         applyPassiveCarrierAvoidance(entities);
         lastAiTick = System.currentTimeMillis(); // Reset tick after avoidance check to simulate it being part of the flow
 
@@ -414,8 +409,12 @@ public class AgenticCommander extends AbstractCommander {
         float passiveTd = (Math.abs(myCarrier.vx()) < 0.1f && Math.abs(myCarrier.vy()) < 0.1f) ? safeDistance : -1;
 
         if (distLeft < safeDistance || (tdLeft > 0 && distLeft < tdLeft) || (passiveTd > 0 && distLeft < passiveTd)) {
-            triggerDistance = Math.max(safeDistance, Math.max(tdLeft, passiveTd));
-            avoidanceTargetX = triggerDistance + 5.0f; // Move away from left
+            // ONLY trigger if actually moving towards or if extremely close and not moving away
+            float effectiveTd = Math.max(safeDistance, Math.max(tdLeft, passiveTd));
+            if (triggerDistance == -1 || effectiveTd > triggerDistance) {
+                triggerDistance = effectiveTd;
+                avoidanceTargetX = effectiveTd + 5.0f; // Move away from left
+            }
         }
 
         // Right border (x=worldWidth)
@@ -563,7 +562,12 @@ public class AgenticCommander extends AbstractCommander {
             if (health < EMERGENCY_HEALTH_THRESHOLD) return true;
         } catch (NumberFormatException ignored) {}
 
-        // Threshold 2: Very close high threat
+        // Threshold 2: Very close high threat (REFINED: must be VERY close or carrier is already damaged)
+        int health = 100;
+        try {
+            health = Integer.parseInt(myCarrier.status());
+        } catch (NumberFormatException ignored) {}
+
         for (int r = 0; r < battleMap.getRows(); r++) {
             for (int c = 0; c < battleMap.getCols(); c++) {
                 Sector sector = battleMap.getSector(r, c);
@@ -575,7 +579,10 @@ public class AgenticCommander extends AbstractCommander {
                     float dx = pos[0] - myCarrier.px();
                     float dy = pos[1] - myCarrier.py();
                     float distSq = dx * dx + dy * dy;
-                    if (distSq < EMERGENCY_THREAT_DISTANCE * EMERGENCY_THREAT_DISTANCE) {
+                    
+                    // If health is high, only trigger if REALLY close (e.g. 50 units)
+                    float triggerDist = (health > 70) ? 50.0f : EMERGENCY_THREAT_DISTANCE;
+                    if (distSq < triggerDist * triggerDist) {
                         return true;
                     }
                 }
@@ -663,62 +670,9 @@ public class AgenticCommander extends AbstractCommander {
     }
 
     private void executeDefensiveManeuvers(Collection<Entity> entities) {
-        executeMissileEvasion(entities);
         for (Entity e : entities) {
             if (myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()) && !"C".equals(e.status())) {
                 defend(e, entities);
-            }
-        }
-    }
-
-    private void executeMissileEvasion(Collection<Entity> entities) {
-        Entity myCarrier = entities.stream()
-                .filter(e -> e.type() == Entity.Type.CARRIER && myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
-                .findFirst().orElse(null);
-
-        if (myCarrier == null) return;
-
-        float evadeX = 0;
-        float evadeY = 0;
-        int missileCount = 0;
-
-        for (Entity entity : entities) {
-            if (entity.type() == Entity.Type.MISSILE && !myColor.name().equalsIgnoreCase(entity.color()) && !"D".equals(entity.status())) {
-                float toCarrierX = myCarrier.px() - entity.px();
-                float toCarrierY = myCarrier.py() - entity.py();
-                float distSq = toCarrierX * toCarrierX + toCarrierY * toCarrierY;
-
-                if (distSq < 160000) { // 400 units
-                    float dot = entity.vx() * toCarrierX + entity.vy() * toCarrierY;
-                    if (dot > 0) {
-                        // Missile is moving towards carrier. Move away from missile's current position.
-                        float dist = (float) Math.sqrt(distSq);
-                        if (dist > 0) {
-                            evadeX += (toCarrierX / dist);
-                            evadeY += (toCarrierY / dist);
-                            missileCount++;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (missileCount > 0) {
-            float moveDist = 100; // Move 100 units away
-            float len = (float) Math.sqrt(evadeX * evadeX + evadeY * evadeY);
-            if (len > 0) {
-                float targetRelX = (evadeX / len) * moveDist;
-                float targetRelY = (evadeY / len) * moveDist;
-
-                // Ensure we don't move out of bounds
-                float targetAbsX = myCarrier.px() + targetRelX;
-                float targetAbsY = myCarrier.py() + targetRelY;
-
-                targetAbsX = Math.max(50, Math.min(settings.worldWidth() - 50, targetAbsX));
-                targetAbsY = Math.max(50, Math.min(settings.worldHeight() - 50, targetAbsY));
-
-                log.info("Missile evasion: moving carrier to relative {}|{}", targetAbsX - myCarrier.px(), targetAbsY - myCarrier.py());
-                order(new Order(myCarrier.id(), OrderType.MOVE, (targetAbsX - myCarrier.px()) + "|" + (targetAbsY - myCarrier.py())));
             }
         }
     }

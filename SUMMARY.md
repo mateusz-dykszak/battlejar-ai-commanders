@@ -49,7 +49,11 @@
   - Updated LLM prompt with guidelines for using the `HARASS` strategy.
 
 
-2026-05-09: Fixed a bug where the carrier would skip safety maneuvers (like border avoidance) if the AI didn't provide a specific command for it. Now safety checks are performed every AI tick regardless of command presence.
+2026-05-09: Fixed logic issues in `AgenticCommander.java`:
+- Border avoidance: Only triggers when moving towards borders (or if stationary and too close), as per requirements.
+- Emergency Screen: Trigger refined to be more conservative, only activating at low health (<30%) or extremely close high threat (<50-100 units).
+- Missile evasion: Removed ineffective carrier-side relative moves for missiles; carrier now relies on fighter screen for missile defense.
+- Fixed a bug in `calculateCarrierManeuver` where `distBottom` was incorrectly calculated using X coordinates.
 
 ### 2026-05-09
 - Improved fighter aggressiveness and reduced collisions:
