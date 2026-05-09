@@ -41,10 +41,7 @@ def analyze_game(file_path):
             break
             
     if not my_color:
-        # Fallback or maybe we are always one color?
-        # Let's check the logs or assume for now we might be able to find it.
-        # If not found, we can't easily calculate our specific K/D
-        pass
+        return None
 
     start_time = None
     end_time = None
