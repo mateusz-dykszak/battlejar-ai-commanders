@@ -16,11 +16,13 @@ public class Main {
     public static void main(String[] args) {
         Player player = new Player(null, null, null);
 
+        String envGames = System.getenv("BJ_CLIENT_MAX_GAMES");
+        int maxGames = envGames != null ? Integer.parseInt(envGames) : MAX_GAMES;
 
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            new BattleJarContinuous(SERVER_URL, player, ClaudeCommander::new, executor, MAX_GAMES).run();
+            new BattleJarContinuous(SERVER_URL, player, ClaudeCommander::new, executor, maxGames).run();
         }
 
-        log.info("All {} games completed", MAX_GAMES);
+        log.info("All {} games completed", maxGames);
     }
 }
