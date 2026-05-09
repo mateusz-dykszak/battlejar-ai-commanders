@@ -230,6 +230,36 @@ class AgenticCommanderTest {
     }
 
     @Test
+    void testCarrierManeuverAwayFromLineJoiningEnemyCarriers() {
+        commander.process(Collections.emptyList());
+        
+        // My carrier at (500, 500)
+        Entity myCarrier = new Entity("myCarrier", Entity.Type.CARRIER, "RED", 500, 500, 0, 0, null, 0, 0, 0, "100");
+        
+        // Enemy carriers at (400, 400) and (600, 400)
+        // Line joining them is horizontal at y=400.
+        // Closest point on line to (500, 500) is (500, 400).
+        // Perpendicular vector is (0, 100).
+        // Avoidance should be mostly in +Y direction.
+        
+        Entity enemy1 = new Entity("enemy1", Entity.Type.CARRIER, "BLUE", 400, 400, 0, 0, null, 0, 0, 0, "100");
+        Entity enemy2 = new Entity("enemy2", Entity.Type.CARRIER, "GREEN", 600, 400, 0, 0, null, 0, 0, 0, "100");
+        
+        Collection<Entity> entities = List.of(myCarrier, enemy1, enemy2);
+        
+        commander.process(entities);
+        
+        Order order = orderSender.getLastOrder();
+        assertEquals("myCarrier", order.id());
+        assertEquals(OrderType.MOVE, order.type());
+        String[] parts = order.details().split("\\|");
+        float dy = Float.parseFloat(parts[1]);
+        
+        // Should move AWAY from y=400, so dy should be positive
+        assert(dy > 0);
+    }
+
+    @Test
     void testCarrierManeuverAwayFromEnemyCarriers() {
         commander.process(Collections.emptyList());
         

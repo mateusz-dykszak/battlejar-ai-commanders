@@ -80,7 +80,10 @@ public class AgenticCommander extends AbstractCommander {
         executeMissileEvasion(entities);
 
         // Periodic collision check for carrier even if no AI command is active
-        applyPassiveCarrierAvoidance(entities);
+        // But only if we didn't just issue an AI command which already checks maneuver
+        if (System.currentTimeMillis() - lastAiTick > 100) {
+            applyPassiveCarrierAvoidance(entities);
+        }
 
         // Emergency Screen behavior
         if (isEmergencyScreenRequired(entities)) {
@@ -222,18 +225,15 @@ public class AgenticCommander extends AbstractCommander {
     }
 
     void issueCommand(Entity entity, AICommandParser.Command cmd, Collection<Entity> allEntities) {
-        if (entity.type() == Entity.Type.CARRIER && "MOVE".equals(cmd.type())) {
-            float[] targetPos = parseSectorCoords(cmd.target());
-            if (targetPos != null) {
-                float[] adjusted = applyCollisionAvoidance(targetPos[0], targetPos[1], allEntities);
-                if (adjusted[0] != targetPos[0] || adjusted[1] != targetPos[1]) {
-                    log.info("Carrier move adjusted for collision/border avoidance: from {} to target pos [{}, {}]", 
-                            cmd.target(), adjusted[0], adjusted[1]);
-                    // Create a new command with specific coordinates if possible, but issueCommand uses sector coords string.
-                    // Let's modify issueCommand to handle specific targetPos if it's already adjusted.
-                    issueMoveCommand(entity, adjusted[0], adjusted[1], allEntities);
-                    return;
-                }
+        if (entity.type() == Entity.Type.CARRIER) {
+            float[] currentPos = new float[]{entity.px(), entity.py()};
+            float[] maneuverPos = calculateCarrierManeuver(entity, allEntities);
+            
+            // If the maneuver suggests a significant move for safety, use it instead of or in combination with AI command
+            if (Math.hypot(maneuverPos[0] - currentPos[0], maneuverPos[1] - currentPos[1]) > 5.0f) {
+                log.info("Carrier overriding AI command with safety maneuver: [{}, {}]", maneuverPos[0], maneuverPos[1]);
+                issueMoveCommand(entity, maneuverPos[0], maneuverPos[1], allEntities);
+                return;
             }
         }
         
@@ -379,15 +379,53 @@ public class AgenticCommander extends AbstractCommander {
         // A. Avoid enemy carriers (Strong weight)
         List<Entity> enemyCarriers = allEntities.stream()
                 .filter(e -> e.type() == Entity.Type.CARRIER && !myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
+                .sorted(Comparator.comparingDouble(e -> Math.pow(e.px() - curX, 2) + Math.pow(e.py() - curY, 2)))
                 .toList();
 
+        if (enemyCarriers.size() >= 2) {
+            // Requirement: find two closest enemy carriers and move away from the line joining them
+            Entity e1 = enemyCarriers.get(0);
+            Entity e2 = enemyCarriers.get(1);
+            
+            float x1 = e1.px(), y1 = e1.py();
+            float x2 = e2.px(), y2 = e2.py();
+            
+            // Vector of the line joining them
+            float lx = x2 - x1;
+            float ly = y2 - y1;
+            float lLenSq = lx * lx + ly * ly;
+            
+            if (lLenSq > 1.0f) {
+                // Find projection of current position onto the line
+                float t = ((curX - x1) * lx + (curY - y1) * ly) / lLenSq;
+                float projX = x1 + t * lx;
+                float projY = y1 + t * ly;
+                
+                // Vector from projection to current position (perpendicular to the line)
+                float perpX = curX - projX;
+                float perpY = curY - projY;
+                float perpDist = (float) Math.sqrt(perpX * perpX + perpY * perpY);
+                
+                if (perpDist > 0.1f) {
+                    // Move away from the line
+                    float weight = 3000.0f / (perpDist + 20.0f);
+                    avoidX += (perpX / perpDist) * weight;
+                    avoidY += (perpY / perpDist) * weight;
+                } else {
+                    // If we are exactly on the line, move in a perpendicular direction
+                    float weight = 3000.0f / 20.0f;
+                    avoidX += (-ly / (float) Math.sqrt(lLenSq)) * weight;
+                    avoidY += (lx / (float) Math.sqrt(lLenSq)) * weight;
+                }
+            }
+        }
+
+        // Also avoid each carrier individually to ensure we don't get too close to any one of them
         for (Entity enemy : enemyCarriers) {
             float dx = curX - enemy.px();
             float dy = curY - enemy.py();
-            float distSq = dx * dx + dy * dy;
-            float dist = (float) Math.sqrt(distSq);
-            if (dist > 0 && dist < 1000) { // Only avoid if within 1000 units
-                // Weight is inversely proportional to distance
+            float dist = (float) Math.sqrt(dx * dx + dy * dy);
+            if (dist > 0 && dist < 1000) {
                 float weight = 2000.0f / (dist + 10.0f);
                 avoidX += (dx / dist) * weight;
                 avoidY += (dy / dist) * weight;

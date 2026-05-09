@@ -56,3 +56,6 @@ Execute one of the following tasks, commit and push to github when task is compl
 - [x] Implement carrier's logic: 
   Try to get as far as it can from the other carriers and avoid hitting borders (safe distance is 15 units - if it's closer the safe border logic should take priority). 
   Where to move away should be calculated by finding two closest enemy carriers and move away from the line joining them.
+
+- [x] Fix carrier avoidance logic: 
+  Ensure carrier moves away from the line joining the two closest enemy carriers and prioritize safety over LLM commands.
