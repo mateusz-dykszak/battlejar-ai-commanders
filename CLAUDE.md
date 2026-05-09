@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Do not modify
 
-- **`battlejar-client-sources/`** — read-only vendored copy of the game client's published sources. Build against it; do not hand-edit files there.
+- **`battlejar-client-sources/`** — read-only vendored copy of the game client's published sources. Build against it; do not hand-edit files there. This directory is a **symlink** — use `find -L` when searching inside it (e.g. `find -L ./battlejar-client-sources -name "Entity*"`).
 - **`run.sh`** — runs the client with the commander; your build script must match it.
 - **`AGENTS.md`** — agent instructions; do not edit.
 

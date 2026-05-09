@@ -43,7 +43,7 @@ public class OneVsOneStrategy implements Strategy {
         );
 
         this.carrierTactics = List.of(
-                new CarrierBorderEvasionTactic(GameConfig.BORDER_MARGIN, GameConfig.SAFE_INSET),
+                new CarrierBorderEvasionTactic(),
                 new CarrierMissileFireTactic(GameConfig.CARRIER_MISSILE_FIRE_INTERVAL_MS),
                 new CarrierFighterlessTactic(),
                 new CarrierKiteTactic(GameConfig.CARRIER_MIN_SEPARATION_1V1, GameConfig.CARRIER_KITE_DISTANCE,

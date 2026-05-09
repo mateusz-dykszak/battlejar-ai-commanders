@@ -18,7 +18,6 @@ public final class GameConfig {
     public static final float CARRIER_KITE_DISTANCE = 80f;
     public static final float CARRIER_CORNER_MARGIN    = 20f;
     public static final float CARRIER_CORNER_THRESHOLD = 10f;
-    public static final float CARRIER_BORDER_SAFETY_INSET = 10f;
     public static final int   KILL_FOCUS_HP = 750;
     public static final float KILL_FOCUS_RANGE = 350f;
     public static final float CARRIER_MIN_SEPARATION_1V1 = 80f;

@@ -50,9 +50,9 @@ public class MultiEnemySurvivalStrategy implements Strategy {
         );
 
         this.carrierTactics = List.of(
+                new CarrierBorderEvasionTactic(),
                 new CarrierCornerTactic(GameConfig.CARRIER_CORNER_MARGIN,
-                        GameConfig.CARRIER_CORNER_THRESHOLD),
-                new CarrierBorderEvasionTactic(GameConfig.CARRIER_BORDER_SAFETY_INSET, 0f)
+                        GameConfig.CARRIER_CORNER_THRESHOLD)
         );
     }
 
