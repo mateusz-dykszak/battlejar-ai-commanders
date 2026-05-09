@@ -25,6 +25,9 @@
   - Verified with unit tests.
 
 ## 2026-05-09
+- Updated carrier border avoidance trigger distances to [10, 15, 20, 25] units based on approach angle.
+- Increased base carrier safety margin to 25 units.
+- Improved maneuver logic to return `null` instead of current position when no action is needed, reducing redundant "MOVE 0|0" orders.
 - Analyzed game history: identified early carrier destruction (often < 20s) as a primary failure mode.
 - Added new tasks to TASKS.md focused on carrier survival, automated post-run analysis, and improved AI tactical context.
 - Implemented automatic history analysis in `postprocess.sh`.

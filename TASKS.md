@@ -62,11 +62,16 @@ Execute one of the following tasks, commit and push to github when task is compl
 
 - [x] Implement carrier border avoidance tactic:
   Calculate trigger distance based on approach angle to each border:
-  - < 5° (nearly parallel) -> 5 units
-  - 5°–45° (shallow) -> 10 units
-  - 45°–80° (moderate) -> 15 units
-  - 80°–90° (head-on) -> 20 units
+  - < 5° (nearly parallel) -> 10 units
+  - 5°–45° (shallow) -> 15 units
+  - 45°–80° (moderate) -> 20 units
+  - 80°–90° (head-on) -> 25 units
   Ensure it's checked first and cannot be overridden.
+- [x] Task: Change the carrier border avoidance tactics to trigger at 10, 15, 20 and 25 units.
+  - [x] Update `calculateBorderTriggerDistance`
+  - [x] Update `calculateCarrierManeuver` safety margin
+  - [x] Update `AgenticCommanderTest`
+  - [x] Verify kiting logic still works with border avoidance priority.
 - [x] Fix: Ensure carrier safety maneuvers (like border avoidance) are executed even when no AI command is provided.
 - [x] Improve fighter aggressiveness and reduce collisions:
   - If carrier is not under attack, allow fighters to patrol or hunt instead of crowding the carrier.
