@@ -19,10 +19,19 @@ import static org.mockito.Mockito.*;
 class AgenticCommanderTest {
 
     private static class TestOrderSender implements Consumer<Order> {
-        Order lastOrder;
+        List<Order> orders = new ArrayList<>();
         @Override
         public void accept(Order order) {
-            this.lastOrder = order;
+            this.orders.add(order);
+        }
+        Order getLastOrder() {
+            return orders.isEmpty() ? null : orders.get(orders.size() - 1);
+        }
+        Order getOrderById(String id) {
+            return orders.stream().filter(o -> o.id().equals(id)).findFirst().orElse(null);
+        }
+        void clear() {
+            orders.clear();
         }
     }
 
@@ -66,7 +75,7 @@ class AgenticCommanderTest {
         
         commander.issueCommand(fighter, cmd, entities);
         
-        Order order = orderSender.lastOrder;
+        Order order = orderSender.getLastOrder();
         assertEquals("fighter1", order.id());
         assertEquals(OrderType.MOVE, order.type());
         // -333.33334|-333.33334
@@ -91,7 +100,7 @@ class AgenticCommanderTest {
         
         commander.issueCommand(fighter, cmd, entities);
         
-        Order order = orderSender.lastOrder;
+        Order order = orderSender.getLastOrder();
         assertEquals("fighter1", order.id());
         assertEquals(OrderType.ATTACK, order.type());
         assertEquals("enemy1", order.details());
@@ -112,7 +121,7 @@ class AgenticCommanderTest {
         
         commander.issueCommand(fighter, cmd, entities);
         
-        Order order = orderSender.lastOrder;
+        Order order = orderSender.getLastOrder();
         assertEquals("fighter1", order.id());
         assertEquals(OrderType.MOVE, order.type()); // Falls back to MOVE
         // Rel coord to 2x2 center (833.3, 833.3) from (500, 500)
@@ -136,7 +145,7 @@ class AgenticCommanderTest {
         
         commander.issueCommand(fighter, cmd, entities);
         
-        Order order = orderSender.lastOrder;
+        Order order = orderSender.getLastOrder();
         // hash of "fighter1" determines distance
         int hash = Math.abs("fighter1".hashCode());
         float expectedDistance = (hash % 2 == 0) ? 40 : 80;
@@ -164,7 +173,7 @@ class AgenticCommanderTest {
         
         commander.process(entities);
         
-        Order order = orderSender.lastOrder;
+        Order order = orderSender.getLastOrder();
         assertEquals("carrier1", order.id());
         assertEquals(OrderType.MOVE, order.type());
         
@@ -188,7 +197,7 @@ class AgenticCommanderTest {
         
         commander.issueCommand(fighter, cmd, entities);
         
-        Order order = orderSender.lastOrder;
+        Order order = orderSender.getLastOrder();
         assertEquals("fighter1", order.id());
         assertEquals(OrderType.MOVE, order.type());
         
@@ -209,7 +218,7 @@ class AgenticCommanderTest {
         // Passive avoidance should trigger
         commander.process(entities);
         
-        Order order = orderSender.lastOrder;
+        Order order = orderSender.getLastOrder();
         assertEquals("carrier1", order.id());
         assertEquals(OrderType.MOVE, order.type());
         
@@ -226,19 +235,16 @@ class AgenticCommanderTest {
         
         // My carrier at (500, 500)
         Entity myCarrier = new Entity("myCarrier", Entity.Type.CARRIER, "RED", 500, 500, 0, 0, null, 0, 0, 0, "100");
+        
         // Enemy carriers at (400, 500) and (500, 400)
-        // Line joining them: from (400, 500) to (500, 400). Vector (100, -100)
-        // Midpoint: (450, 450)
-        // My carrier at (500, 500) is already somewhat "away" from (450, 450)
-        // Projection of (500, 500) onto the line:
-        // lx=100, ly=-100, lLenSq=20000
-        // t = ((500-400)*100 + (500-500)*(-100)) / 20000 = 10000 / 20000 = 0.5
-        // Proj: (400 + 0.5*100, 500 + 0.5*-100) = (450, 450)
-        // Avoid vector from (450, 450) to (500, 500) is (50, 50)
-        // Normalized: (1/sqrt(2), 1/sqrt(2))
-        // Move dist 50: (35.35, 35.35)
-        // New target: (535.35, 535.35)
-        // Rel: 35.35, 35.35
+        // dx1 = 100, dy1 = 0, dist1 = 100, weight1 = 2000 / 110 = 18.18
+        // avoid1 = (18.18, 0)
+        // dx2 = 0, dy2 = 100, dist2 = 100, weight2 = 2000 / 110 = 18.18
+        // avoid2 = (0, 18.18)
+        // center bias: toCenter = (0, 0), weight = 0
+        // total avoid = (18.18, 18.18)
+        // normalized = (1/sqrt(2), 1/sqrt(2)) = (0.707, 0.707)
+        // move dist 60: (42.42, 42.42)
         
         Entity enemy1 = new Entity("enemy1", Entity.Type.CARRIER, "BLUE", 400, 500, 0, 0, null, 0, 0, 0, "100");
         Entity enemy2 = new Entity("enemy2", Entity.Type.CARRIER, "GREEN", 500, 400, 0, 0, null, 0, 0, 0, "100");
@@ -247,12 +253,12 @@ class AgenticCommanderTest {
         
         commander.process(entities);
         
-        Order order = orderSender.lastOrder;
+        Order order = orderSender.getLastOrder();
         assertEquals("myCarrier", order.id());
         assertEquals(OrderType.MOVE, order.type());
         String[] parts = order.details().split("\\|");
-        assertEquals(35.35f, Float.parseFloat(parts[0]), 0.1f);
-        assertEquals(35.35f, Float.parseFloat(parts[1]), 0.1f);
+        assertEquals(42.42f, Float.parseFloat(parts[0]), 0.1f);
+        assertEquals(42.42f, Float.parseFloat(parts[1]), 0.1f);
     }
 
     @Test
@@ -281,4 +287,28 @@ class AgenticCommanderTest {
         assertEquals("enemy2", target.id());
     }
 
+    @Test
+    void testEmergencyScreenTriggeredByLowHealth() {
+        commander.process(Collections.emptyList());
+
+        // Carrier at low health (10/100)
+        Entity myCarrier = new Entity("myCarrier", Entity.Type.CARRIER, "RED", 500, 500, 0, 0, null, 0, 0, 0, "10");
+        Entity myFighter = new Entity("myFighter", Entity.Type.FIGHTER, "RED", 600, 600, 0, 0, null, 0, 0, 0, "100");
+        
+        // Some enemy to have a threat direction
+        Entity enemy = new Entity("enemy", Entity.Type.CARRIER, "BLUE", 100, 100, 0, 0, null, 0, 0, 0, "100");
+        
+        Collection<Entity> entities = List.of(myCarrier, myFighter, enemy);
+        
+        commander.process(entities);
+        
+        Order fighterOrder = orderSender.getOrderById("myFighter");
+        assertEquals(OrderType.MOVE, fighterOrder.type());
+        
+        // Carrier (500,500), Enemy (100,100). Threat vector (100-500, 100-500) = (-400, -400).
+        // Normalized: (-0.707, -0.707). Distance 30: (-21.21, -21.21)
+        String[] parts = fighterOrder.details().split("\\|");
+        assertEquals(-21.21f, Float.parseFloat(parts[0]), 0.1f);
+        assertEquals(-21.21f, Float.parseFloat(parts[1]), 0.1f);
+    }
 }

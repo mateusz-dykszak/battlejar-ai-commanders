@@ -27,6 +27,9 @@ public class AgenticCommander extends AbstractCommander {
     private AIAgent aiAgent;
     private long lastAiTick = 0;
     private long currentAiCooldownMs = 2000;
+    private static final int EMERGENCY_HEALTH_THRESHOLD = 30; // 30%
+    private static final float EMERGENCY_THREAT_DISTANCE = 100.0f;
+    private static final float EMERGENCY_SCREEN_DISTANCE = 30.0f;
     private static final long DEFAULT_AI_COOLDOWN_MS = 2000;
     private static final long ENTITY_COOLDOWN_MS = 150; // Per-entity order cooldown
     private final Map<String, Long> entityLastOrderTime = new HashMap<>();
@@ -79,6 +82,11 @@ public class AgenticCommander extends AbstractCommander {
         // Periodic collision check for carrier even if no AI command is active
         applyPassiveCarrierAvoidance(entities);
 
+        // Emergency Screen behavior
+        if (isEmergencyScreenRequired(entities)) {
+            executeEmergencyScreen(entities);
+        }
+
         long now = System.currentTimeMillis();
         if (now - lastAiTick > currentAiCooldownMs) {
             lastAiTick = now;
@@ -111,10 +119,15 @@ public class AgenticCommander extends AbstractCommander {
             issueCommand(myCarrier, response.carrierCommand(), entities);
         }
 
+        boolean emergency = isEmergencyScreenRequired(entities);
+
         // Group my fighters by sector
         Map<String, List<Entity>> fightersBySector = new HashMap<>();
         for (Entity e : entities) {
             if (e.type() == Entity.Type.FIGHTER && myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status())) {
+                if (emergency && !"C".equals(e.status())) {
+                    continue; // Skip AI commands for active fighters if emergency
+                }
                 int r = (int) (e.py() / (settings.worldHeight() / battleMap.getRows()));
                 int c = (int) (e.px() / (settings.worldWidth() / battleMap.getCols()));
                 r = Math.max(0, Math.min(battleMap.getRows() - 1, r));
@@ -281,7 +294,7 @@ public class AgenticCommander extends AbstractCommander {
         float curY = myCarrier.py();
         float safeDistance = 15.0f;
 
-        // 1. Priority: Border avoidance
+        // 1. Priority: Border avoidance (Stay inside the world with a safety margin)
         float targetX = curX;
         float targetY = curY;
         boolean nearBorder = false;
@@ -293,73 +306,99 @@ public class AgenticCommander extends AbstractCommander {
         else if (curY > settings.worldHeight() - safeDistance) { targetY = settings.worldHeight() - safeDistance; nearBorder = true; }
 
         if (nearBorder) {
+            // If near border, just return the safe position to push back in
             return new float[]{targetX, targetY};
         }
 
-        // 2. Move away from two closest enemy carriers
+        // 2. Kiting logic using a weighted avoidance vector
+        float avoidX = 0, avoidY = 0;
+
+        // A. Avoid enemy carriers (Strong weight)
         List<Entity> enemyCarriers = allEntities.stream()
                 .filter(e -> e.type() == Entity.Type.CARRIER && !myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
-                .sorted(Comparator.comparingDouble(e -> Math.pow(e.px() - curX, 2) + Math.pow(e.py() - curY, 2)))
-                .limit(2)
                 .toList();
 
-        if (enemyCarriers.isEmpty()) {
+        for (Entity enemy : enemyCarriers) {
+            float dx = curX - enemy.px();
+            float dy = curY - enemy.py();
+            float distSq = dx * dx + dy * dy;
+            float dist = (float) Math.sqrt(distSq);
+            if (dist > 0 && dist < 1000) { // Only avoid if within 1000 units
+                // Weight is inversely proportional to distance
+                float weight = 2000.0f / (dist + 10.0f);
+                avoidX += (dx / dist) * weight;
+                avoidY += (dy / dist) * weight;
+            }
+        }
+
+        // B. Avoid high threat sectors (Medium weight)
+        if (battleMap != null) {
+            float sectorWidth = settings.worldWidth() / battleMap.getCols();
+            float sectorHeight = settings.worldHeight() / battleMap.getRows();
+
+            for (int r = 0; r < battleMap.getRows(); r++) {
+                for (int c = 0; c < battleMap.getCols(); c++) {
+                    Sector sector = battleMap.getSector(r, c);
+                    float sectorCenterX = (c + 0.5f) * sectorWidth;
+                    float sectorCenterY = (r + 0.5f) * sectorHeight;
+
+                    float dx = curX - sectorCenterX;
+                    float dy = curY - sectorCenterY;
+                    float dist = (float) Math.sqrt(dx * dx + dy * dy);
+
+                    for (ColorSectorStatus status : sector.colorStatuses().values()) {
+                        if (status.threatLevel() == ThreatLevel.HIGH || status.threatLevel() == ThreatLevel.MEDIUM) {
+                            float weight = (status.threatLevel() == ThreatLevel.HIGH ? 1000.0f : 500.0f) / (dist + 50.0f);
+                            if (dist > 0) {
+                                avoidX += (dx / dist) * weight;
+                                avoidY += (dy / dist) * weight;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // C. Avoid nearby missiles (Highest weight)
+        List<Entity> missiles = allEntities.stream()
+                .filter(e -> e.type() == Entity.Type.MISSILE && !myColor.name().equalsIgnoreCase(e.color()))
+                .toList();
+
+        for (Entity missile : missiles) {
+            float dx = curX - missile.px();
+            float dy = curY - missile.py();
+            float distSq = dx * dx + dy * dy;
+            float dist = (float) Math.sqrt(distSq);
+            if (dist > 0 && dist < 400) { // Missiles are very dangerous within 400 units
+                float weight = 5000.0f / (dist + 5.0f);
+                avoidX += (dx / dist) * weight;
+                avoidY += (dy / dist) * weight;
+            }
+        }
+
+        // D. Center bias (Very weak weight to avoid getting stuck in corners)
+        float centerX = settings.worldWidth() / 2.0f;
+        float centerY = settings.worldHeight() / 2.0f;
+        float toCenterX = centerX - curX;
+        float toCenterY = centerY - curY;
+        float distToCenter = (float) Math.sqrt(toCenterX * toCenterX + toCenterY * toCenterY);
+        if (distToCenter > 0) {
+            avoidX += (toCenterX / distToCenter) * 5.0f;
+            avoidY += (toCenterY / distToCenter) * 5.0f;
+        }
+
+        // Final avoidance vector normalization
+        float totalAvoid = (float) Math.sqrt(avoidX * avoidX + avoidY * avoidY);
+        if (totalAvoid > 0.1f) {
+            avoidX /= totalAvoid;
+            avoidY /= totalAvoid;
+        } else {
+            // No significant threats, stay put or move slightly towards center
             return new float[]{curX, curY};
         }
 
-        float avoidX = 0, avoidY = 0;
-        if (enemyCarriers.size() == 1) {
-            // Move directly away from the only enemy carrier
-            Entity enemy = enemyCarriers.get(0);
-            float dx = curX - enemy.px();
-            float dy = curY - enemy.py();
-            float dist = (float) Math.sqrt(dx * dx + dy * dy);
-            if (dist > 0) {
-                avoidX = dx / dist;
-                avoidY = dy / dist;
-            }
-        } else {
-            // Find two closest enemy carriers and move away from the line joining them
-            Entity e1 = enemyCarriers.get(0);
-            Entity e2 = enemyCarriers.get(1);
-            
-            // Vector of the line joining them
-            float lx = e2.px() - e1.px();
-            float ly = e2.py() - e1.py();
-            float lLenSq = lx * lx + ly * ly;
-            
-            if (lLenSq < 0.01f) {
-                // They are at the same spot, move away from that spot
-                float dx = curX - e1.px();
-                float dy = curY - e1.py();
-                float dist = (float) Math.sqrt(dx * dx + dy * dy);
-                if (dist > 0) {
-                    avoidX = dx / dist;
-                    avoidY = dy / dist;
-                }
-            } else {
-                // Projection of current carrier onto the line
-                float t = ((curX - e1.px()) * lx + (curY - e1.py()) * ly) / lLenSq;
-                float projX = e1.px() + t * lx;
-                float projY = e1.py() + t * ly;
-                
-                // Vector from projection to current position (perpendicular to the line)
-                avoidX = curX - projX;
-                avoidY = curY - projY;
-                float dist = (float) Math.sqrt(avoidX * avoidX + avoidY * avoidY);
-                if (dist > 0) {
-                    avoidX /= dist;
-                    avoidY /= dist;
-                } else {
-                    // Carrier is exactly on the line, pick a perpendicular vector
-                    avoidX = -ly / (float) Math.sqrt(lLenSq);
-                    avoidY = lx / (float) Math.sqrt(lLenSq);
-                }
-            }
-        }
-
         // Move some distance in the avoid direction
-        float moveDist = 50.0f;
+        float moveDist = 60.0f;
         targetX = curX + avoidX * moveDist;
         targetY = curY + avoidY * moveDist;
 
@@ -450,7 +489,57 @@ public class AgenticCommander extends AbstractCommander {
         }
     }
 
+    private void executeEmergencyScreen(Collection<Entity> entities) {
+        log.info("Emergency Screen active - all fighters orbiting carrier tightly");
+        entities.stream()
+                .filter(e -> e.type() == Entity.Type.FIGHTER && 
+                              myColor.name().equalsIgnoreCase(e.color()) && 
+                              !"D".equals(e.status()) && 
+                              !"C".equals(e.status()))
+                .forEach(f -> defend(f, entities, EMERGENCY_SCREEN_DISTANCE));
+    }
+
+    private boolean isEmergencyScreenRequired(Collection<Entity> entities) {
+        Entity myCarrier = entities.stream()
+                .filter(e -> e.type() == Entity.Type.CARRIER && 
+                              myColor.name().equalsIgnoreCase(e.color()) && 
+                              !"D".equals(e.status()))
+                .findFirst().orElse(null);
+        if (myCarrier == null) return false;
+
+        // Threshold 1: Health
+        try {
+            int health = Integer.parseInt(myCarrier.status());
+            if (health < EMERGENCY_HEALTH_THRESHOLD) return true;
+        } catch (NumberFormatException ignored) {}
+
+        // Threshold 2: Very close high threat
+        for (int r = 0; r < battleMap.getRows(); r++) {
+            for (int c = 0; c < battleMap.getCols(); c++) {
+                Sector sector = battleMap.getSector(r, c);
+                boolean hasHighThreat = sector.colorStatuses().values().stream()
+                        .anyMatch(s -> s.threatLevel() == ThreatLevel.HIGH);
+                
+                if (hasHighThreat) {
+                    float[] pos = parseSectorCoords(r + "x" + c);
+                    float dx = pos[0] - myCarrier.px();
+                    float dy = pos[1] - myCarrier.py();
+                    float distSq = dx * dx + dy * dy;
+                    if (distSq < EMERGENCY_THREAT_DISTANCE * EMERGENCY_THREAT_DISTANCE) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+
     void defend(Entity entity, Collection<Entity> allEntities) {
+        defend(entity, allEntities, -1);
+    }
+
+    void defend(Entity entity, Collection<Entity> allEntities, float forcedDistance) {
         // stay in current sector but placed between carrier and closest threat sector
         Entity myCarrier = allEntities.stream()
                 .filter(e -> e.type() == Entity.Type.CARRIER && myColor.name().equalsIgnoreCase(e.color()))
@@ -496,19 +585,23 @@ public class AgenticCommander extends AbstractCommander {
             float dirY = threatY - myCarrier.py();
             float len = (float) Math.sqrt(dirX * dirX + dirY * dirY);
             if (len > 0) {
-                // Determine distance based on entity ID to create layers/variety
-                // We use hash of ID to consistently assign a fighter to a layer
-                int hash = Math.abs(entity.id().hashCode());
                 float distance;
-                if (hash % 2 == 0) {
-                    distance = 40; // Inner layer
+                if (forcedDistance > 0) {
+                    distance = forcedDistance;
                 } else {
-                    distance = 80; // Outer layer
-                }
+                    // Determine distance based on entity ID to create layers/variety
+                    // We use hash of ID to consistently assign a fighter to a layer
+                    int hash = Math.abs(entity.id().hashCode());
+                    if (hash % 2 == 0) {
+                        distance = 40; // Inner layer
+                    } else {
+                        distance = 80; // Outer layer
+                    }
 
-                // Add some small individual offset to avoid overlapping perfectly
-                float offset = (hash % 10 - 5) * 2; // -10 to 10
-                distance += offset;
+                    // Add some small individual offset to avoid overlapping perfectly
+                    float offset = (hash % 10 - 5) * 2; // -10 to 10
+                    distance += offset;
+                }
 
                 float targetX = myCarrier.px() + (dirX / len) * distance;
                 float targetY = myCarrier.py() + (dirY / len) * distance;
