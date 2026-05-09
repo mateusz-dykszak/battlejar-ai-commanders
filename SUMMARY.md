@@ -30,3 +30,13 @@
 - Implemented automatic history analysis in `postprocess.sh`.
   - Created `scripts/analyze_history.py` to extract survival time and death counts from game logs.
   - Configured `postprocess.sh` to run the analysis automatically after each session.
+- Improved Carrier Kiting logic:
+  - Replaced basic two-carrier avoidance with a multi-factor weighted avoidance vector (potential field).
+  - Carrier now avoids: enemy carriers (long range), high-threat sectors from BattleMap (tactical avoidance), and nearby missiles (urgent evasion).
+  - Added a weak center bias to prevent the carrier from getting pinned in corners.
+  - Maintained strict 15-unit border safety margin.
+  - Updated unit tests to reflect new movement calculations.
+
+## 2026-05-09
+- Enhanced AI Strategic Prompting: Updated `AIAgent` to include carrier health and fighter counts (active vs docked). Added "Mindset" guidelines to the LLM system prompt to encourage switching between aggressive and defensive strategies based on current status.
+- Switched LLM model to `gpt-4o-mini` for better instruction following and reliability.

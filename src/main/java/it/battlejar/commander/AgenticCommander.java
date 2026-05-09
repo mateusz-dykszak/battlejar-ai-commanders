@@ -91,7 +91,21 @@ public class AgenticCommander extends AbstractCommander {
         if (now - lastAiTick > currentAiCooldownMs) {
             lastAiTick = now;
             try {
-                String aiOutput = aiAgent.getCommandsFromAI(battleMap, myColor);
+                // Get carrier health and fighter counts
+                Entity myCarrier = entities.stream()
+                        .filter(e -> e.type() == Entity.Type.CARRIER && myColor.name().equalsIgnoreCase(e.color()))
+                        .findFirst().orElse(null);
+                String carrierHealth = myCarrier != null ? myCarrier.status() : "0";
+                
+                int activeFighters = (int) entities.stream()
+                        .filter(e -> e.type() == Entity.Type.FIGHTER && myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()) && !"C".equals(e.status()))
+                        .count();
+                
+                int dockedFighters = (int) entities.stream()
+                        .filter(e -> e.type() == Entity.Type.FIGHTER && myColor.name().equalsIgnoreCase(e.color()) && "C".equals(e.status()))
+                        .count();
+
+                String aiOutput = aiAgent.getCommandsFromAI(battleMap, myColor, carrierHealth, activeFighters, dockedFighters);
                 log.info("AI Output: {}", aiOutput);
                 AICommandParser.AIResponse aiResponse = AICommandParser.parse(aiOutput);
                 executeAiResponse(aiResponse, entities);

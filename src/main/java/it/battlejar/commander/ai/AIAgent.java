@@ -38,6 +38,11 @@ public class AIAgent {
             2. Fighters in a sector can be given multiple commands. If you give N commands to fighters in a sector, the fighters will be split into N equal groups, each following one command.
             3. Coordinates are 0-indexed: <row>x<col>.
             
+            Current Status:
+            - Carrier Health: %s
+            - Active Fighters: %d
+            - Docked Fighters: %d
+            
             Respond ONLY with a list of commands in the following format:
             CARRIER: <command>
             SECTOR <row>x<col>: <command1>, <command2>, ...
@@ -47,11 +52,10 @@ public class AIAgent {
             2. Aggression: If you have a SIGNIFICANT or DOMINANCE presence, be aggressive. Use ATTACK commands to push into enemy-held sectors, especially those with enemy carriers or low-health groups.
             3. Carrier Safety: Keep your carrier safe. Use MOVE to reposition away from HIGH threat levels, and use DEFEND to keep fighters as a screen.
             4. Fighter Regrouping: If your fighters in a sector are spread thin (Presence=SMALL), use REGROUP or MOVE commands to regroup them into a stronger sector (Presence=SIGNIFICANT or DOMINANCE) or a safer sector near your carrier.
-            
-            Example:
-            CARRIER: MOVE 1x1
-            SECTOR 0x0: ATTACK 0x1, DEFEND
-            SECTOR 1x1: MOVE 2x2
+            5. Mindset: 
+               - If your Carrier Health is low or you are outnumbered (fewer Active Fighters than enemies), switch to a DEFENSIVE mindset. Prioritize DEFEND and MOVE (carrier away) commands.
+               - If your Carrier Health is high and you have a strong Active fleet, adopt an AGGRESSIVE mindset. Launch attacks and hunt enemy carriers.
+               - Use Docked Fighters as a reserve. If you have many docked fighters, you can afford to be more aggressive with your active ones.
             """)
         String getCommands(@UserMessage String mapState);
     }
@@ -70,15 +74,18 @@ public class AIAgent {
 
         OpenAiChatModel model = OpenAiChatModel.builder()
                 .apiKey(apiKey)
-                .modelName("gpt-5.4-nano")
+                .modelName("gpt-4o-mini")
                 .build();
 
         this.service = AiServices.create(CommanderService.class, model);
     }
 
-    public String getCommandsFromAI(BattleMap map, Color myColor) {
+    public String getCommandsFromAI(BattleMap map, Color myColor, String carrierHealth, int activeFighters, int dockedFighters) {
         StringBuilder sb = new StringBuilder();
         sb.append("Current Battle Map State (Your color: ").append(myColor).append("):\n");
+        sb.append("Carrier Health: ").append(carrierHealth).append("\n");
+        sb.append("Active Fighters: ").append(activeFighters).append("\n");
+        sb.append("Docked Fighters: ").append(dockedFighters).append("\n");
         sb.append("Grid: ").append(map.getRows()).append("x").append(map.getCols()).append("\n");
 
         for (int r = 0; r < map.getRows(); r++) {
@@ -109,7 +116,7 @@ public class AIAgent {
         log.info("Sending map state to LLM:\n{}", userMessage);
 
         Instant start = Instant.now();
-        String response = service.getCommands(userMessage);
+        String response = service.getCommands(String.format(userMessage, carrierHealth, activeFighters, dockedFighters));
         Instant end = Instant.now();
 
         log.info("LLM response received in {}ms:\n{}", Duration.between(start, end).toMillis(), response);
