@@ -272,6 +272,55 @@ public class AgenticCommander extends AbstractCommander {
                 }
             }
             case "DEFEND" -> defend(entity, allEntities);
+            case "HARASS" -> {
+                if (cmd.target() != null) {
+                    float[] targetPos = parseSectorCoords(cmd.target());
+                    if (targetPos != null) {
+                        harass(entity, targetPos[0], targetPos[1], allEntities);
+                    }
+                }
+            }
+        }
+    }
+
+    private void harass(Entity entity, float targetX, float targetY, Collection<Entity> allEntities) {
+        // Find nearest enemy carrier in or near the target sector
+        Entity targetCarrier = allEntities.stream()
+                .filter(e -> e.type() == Entity.Type.CARRIER && !myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
+                .min(Comparator.comparingDouble(e -> Math.hypot(e.px() - targetX, e.py() - targetY)))
+                .orElse(null);
+
+        if (targetCarrier != null) {
+            float dx = entity.px() - targetCarrier.px();
+            float dy = entity.py() - targetCarrier.py();
+            float dist = (float) Math.hypot(dx, dy);
+            float harassDistance = 70.0f; // Stay at a distance to intercept launches
+
+            if (dist > harassDistance + 10) {
+                // Move closer to the carrier
+                float nx = targetCarrier.px() + (dx / dist) * harassDistance;
+                float ny = targetCarrier.py() + (dy / dist) * harassDistance;
+                issueMoveCommand(entity, nx, ny, allEntities);
+            } else if (dist < harassDistance - 10) {
+                // Back off a bit
+                float nx = targetCarrier.px() + (dx / dist) * harassDistance;
+                float ny = targetCarrier.py() + (dy / dist) * harassDistance;
+                issueMoveCommand(entity, nx, ny, allEntities);
+            } else {
+                // Maintain position, maybe look for targets to intercept
+                Entity nearestFighter = allEntities.stream()
+                        .filter(e -> e.type() == Entity.Type.FIGHTER && !myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
+                        .filter(e -> Math.hypot(e.px() - targetCarrier.px(), e.py() - targetCarrier.py()) < 50)
+                        .min(Comparator.comparingDouble(e -> Math.hypot(e.px() - entity.px(), e.py() - entity.py())))
+                        .orElse(null);
+                
+                if (nearestFighter != null) {
+                    order(new Order(entity.id(), OrderType.ATTACK, nearestFighter.id()));
+                }
+            }
+        } else {
+            // No carrier found near target, just move to target sector center
+            issueMoveCommand(entity, targetX, targetY, allEntities);
         }
     }
 

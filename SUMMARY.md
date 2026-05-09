@@ -40,3 +40,7 @@
 ## 2026-05-09
 - Enhanced AI Strategic Prompting: Updated `AIAgent` to include carrier health and fighter counts (active vs docked). Added "Mindset" guidelines to the LLM system prompt to encourage switching between aggressive and defensive strategies based on current status.
 - Switched LLM model to `gpt-4o-mini` for better instruction following and reliability.
+- Implemented Fighter "Harassment" logic:
+  - Added `HARASS` command to `AIAgent` and `AICommandParser`.
+  - Implemented `harass` method in `AgenticCommander` to position fighters near enemy carriers (70 units distance) to disrupt launches and intercept units.
+  - Updated LLM prompt with guidelines for using the `HARASS` strategy.
