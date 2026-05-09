@@ -72,3 +72,5 @@ Execute one of the following tasks, commit and push to github when task is compl
   - If carrier is not under attack, allow fighters to patrol or hunt instead of crowding the carrier.
   - Relax default defense formation spacing when no immediate threat is present.
   - Updated AIAgent prompt to discourage unnecessary defensive formations.
+- [x] Filter history analysis: Only process games where "Agentic Junie" is a player.
+- [x] Support `BJ_CLIENT_MAX_GAMES` environment variable in `Main.java`.
