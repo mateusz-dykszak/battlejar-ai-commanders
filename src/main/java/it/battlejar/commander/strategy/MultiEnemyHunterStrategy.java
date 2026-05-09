@@ -60,8 +60,7 @@ public class MultiEnemyHunterStrategy implements Strategy {
                 // Push only after scoring a kill — we have a numbers advantage
                 new CarrierPushTactic(GameConfig.CARRIER_PUSH_DISTANCE,
                         s -> s.hasKilledEnemy() && s.myActiveFighters().size() >= fullThreshold),
-                new CarrierCornerTactic(GameConfig.CARRIER_CORNER_MARGIN,
-                        GameConfig.CARRIER_CORNER_THRESHOLD)
+                new CarrierCornerTactic(GameConfig.CARRIER_CORNER_MARGIN)
         );
     }
 

@@ -27,7 +27,7 @@ import java.util.Optional;
 public class CarrierBorderEvasionTactic implements Tactic<Entity> {
 
     /** Target distance from any border after a push. */
-    private static final float SAFE_DISTANCE = 20f;
+    private static final float SAFE_DISTANCE = 25f;
 
     @Override
     public Optional<Order> apply(Entity carrier, GameSnapshot snapshot, CommanderState state) {
@@ -78,9 +78,9 @@ public class CarrierBorderEvasionTactic implements Tactic<Entity> {
     static float triggerThreshold(float approach, float parallel) {
         if (approach < 0) return 0f;
         double angleDeg = Math.toDegrees(Math.atan2(approach, Math.abs(parallel)));
-        if (angleDeg < 5)  return 5f;
-        if (angleDeg < 45) return 10f;
-        if (angleDeg < 80) return 15f;
-        return 20f;
+        if (angleDeg < 5)  return 10f;
+        if (angleDeg < 45) return 15f;
+        if (angleDeg < 80) return 20f;
+        return 25f;
     }
 }

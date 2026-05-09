@@ -24,17 +24,16 @@ class CarrierCornerTacticTest {
 
     private static final int WORLD_WIDTH = 384;
     private static final int WORLD_HEIGHT = 216;
-    // World 384×216, corners 20 units from each border: (20,20), (364,20), (20,196), (364,196)
+    // World 384×216, corners 25 units from each border: (25,25), (359,25), (25,191), (359,191)
     private static final GameSettings SETTINGS = new GameSettings(WORLD_WIDTH, WORLD_HEIGHT, 0, 0, 0, 0, 0, 0);
-    private static final float CORNER_MARGIN = 20f;
-    private static final float CORNER_THRESHOLD = 10f;
+    private static final float CORNER_MARGIN = 25f;
 
     private CarrierCornerTactic tactic;
     private CommanderState state;
 
     @BeforeEach
     void setUp() {
-        tactic = new CarrierCornerTactic(CORNER_MARGIN, CORNER_THRESHOLD);
+        tactic = new CarrierCornerTactic(CORNER_MARGIN);
         state = new CommanderState();
     }
 
@@ -74,11 +73,11 @@ class CarrierCornerTacticTest {
     }
 
     /**
-     * Carrier exactly at corner (20, 196) should still send MOVE (offset ~0|0) not PATROL.
+     * Carrier exactly at corner (25, 191) should still send MOVE (offset ~0|0) not PATROL.
      */
     @Test
     void atCorner_sendsMoveNotPatrol() {
-        Entity carrier = carrier(20, 196);
+        Entity carrier = carrier(25, 191);
         Optional<Order> order = tactic.apply(carrier, snapshot(carrier), state);
 
         assertTrue(order.isPresent());
@@ -86,11 +85,11 @@ class CarrierCornerTacticTest {
     }
 
     /**
-     * carrierReachedCorner flag is set when carrier is within threshold.
+     * carrierReachedCorner flag is set when carrier is inside the corner square.
      */
     @Test
     void withinThreshold_setsReachedCornerFlag() {
-        Entity carrier = carrier(23, 199); // ~4.2 units from (20, 196)
+        Entity carrier = carrier(23, 199); // inside bottom-left corner square (x<25, y>191)
         assertFalse(state.carrierReachedCorner);
 
         tactic.apply(carrier, snapshot(carrier), state);
@@ -129,12 +128,12 @@ class CarrierCornerTacticTest {
     }
 
     static Stream<Arguments> actualSpawnArguments() {
-        // Spawn → nearest corner → expected offset
+        // Spawn → nearest corner → expected offset  (margin=25: corners at (25,25),(359,25),(25,191),(359,191))
         return Stream.of(
-            Arguments.of(282f, 18f,   82,  2),   // → top-right  (364,20)
-            Arguments.of(102f, 18f,  -82,  2),   // → top-left   (20,20)
-            Arguments.of(282f, 198f,  82, -2),   // → bottom-right (364,196)
-            Arguments.of(102f, 198f, -82, -2)    // → bottom-left (20,196)
+            Arguments.of(282f, 18f,   77,  7),   // → top-right  (359,25)
+            Arguments.of(102f, 18f,  -77,  7),   // → top-left   (25,25)
+            Arguments.of(282f, 198f,  77, -7),   // → bottom-right (359,191)
+            Arguments.of(102f, 198f, -77, -7)    // → bottom-left (25,191)
         );
     }
 
