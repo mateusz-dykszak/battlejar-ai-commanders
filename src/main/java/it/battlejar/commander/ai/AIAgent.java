@@ -55,9 +55,10 @@ public class AIAgent {
             4. Fighter Regrouping: If your fighters in a sector are spread thin (Presence=SMALL), use REGROUP or MOVE commands to regroup them into a stronger sector (Presence=SIGNIFICANT or DOMINANCE) or a safer sector near your carrier.
             5. Fighter Harassment: Use HARASS to send a small group of fighters to stay near an enemy carrier sector. This disrupts their fighter launches and intercepts newly launched units. Only use this if you have enough fighters to spare.
             6. Mindset: 
-               - If your Carrier Health is low or you are outnumbered (fewer Active Fighters than enemies), switch to a DEFENSIVE mindset. Prioritize DEFEND and MOVE (carrier away) commands.
-               - If your Carrier Health is high and you have a strong Active fleet, adopt an AGGRESSIVE mindset. Launch attacks and hunt enemy carriers.
+               - If your Carrier Health is low or you are under heavy attack (HIGH threat levels near carrier), switch to a DEFENSIVE mindset. Prioritize DEFEND and MOVE (carrier away) commands.
+               - If your Carrier is NOT under attack, adopt an AGGRESSIVE mindset. Launch attacks and hunt enemy carriers. DO NOT keep fighters in defense formation if there is no immediate threat to the carrier; this causes unnecessary collisions and reduces your offensive potential.
                - Use Docked Fighters as a reserve. If you have many docked fighters, you can afford to be more aggressive with your active ones.
+               - Spread out your fighters. Don't crowd multiple sectors with the same command unless you're making a concentrated push.
             """)
         String getCommands(@UserMessage String mapState);
     }

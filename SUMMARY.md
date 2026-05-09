@@ -47,3 +47,10 @@
 
 
 2026-05-09: Fixed a bug where the carrier would skip safety maneuvers (like border avoidance) if the AI didn't provide a specific command for it. Now safety checks are performed every AI tick regardless of command presence.
+
+### 2026-05-09
+- Improved fighter aggressiveness and reduced collisions:
+  - Modified `AgenticCommander.executeAiResponse` to prevent fighters from defaulting to a tight defensive formation when the carrier is safe.
+  - Implemented `patrol` and `findNearestEnemy` logic for idle fighters to keep them active and spread out.
+  - Adjusted `defend` formation spacing to be more relaxed (wider layers) when no immediate threat is detected.
+  - Updated `AIAgent` system prompt to emphasize aggressive positioning when the carrier is not under attack.

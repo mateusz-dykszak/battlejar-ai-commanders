@@ -68,3 +68,7 @@ Execute one of the following tasks, commit and push to github when task is compl
   - 80°–90° (head-on) -> 20 units
   Ensure it's checked first and cannot be overridden.
 - [x] Fix: Ensure carrier safety maneuvers (like border avoidance) are executed even when no AI command is provided.
+- [x] Improve fighter aggressiveness and reduce collisions:
+  - If carrier is not under attack, allow fighters to patrol or hunt instead of crowding the carrier.
+  - Relax default defense formation spacing when no immediate threat is present.
+  - Updated AIAgent prompt to discourage unnecessary defensive formations.

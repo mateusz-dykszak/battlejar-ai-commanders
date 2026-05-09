@@ -173,6 +173,8 @@ public class AgenticCommander extends AbstractCommander {
             }
         }
         
+        boolean globalEmergency = emergency || isEmergencyScreenRequired(entities);
+
         // Fighters without AI instructions
         fightersBySector.forEach((sectorKey, sectorFighters) -> {
             if (!response.sectorCommands().containsKey(sectorKey)) {
@@ -183,20 +185,62 @@ public class AgenticCommander extends AbstractCommander {
                 Sector sector = battleMap.getSector(r, c);
                 ColorSectorStatus status = sector.colorStatuses().get(myColor);
                 
-                if (status != null && status.presence() == it.battlejar.commander.map.FleetPresence.SMALL) {
+                if (status != null && status.presence() == it.battlejar.commander.map.FleetPresence.SMALL && globalEmergency) {
                     // Find a sector with SIGNIFICANT or DOMINANCE presence to regroup to
                     String targetSector = findRegroupTarget(r, c);
                     for (Entity f : sectorFighters) {
                         issueCommand(f, new AICommandParser.Command("REGROUP", targetSector), entities);
                     }
+                } else if (!globalEmergency) {
+                    // If no emergency, be more aggressive: find nearest enemy and harass or move towards it
+                    Entity nearestEnemy = findNearestEnemy(sectorFighters.get(0), entities);
+                    for (Entity f : sectorFighters) {
+                        if (nearestEnemy != null) {
+                            harass(f, nearestEnemy.px(), nearestEnemy.py(), entities);
+                        } else {
+                            // No enemies? spread out/patrol instead of crowding carrier
+                            patrol(f, entities);
+                        }
+                    }
                 } else {
-                    // Default to defend
+                    // Default to defend only if emergency
                     for (Entity f : sectorFighters) {
                         defend(f, entities);
                     }
                 }
             }
         });
+    }
+
+    private Entity findNearestEnemy(Entity me, Collection<Entity> allEntities) {
+        return allEntities.stream()
+                .filter(e -> !myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()) && !"C".equals(e.status()))
+                .filter(e -> e.type() == Entity.Type.CARRIER || e.type() == Entity.Type.FIGHTER)
+                .min(Comparator.comparingDouble(e -> (e.px() - me.px()) * (e.px() - me.px()) + (e.py() - me.py()) * (e.py() - me.py())))
+                .orElse(null);
+    }
+
+    private void patrol(Entity entity, Collection<Entity> allEntities) {
+        // Move to a random-ish position far from carrier to avoid crowding, but within world
+        int hash = Math.abs(entity.id().hashCode());
+        float angle = (float) ((hash % 360) * Math.PI / 180.0);
+        float dist = 200 + (hash % 200);
+        
+        Entity myCarrier = allEntities.stream()
+                .filter(e -> e.type() == Entity.Type.CARRIER && myColor.name().equalsIgnoreCase(e.color()))
+                .findFirst().orElse(null);
+        
+        float cx = myCarrier != null ? myCarrier.px() : settings.worldWidth() / 2;
+        float cy = myCarrier != null ? myCarrier.py() : settings.worldHeight() / 2;
+        
+        float tx = cx + (float) Math.cos(angle) * dist;
+        float ty = cy + (float) Math.sin(angle) * dist;
+        
+        // Clamp to world
+        tx = Math.max(50, Math.min(settings.worldWidth() - 50, tx));
+        ty = Math.max(50, Math.min(settings.worldHeight() - 50, ty));
+        
+        issueMoveCommand(entity, tx, ty, allEntities);
     }
 
     private String findRegroupTarget(int currentR, int currentC) {
@@ -721,14 +765,16 @@ public class AgenticCommander extends AbstractCommander {
                     // Determine distance based on entity ID to create layers/variety
                     // We use hash of ID to consistently assign a fighter to a layer
                     int hash = Math.abs(entity.id().hashCode());
+                    boolean emergency = isEmergencyScreenRequired(allEntities);
+                    
                     if (hash % 2 == 0) {
-                        distance = 40; // Inner layer
+                        distance = emergency ? 40 : 80; // Inner layer
                     } else {
-                        distance = 80; // Outer layer
+                        distance = emergency ? 80 : 160; // Outer layer
                     }
 
                     // Add some small individual offset to avoid overlapping perfectly
-                    float offset = (hash % 10 - 5) * 2; // -10 to 10
+                    float offset = (hash % 10 - 5) * (emergency ? 2 : 5); // -10 to 10 or -25 to 25
                     distance += offset;
                 }
 
