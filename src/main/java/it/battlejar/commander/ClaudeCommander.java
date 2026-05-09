@@ -23,7 +23,7 @@ public class ClaudeCommander extends AbstractCommander {
     private static final int DOCK_HEALTH_THRESHOLD = 3;    // fighters start at 10 HP; dock below 30%
     private static final long RECOVERY_MS = 1_500;         // time a docked fighter is left to heal before redeploying
     private static final float FIGHTER_MISSILE_RANGE = 150f;
-    private static final float FIGHTER_LASER_RANGE = 150f;   // per-fighter proximity for TARGET "M" defense
+    private static final float FIGHTER_MISSILE_DEFENSE_RANGE = 80f; // per-fighter proximity for TARGET "M" defense; aligns with MISSILE_INTERCEPT_RANGE
     private static final float MISSILE_INTERCEPT_RANGE = 80f;  // physical move-to-intercept; beyond this rely on lasers
     private static final float MISSILE_TARGET_RANGE = 300f;    // carrier-relative range for intercept assignments
     private static final float FORMATION_RADIUS_TIGHT = 80f;   // used until FORMATION_EXPAND_AT fighters are active
@@ -163,7 +163,7 @@ public class ClaudeCommander extends AbstractCommander {
             boolean inFormation = distanceTo(fighter, slotAbsX, slotAbsY) < FORMATION_THRESHOLD;
             // Only this specific fighter defends if a missile is close to IT — others keep attacking.
             boolean missileCloseToFighter = armedEnemyMissiles.stream()
-                    .anyMatch(m -> distance(m, fighter) < FIGHTER_LASER_RANGE);
+                    .anyMatch(m -> distance(m, fighter) < FIGHTER_MISSILE_DEFENSE_RANGE);
 
             // Compute missile alignment once — used lower in the chain.
             // Missiles fire in the fighter's velocity direction. We only fire when the fighter
