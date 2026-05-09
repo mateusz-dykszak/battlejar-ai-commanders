@@ -37,7 +37,7 @@ public class OneVsOneStrategy implements Strategy {
         this.fighterTactics = List.of(
                 new BorderEvasionTactic(GameConfig.BORDER_MARGIN),
                 new MissileInterceptTactic(),
-                new FighterMissileFireTactic(GameConfig.FIGHTER_MISSILE_RANGE),
+                new FighterMissileFireTactic(),
                 new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),
                 new FighterAttackTactic(GameConfig.FIGHTER_INTRUDER_CARRIER_RANGE_1V1)
         );

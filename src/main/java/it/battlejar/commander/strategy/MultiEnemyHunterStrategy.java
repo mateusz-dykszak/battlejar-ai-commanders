@@ -41,7 +41,7 @@ public class MultiEnemyHunterStrategy implements Strategy {
         this.interceptorTactics = List.of(
                 new BorderEvasionTactic(GameConfig.BORDER_MARGIN),
                 new MissileInterceptTactic(),
-                new FighterMissileFireTactic(GameConfig.FIGHTER_MISSILE_RANGE),
+                new FighterMissileFireTactic(),
                 new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),
                 new FighterAttackTactic(GameConfig.FIGHTER_INTRUDER_CARRIER_RANGE)
         );
@@ -49,7 +49,7 @@ public class MultiEnemyHunterStrategy implements Strategy {
         this.strikerTactics = List.of(
                 new BorderEvasionTactic(GameConfig.BORDER_MARGIN),
                 new MissileInterceptTactic(),
-                new FighterMissileFireTactic(GameConfig.FIGHTER_MISSILE_RANGE),
+                new FighterMissileFireTactic(),
                 new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),
                 new DistributedAttackTactic()
         );

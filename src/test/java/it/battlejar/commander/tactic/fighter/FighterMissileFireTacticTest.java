@@ -18,14 +18,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class FighterMissileFireTacticTest {
 
     private static final GameSettings SETTINGS = new GameSettings(384, 216, 0, 0, 0, 0, 0, 0);
-    private static final float MISSILE_RANGE = 150f;
 
     private FighterMissileFireTactic tactic;
     private CommanderState state;
 
     @BeforeEach
     void setUp() {
-        tactic = new FighterMissileFireTactic(MISSILE_RANGE);
+        tactic = new FighterMissileFireTactic();
         state = new CommanderState();
     }
 
@@ -88,16 +87,17 @@ class FighterMissileFireTacticTest {
         assertFalse(order.isPresent());
     }
 
-    /** Enemy outside missile range — never fire. */
+    /** Enemy far away (200+ units) but fighter is farther from carrier — fires regardless of distance. */
     @Test
-    void enemyOutOfRange_doesNotFire() {
-        Entity myCarrier = carrier(100, 200);
+    void enemyFarAway_fires() {
+        // Carrier far behind the fighter so the target is the closer carrier to the fighter.
+        Entity myCarrier = carrier(100, 400);  // 300 units behind fighter
         Entity fighter = fighter(100, 100, 1);
-        Entity target = enemy(100, -80);  // 180 units away, beyond 150 range
+        Entity target = enemy(100, -100);      // 200 units ahead — closer than carrier
 
         Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, target), state);
 
-        assertFalse(order.isPresent());
+        assertTrue(order.isPresent(), "Should fire at far targets when friendly-fire check passes");
     }
 
     /**

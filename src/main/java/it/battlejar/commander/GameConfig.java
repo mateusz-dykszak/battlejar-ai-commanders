@@ -5,7 +5,6 @@ public final class GameConfig {
     public static final float BORDER_MARGIN = 50f;
     public static final float SAFE_INSET = 30f;
     public static final float FORMATION_THRESHOLD = 100f;
-    public static final float FIGHTER_MISSILE_RANGE = 150f;
     public static final float FIGHTER_LASER_RANGE = 150f;
     public static final float MISSILE_INTERCEPT_RANGE = 150f;
     public static final float FORMATION_RADIUS_TIGHT = 50f;
