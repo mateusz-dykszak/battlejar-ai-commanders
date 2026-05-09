@@ -44,3 +44,6 @@
   - Added `HARASS` command to `AIAgent` and `AICommandParser`.
   - Implemented `harass` method in `AgenticCommander` to position fighters near enemy carriers (70 units distance) to disrupt launches and intercept units.
   - Updated LLM prompt with guidelines for using the `HARASS` strategy.
+
+
+2026-05-09: Fixed a bug where the carrier would skip safety maneuvers (like border avoidance) if the AI didn't provide a specific command for it. Now safety checks are performed every AI tick regardless of command presence.

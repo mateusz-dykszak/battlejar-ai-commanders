@@ -132,7 +132,7 @@ public class AgenticCommander extends AbstractCommander {
                 .filter(e -> e.type() == Entity.Type.CARRIER && myColor.name().equalsIgnoreCase(e.color()))
                 .findFirst().orElse(null);
 
-        if (myCarrier != null && response.carrierCommand() != null) {
+        if (myCarrier != null) {
             issueCommand(myCarrier, response.carrierCommand(), entities);
         }
 
@@ -226,16 +226,17 @@ public class AgenticCommander extends AbstractCommander {
 
     void issueCommand(Entity entity, AICommandParser.Command cmd, Collection<Entity> allEntities) {
         if (entity.type() == Entity.Type.CARRIER) {
-            float[] currentPos = new float[]{entity.px(), entity.py()};
             float[] maneuverPos = calculateCarrierManeuver(entity, allEntities);
             
-            // If the maneuver suggests a significant move for safety, use it instead of or in combination with AI command
-            if (Math.hypot(maneuverPos[0] - currentPos[0], maneuverPos[1] - currentPos[1]) > 5.0f) {
+            // If the maneuver suggests a change, it means safety (border or avoidance) triggered
+            if (maneuverPos[0] != entity.px() || maneuverPos[1] != entity.py()) {
                 log.info("Carrier overriding AI command with safety maneuver: [{}, {}]", maneuverPos[0], maneuverPos[1]);
                 issueMoveCommand(entity, maneuverPos[0], maneuverPos[1], allEntities);
                 return;
             }
         }
+        
+        if (cmd == null) return;
         
         switch (cmd.type()) {
             case "MOVE" -> {
@@ -358,19 +359,46 @@ public class AgenticCommander extends AbstractCommander {
         float safeDistance = 15.0f;
 
         // 1. Priority: Border avoidance (Stay inside the world with a safety margin)
-        float targetX = curX;
-        float targetY = curY;
-        boolean nearBorder = false;
+        float triggerDistance = -1;
+        float avoidanceTargetX = curX;
+        float avoidanceTargetY = curY;
 
-        if (curX < safeDistance) { targetX = safeDistance; nearBorder = true; }
-        else if (curX > settings.worldWidth() - safeDistance) { targetX = settings.worldWidth() - safeDistance; nearBorder = true; }
-        
-        if (curY < safeDistance) { targetY = safeDistance; nearBorder = true; }
-        else if (curY > settings.worldHeight() - safeDistance) { targetY = settings.worldHeight() - safeDistance; nearBorder = true; }
+        // Check each border: left, right, top, bottom
+        // Left border (x=0)
+        float distLeft = curX;
+        float tdLeft = calculateBorderTriggerDistance(distLeft, -1, 0, myCarrier.vx(), myCarrier.vy());
+        if (tdLeft > 0 && distLeft < tdLeft) {
+            triggerDistance = tdLeft;
+            avoidanceTargetX = tdLeft + 5.0f; // Move away from left
+        }
 
-        if (nearBorder) {
-            // If near border, just return the safe position to push back in
-            return new float[]{targetX, targetY};
+        // Right border (x=worldWidth)
+        float distRight = settings.worldWidth() - curX;
+        float tdRight = calculateBorderTriggerDistance(distRight, 1, 0, myCarrier.vx(), myCarrier.vy());
+        if (tdRight > 0 && distRight < tdRight && (triggerDistance == -1 || tdRight > triggerDistance)) {
+            triggerDistance = tdRight;
+            avoidanceTargetX = settings.worldWidth() - tdRight - 5.0f;
+        }
+
+        // Top border (y=0)
+        float distTop = curY;
+        float tdTop = calculateBorderTriggerDistance(distTop, 0, -1, myCarrier.vx(), myCarrier.vy());
+        if (tdTop > 0 && distTop < tdTop && (triggerDistance == -1 || tdTop > triggerDistance)) {
+            triggerDistance = tdTop;
+            avoidanceTargetY = tdTop + 5.0f;
+        }
+
+        // Bottom border (y=worldHeight)
+        float distBottom = settings.worldHeight() - curY;
+        float tdBottom = calculateBorderTriggerDistance(distBottom, 0, 1, myCarrier.vx(), myCarrier.vy());
+        if (tdBottom > 0 && distBottom < tdBottom && (triggerDistance == -1 || tdBottom > triggerDistance)) {
+            triggerDistance = tdBottom;
+            avoidanceTargetY = settings.worldHeight() - tdBottom - 5.0f;
+        }
+
+        if (triggerDistance != -1) {
+            log.info("Carrier border avoidance triggered! distance: {}, target: [{}, {}]", triggerDistance, avoidanceTargetX, avoidanceTargetY);
+            return new float[]{avoidanceTargetX, avoidanceTargetY};
         }
 
         // 2. Kiting logic using a weighted avoidance vector
@@ -500,8 +528,8 @@ public class AgenticCommander extends AbstractCommander {
 
         // Move some distance in the avoid direction
         float moveDist = 60.0f;
-        targetX = curX + avoidX * moveDist;
-        targetY = curY + avoidY * moveDist;
+        float targetX = curX + avoidX * moveDist;
+        float targetY = curY + avoidY * moveDist;
 
         // Final check for borders
         targetX = Math.max(safeDistance, Math.min(settings.worldWidth() - safeDistance, targetX));
@@ -790,6 +818,40 @@ public class AgenticCommander extends AbstractCommander {
             case MEDIUM -> 1500L;
             default -> 2000L;
         };
+    }
+
+    private float calculateBorderTriggerDistance(float distance, float borderNormalX, float borderNormalY, float vx, float vy) {
+        // Dot product to see if we are moving towards the border
+        // borderNormal is pointing OUT of the world:
+        // Left: (-1, 0), Right: (1, 0), Top: (0, -1), Bottom: (0, 1)
+        float dot = vx * borderNormalX + vy * borderNormalY;
+
+        if (dot <= 0) {
+            // Moving away from or parallel to border
+            return -1;
+        }
+
+        // Approach angle: angle between velocity and border normal (0 to 90 degrees)
+        float vLen = (float) Math.sqrt(vx * vx + vy * vy);
+        if (vLen < 0.001f) return -1;
+
+        float cosTheta = dot / vLen;
+        // Clamp cosTheta to [0, 1] just in case
+        cosTheta = Math.max(0, Math.min(1, cosTheta));
+        double angleRad = Math.acos(cosTheta);
+        double angleDeg = Math.toDegrees(angleRad);
+
+        // Approach angle to border:
+        // If angle with normal is 0, angle with border is 90 (head-on)
+        // If angle with normal is 90, angle with border is 0 (parallel)
+        double angleToBorder = 90.0 - angleDeg;
+
+        if (angleToBorder < 5) return 5.0f;
+        if (angleToBorder <= 45) return 10.0f;
+        if (angleToBorder <= 80) return 15.0f;
+        if (angleToBorder <= 90) return 20.0f;
+
+        return -1;
     }
 
     private void initializeBattleMap() {
