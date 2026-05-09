@@ -276,9 +276,8 @@ public class ClaudeCommander extends AbstractCommander {
             // Close in to bring fighters within tighter laser range and finish the kill faster.
             // Guard: only in 4-way (not 1v1) and only with a fighter screen active.
             float dist = distance(myCarrier, nearestEnemyCarrier);
-            int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * CARRIER_PUSH_DISTANCE);
-            int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * CARRIER_PUSH_DISTANCE);
-            sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
+            sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
+                    clampedCarrierMove(myCarrier, nearestEnemyCarrier, dist, CARRIER_PUSH_DISTANCE)));
         } else if (hasKilledEnemy && nearestEnemyCarrier != null) {
             // Use a third of the threshold in 1v1: data shows we rarely hit 6 (half) during the 1v1
             // phase, so we defaulted to slower ATTACK auto-move; explicit MOVE push closes faster.
@@ -288,9 +287,8 @@ public class ClaudeCommander extends AbstractCommander {
             if (myFighters.size() >= effectiveThreshold) {
                 float dist = distance(myCarrier, nearestEnemyCarrier);
                 float pushDist = liveEnemyCarriers.size() == 1 ? CARRIER_PUSH_DISTANCE_1V1 : CARRIER_PUSH_DISTANCE;
-                int mx = Math.round((nearestEnemyCarrier.px() - myCarrier.px()) / dist * pushDist);
-                int my = Math.round((nearestEnemyCarrier.py() - myCarrier.py()) / dist * pushDist);
-                sendOrder(new Order(myCarrier.id(), OrderType.MOVE, mx + "|" + my));
+                sendOrder(new Order(myCarrier.id(), OrderType.MOVE,
+                        clampedCarrierMove(myCarrier, nearestEnemyCarrier, dist, pushDist)));
             } else if (liveEnemyCarriers.size() == 1) {
                 // In 1v1 with too few fighters to push: ATTACK with carrier lasers while waiting for
                 // more fighters to deploy. Carrier auto-moves toward target, supplementing fighter DPS.
@@ -330,6 +328,19 @@ public class ClaudeCommander extends AbstractCommander {
         }
 
         return true;
+    }
+
+    // Compute a clamped carrier MOVE offset: moves pushDist units toward target in the direction
+    // of (target - from), but clamps the absolute destination to the safe interior so the game
+    // server does not ignore it. Without clamping, a pushDist=400 target is often outside the
+    // world (e.g., x=-93) and the server silently drops the command, leaving the carrier PATROLing.
+    private String clampedCarrierMove(Entity from, Entity target, float dist, float pushDist) {
+        float absX = from.px() + (target.px() - from.px()) / dist * pushDist;
+        float absY = from.py() + (target.py() - from.py()) / dist * pushDist;
+        float margin = BORDER_MARGIN + SAFE_INSET;
+        absX = Math.max(margin, Math.min(settings.worldWidth() - margin, absX));
+        absY = Math.max(margin, Math.min(settings.worldHeight() - margin, absY));
+        return Math.round(absX - from.px()) + "|" + Math.round(absY - from.py());
     }
 
     private void sendOrder(Order order) {
