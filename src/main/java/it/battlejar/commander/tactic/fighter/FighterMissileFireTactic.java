@@ -5,16 +5,17 @@ import it.battlejar.api.Order;
 import it.battlejar.api.OrderType;
 import it.battlejar.commander.CommanderState;
 import it.battlejar.commander.GameSnapshot;
+import it.battlejar.commander.GameConfig;
 import it.battlejar.commander.GameUtils;
 import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
 
 /**
- * Fires a fighter's missile at the primary target carrier with no distance limit — missiles
- * auto-home and have unlimited range. Only skipped when our carrier or another enemy carrier
- * is closer to the fighter than the intended target, which would cause the missile to lock
- * onto the wrong carrier.
+ * Fires a fighter's missile at the primary target carrier. Skipped when the target is closer
+ * than {@link GameConfig#FIGHTER_MISSILE_MIN_FIRE_RANGE} (missile wouldn't arm in time), when
+ * our carrier is closer (missile would home on it), or when another enemy carrier is closer
+ * (missile would lock onto the wrong target).
  */
 public class FighterMissileFireTactic implements Tactic<Entity> {
 
@@ -25,6 +26,7 @@ public class FighterMissileFireTactic implements Tactic<Entity> {
             return Optional.empty();
         }
         float distToTarget = GameUtils.distance(fighter, target);
+        if (distToTarget < GameConfig.FIGHTER_MISSILE_MIN_FIRE_RANGE) return Optional.empty();
         // Skip if our carrier is closer — missile would home on it instead.
         if (GameUtils.distance(fighter, snapshot.myCarrier()) <= distToTarget) {
             return Optional.empty();

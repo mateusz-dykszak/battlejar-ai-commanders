@@ -29,15 +29,15 @@ class FighterMissileFireTacticTest {
     }
 
     /**
-     * Normal case: fighter has missiles, enemy is within range, and enemy is closer
+     * Normal case: fighter has missiles, enemy is beyond arming range, and enemy is closer
      * to the fighter than our carrier. Missile should fire.
      */
     @Test
     void enemyCloserThanCarrier_fires() {
-        // Carrier at (100, 200), fighter 100 units ahead toward enemy, enemy just 50 away
-        Entity myCarrier = carrier(100, 200);
-        Entity fighter = fighter(100, 100, 1);   // 100 units from carrier
-        Entity target = enemy(100, 60);          // 40 units from fighter, 140 from carrier
+        // Carrier at (100, 500), fighter at (100, 100), enemy 200 units ahead (> 150 min range)
+        Entity myCarrier = carrier(100, 500);
+        Entity fighter = fighter(100, 100, 1);   // 400 units from carrier
+        Entity target = enemy(100, -100);        // 200 units from fighter, 600 from carrier
 
         Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, target), state);
 
@@ -101,14 +101,14 @@ class FighterMissileFireTacticTest {
     }
 
     /**
-     * Multi-enemy: target is the closest carrier — missile should fire.
+     * Multi-enemy: target is the closest carrier and beyond arming range — missile should fire.
      */
     @Test
     void multiEnemy_targetClosest_fires() {
-        Entity myCarrier = carrier(100, 200);
+        Entity myCarrier = carrier(100, 500);
         Entity fighter = fighter(100, 100, 1);
-        Entity target = enemy("enemy1", 100, 60);    // 40 units from fighter
-        Entity bystander = enemy("enemy2", 0, 100);  // ~100 units from fighter
+        Entity target = enemy("enemy1", 100, -100);   // 200 units from fighter
+        Entity bystander = enemy("enemy2", 100, -300); // 400 units from fighter — farther
 
         Optional<Order> order = tactic.apply(fighter, snapshotMulti(myCarrier, fighter, target, List.of(target, bystander)), state);
 
@@ -129,6 +129,18 @@ class FighterMissileFireTacticTest {
         Optional<Order> order = tactic.apply(fighter, snapshotMulti(myCarrier, fighter, target, List.of(target, bystander)), state);
 
         assertFalse(order.isPresent(), "Should not fire when a non-target carrier is closer");
+    }
+
+    /** Target closer than FIGHTER_MISSILE_MIN_FIRE_RANGE — missile won't arm in time. */
+    @Test
+    void targetTooClose_doesNotFire() {
+        Entity myCarrier = carrier(100, 500);   // far behind so carrier check passes
+        Entity fighter = fighter(100, 100, 1);
+        Entity target = enemy(100, 50);          // only 50 units away — below 150 min range
+
+        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, target), state);
+
+        assertFalse(order.isPresent(), "Should not fire when target is within arming range");
     }
 
     /** No primary target — never fire. */

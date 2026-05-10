@@ -4,7 +4,9 @@ import it.battlejar.api.Entity;
 import it.battlejar.api.Order;
 import it.battlejar.api.OrderType;
 import it.battlejar.commander.CommanderState;
+import it.battlejar.commander.GameConfig;
 import it.battlejar.commander.GameSnapshot;
+import it.battlejar.commander.GameUtils;
 import it.battlejar.commander.tactic.Tactic;
 
 import java.util.Optional;
@@ -26,6 +28,7 @@ public class CarrierMissileFireTactic implements Tactic<Entity> {
     public Optional<Order> apply(Entity carrier, GameSnapshot snapshot, CommanderState state) {
         Entity target = snapshot.primaryTarget();
         if (target == null || carrier.missiles() <= 0) return Optional.empty();
+        if (GameUtils.distance(carrier, target) < GameConfig.CARRIER_MISSILE_MIN_FIRE_RANGE) return Optional.empty();
         long now = System.currentTimeMillis();
         if (now - state.lastCarrierMissileFireMs < fireIntervalMs) return Optional.empty();
         state.lastCarrierMissileFireMs = now;

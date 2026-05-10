@@ -26,6 +26,9 @@ public final class GameConfig {
     public static final float FIGHTER_INTRUDER_CARRIER_RANGE_SURVIVAL = 150f;
     public static final float FIGHTER_INTRUDER_CARRIER_RANGE_1V1 = 100f;
     public static final long  CARRIER_MISSILE_FIRE_INTERVAL_MS = 800L;
+    // Missiles arm after ~1 s (fighter) / ~2 s (carrier); fire only beyond these ranges.
+    public static final float FIGHTER_MISSILE_MIN_FIRE_RANGE = 150f;
+    public static final float CARRIER_MISSILE_MIN_FIRE_RANGE = 300f;
     public static final float DEPLOY_OFFSET = 30f;
 
     private GameConfig() {}
