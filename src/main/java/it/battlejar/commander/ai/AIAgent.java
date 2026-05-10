@@ -71,7 +71,7 @@ public class AIAgent {
                - Spread out your fighters. Don't crowd multiple sectors with the same command unless you're making a concentrated push.
             7. Missile Usage: 
                - Use FIRE_MISSILE for the CARRIER when you have a clear shot at an enemy carrier. 
-               - DO NOT fire missiles if you are too close to the enemy carrier. Carriers need 2 seconds (approx 200 units) for missiles to arm.
+               - DO NOT fire missiles if you are too close to the enemy carrier. Carriers need 2 seconds (approx 100 units) for missiles to arm.
             """)
         String getCommands(@UserMessage String mapState);
     }

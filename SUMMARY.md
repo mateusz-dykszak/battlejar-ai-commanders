@@ -73,3 +73,4 @@
 Note: Existing unit tests are failing due to a mismatch between `battlejar.conf` (3x4) and test expectations (3x3). This is an infrastructure issue.
 
 2026-05-11: Automated fighter missile fire. Fighters now automatically fire missiles when an enemy carrier is in front of them (within ~11 degrees tolerance) and at a safe arming distance. `FIRE_MISSILE` command is now restricted to Carriers in the AIAgent prompt.
+- Adjusted missile speeds: Carrier missiles are now estimated at 50 units/s (half of fighter missiles), and arming distances have been updated accordingly (100 units for both carriers and fighters).

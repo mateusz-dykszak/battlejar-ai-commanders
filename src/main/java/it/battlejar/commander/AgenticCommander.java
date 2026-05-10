@@ -36,7 +36,8 @@ public class AgenticCommander extends AbstractCommander {
     // Missile arming and safety constants
     private static final float FIGHTER_MISSILE_ARMING_TIME_S = 1.0f;
     private static final float CARRIER_MISSILE_ARMING_TIME_S = 2.0f;
-    private static final float ESTIMATED_MISSILE_SPEED = 100.0f; // units per second
+    private static final float FIGHTER_MISSILE_SPEED = 100.0f; // units per second
+    private static final float CARRIER_MISSILE_SPEED = 50.0f;  // units per second, half of fighter's
     private final Map<String, Long> entityLastOrderTime = new HashMap<>();
 
     @Override
@@ -370,8 +371,8 @@ public class AgenticCommander extends AbstractCommander {
                 float dy = carrier.py() - fighter.py();
                 float dist = (float) Math.hypot(dx, dy);
 
-                // Check arming distance (1s * estimated speed)
-                if (dist < FIGHTER_MISSILE_ARMING_TIME_S * ESTIMATED_MISSILE_SPEED) {
+                // Check arming distance (1s * fighter missile speed)
+                if (dist < FIGHTER_MISSILE_ARMING_TIME_S * FIGHTER_MISSILE_SPEED) {
                     continue;
                 }
 
@@ -435,7 +436,8 @@ public class AgenticCommander extends AbstractCommander {
 
     private boolean canFireMissile(Entity entity, float targetX, float targetY, Collection<Entity> allEntities) {
         float armingTime = (entity.type() == Entity.Type.CARRIER) ? CARRIER_MISSILE_ARMING_TIME_S : FIGHTER_MISSILE_ARMING_TIME_S;
-        float minArmingDist = armingTime * ESTIMATED_MISSILE_SPEED;
+        float missileSpeed = (entity.type() == Entity.Type.CARRIER) ? CARRIER_MISSILE_SPEED : FIGHTER_MISSILE_SPEED;
+        float minArmingDist = armingTime * missileSpeed;
         
         // Check distance to all enemy carriers
         for (Entity e : allEntities) {

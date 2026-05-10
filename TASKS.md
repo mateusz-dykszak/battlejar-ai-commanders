@@ -90,3 +90,6 @@ Execute one of the following tasks, commit and push to github when task is compl
     - [x] Add distance check for `FIRE_MISSILE` in `issueCommand`.
     - [x] Estimate missile speed to calculate safe distance (arming time * speed).
 - [x] Automate fighter missile fire: Fighters should automatically fire missiles when an enemy carrier is in front of them and at safe distance. Remove `FIRE_MISSILE` from AI commands for fighters.
+- [x] Adjust missile settings: carrier missiles are twice slower than fighter missiles.
+    - [x] Separate `FIGHTER_MISSILE_SPEED` and `CARRIER_MISSILE_SPEED` in `AgenticCommander.java`.
+    - [x] Update arming distance checks and AI prompt.
