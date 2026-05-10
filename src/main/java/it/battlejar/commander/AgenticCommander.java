@@ -397,62 +397,75 @@ public class AgenticCommander extends AbstractCommander {
         float safeDistance = 25.0f;
 
         // 1. Priority: Border avoidance (Stay inside the world with a safety margin)
-        float triggerDistance = -1;
-        float avoidanceTargetX = curX;
-        float avoidanceTargetY = curY;
+        boolean triggerLeft = false;
+        boolean triggerRight = false;
+        boolean triggerTop = false;
+        boolean triggerBottom = false;
 
-        // Check each border: left, right, top, bottom
-        // Left border (x=0)
-        float distLeft = curX;
-        float tdLeft = calculateBorderTriggerDistance(distLeft, -1, 0, myCarrier.vx(), myCarrier.vy());
-        // Passive trigger: if stopped or moving very slowly, use safeDistance
         float passiveTd = (Math.abs(myCarrier.vx()) < 0.1f && Math.abs(myCarrier.vy()) < 0.1f) ? safeDistance : -1;
 
+        // Check Left
+        float distLeft = curX;
+        float tdLeft = calculateBorderTriggerDistance(distLeft, -1, 0, myCarrier.vx(), myCarrier.vy());
         if ((tdLeft > 0 && distLeft < tdLeft) || (passiveTd > 0 && distLeft < passiveTd)) {
-            // ONLY trigger if actually moving towards or if extremely close and not moving away
-            float effectiveTd = Math.max(safeDistance, Math.max(tdLeft, passiveTd));
-            if (triggerDistance == -1 || effectiveTd > triggerDistance) {
-                triggerDistance = effectiveTd;
-                avoidanceTargetX = effectiveTd + 5.0f; // Move away from left
-            }
+            triggerLeft = true;
         }
 
-        // Right border (x=worldWidth)
+        // Check Right
         float distRight = settings.worldWidth() - curX;
         float tdRight = calculateBorderTriggerDistance(distRight, 1, 0, myCarrier.vx(), myCarrier.vy());
         if ((tdRight > 0 && distRight < tdRight) || (passiveTd > 0 && distRight < passiveTd)) {
-            float effectiveTd = Math.max(safeDistance, Math.max(tdRight, passiveTd));
-            if (triggerDistance == -1 || effectiveTd > triggerDistance) {
-                triggerDistance = effectiveTd;
-                avoidanceTargetX = settings.worldWidth() - effectiveTd - 5.0f;
-            }
+            triggerRight = true;
         }
 
-        // Top border (y=0)
+        // Check Top
         float distTop = curY;
         float tdTop = calculateBorderTriggerDistance(distTop, 0, -1, myCarrier.vx(), myCarrier.vy());
         if ((tdTop > 0 && distTop < tdTop) || (passiveTd > 0 && distTop < passiveTd)) {
-            float effectiveTd = Math.max(safeDistance, Math.max(tdTop, passiveTd));
-            if (triggerDistance == -1 || effectiveTd > triggerDistance) {
-                triggerDistance = effectiveTd;
-                avoidanceTargetY = effectiveTd + 5.0f;
-            }
+            triggerTop = true;
         }
 
-        // Bottom border (y=worldHeight)
+        // Check Bottom
         float distBottom = settings.worldHeight() - curY;
         float tdBottom = calculateBorderTriggerDistance(distBottom, 0, 1, myCarrier.vx(), myCarrier.vy());
         if ((tdBottom > 0 && distBottom < tdBottom) || (passiveTd > 0 && distBottom < passiveTd)) {
-            float effectiveTd = Math.max(safeDistance, Math.max(tdBottom, passiveTd));
-            if (triggerDistance == -1 || effectiveTd > triggerDistance) {
-                triggerDistance = effectiveTd;
-                avoidanceTargetY = settings.worldHeight() - effectiveTd - 5.0f;
-            }
+            triggerBottom = true;
         }
 
-        if (triggerDistance != -1) {
-            log.info("Carrier border avoidance triggered! distance: {}, target: [{}, {}]", triggerDistance, avoidanceTargetX, avoidanceTargetY);
-            return new float[]{avoidanceTargetX, avoidanceTargetY};
+        if (triggerLeft || triggerRight || triggerTop || triggerBottom) {
+            float targetX = curX;
+            float targetY = curY;
+            float margin = 30.0f; // Distance from border to steer to
+
+            if (triggerLeft && triggerTop) {
+                // Corner: Top-Left -> Steer to center
+                log.info("Carrier corner avoidance triggered (Top-Left)! Steering to center.");
+                return new float[]{settings.worldWidth() / 2, settings.worldHeight() / 2};
+            }
+            if (triggerLeft && triggerBottom) {
+                // Corner: Bottom-Left -> Steer to center
+                log.info("Carrier corner avoidance triggered (Bottom-Left)! Steering to center.");
+                return new float[]{settings.worldWidth() / 2, settings.worldHeight() / 2};
+            }
+            if (triggerRight && triggerTop) {
+                // Corner: Top-Right -> Steer to center
+                log.info("Carrier corner avoidance triggered (Top-Right)! Steering to center.");
+                return new float[]{settings.worldWidth() / 2, settings.worldHeight() / 2};
+            }
+            if (triggerRight && triggerBottom) {
+                // Corner: Bottom-Right -> Steer to center
+                log.info("Carrier corner avoidance triggered (Bottom-Right)! Steering to center.");
+                return new float[]{settings.worldWidth() / 2, settings.worldHeight() / 2};
+            }
+
+            // Single border avoidance
+            if (triggerLeft) targetX = margin;
+            if (triggerRight) targetX = settings.worldWidth() - margin;
+            if (triggerTop) targetY = margin;
+            if (triggerBottom) targetY = settings.worldHeight() - margin;
+
+            log.info("Carrier border avoidance triggered! Target: [{}, {}]", targetX, targetY);
+            return new float[]{targetX, targetY};
         }
 
         return null;
@@ -464,8 +477,20 @@ public class AgenticCommander extends AbstractCommander {
 
         // 1. Border avoidance
         float margin = 100;
-        adjustedX = Math.max(margin, Math.min(settings.worldWidth() - margin, adjustedX));
-        adjustedY = Math.max(margin, Math.min(settings.worldHeight() - margin, adjustedY));
+
+        boolean triggerLeft = adjustedX < margin;
+        boolean triggerRight = adjustedX > settings.worldWidth() - margin;
+        boolean triggerTop = adjustedY < margin;
+        boolean triggerBottom = adjustedY > settings.worldHeight() - margin;
+
+        if ((triggerLeft || triggerRight) && (triggerTop || triggerBottom)) {
+            // Corner avoidance for fighters/entities too: steer to center
+            adjustedX = settings.worldWidth() / 2;
+            adjustedY = settings.worldHeight() / 2;
+        } else {
+            adjustedX = Math.max(margin, Math.min(settings.worldWidth() - margin, adjustedX));
+            adjustedY = Math.max(margin, Math.min(settings.worldHeight() - margin, adjustedY));
+        }
 
         // 2. High density avoidance
         int r = (int) (adjustedY / (settings.worldHeight() / battleMap.getRows()));

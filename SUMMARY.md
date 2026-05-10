@@ -63,10 +63,8 @@
   - Updated `AIAgent` system prompt to emphasize aggressive positioning when the carrier is not under attack.
 
 ### 2026-05-10
-- Refined carrier border avoidance logic to prevent false positives when the carrier is moving away from the border.
-- Removed the legacy absolute distance check (`dist < safeDistance`) that bypassed the movement direction check.
-- Now, border avoidance only triggers if:
-    - The carrier is moving towards the border (detected via dot product of velocity and border normal).
-    - OR the carrier is nearly stationary and within the safety margin.
-- Added regression tests in `AgenticCommanderTest` to verify the fix.
-- Fixed a critical bug in `AgenticCommander.java` where the AI agent was almost never used because `lastAiTick` was being reset every loop, preventing the cooldown from expiring.
+- Implemented corner avoidance logic for carriers and other entities.
+- Carriers now detect when they are in range of two orthogonal borders (a corner) and steer towards the center of the map.
+- Entities using collision avoidance now also steer to the center when approaching a corner.
+- Refactored `calculateCarrierManeuver` to track multiple border triggers and handle corners explicitly.
+- Added regression tests in `AgenticCommanderTest` for corner avoidance.

@@ -85,3 +85,4 @@ Execute one of the following tasks, commit and push to github when task is compl
     - [x] Remove ineffective carrier missile evasion as per instructions.
 - [x] Fix: Carrier border avoidance triggered at beginning of the game when moving away from border.
 - [x] Fix: AIAgent not ticking due to `lastAiTick` being reset every process loop.
+- [x] Fix: Ensure carrier steers to the center of the map when in range of two borders (corner avoidance).

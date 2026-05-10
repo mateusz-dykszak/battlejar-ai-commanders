@@ -231,8 +231,8 @@ class AgenticCommanderTest {
 
     @Test
     void testCarrierBorderAvoidance() throws InterruptedException {
-        // Static carrier at (10, 10)
-        Entity staticCarrier = new Entity("carrier1", Entity.Type.CARRIER, "RED", 10, 10, 0, 0, null, 0, 0, 0, "100");
+        // Static carrier at (10, 500) - near left border only
+        Entity staticCarrier = new Entity("carrier1", Entity.Type.CARRIER, "RED", 10, 500, 0, 0, null, 0, 0, 0, "100");
         Collection<Entity> entities = List.of(staticCarrier);
         
         commander.process(entities);
@@ -243,8 +243,7 @@ class AgenticCommanderTest {
             float[] maneuver = (float[]) method.invoke(commander, staticCarrier, entities);
             
             assert maneuver != null;
-            // avoidanceTargetX = safeDistance (25.0) + 5.0 = 30.0
-            // Since distLeft = 10 < 25, and velocity is 0, passiveTd triggers with safeDistance=25.
+            // avoidanceTargetX = margin = 30.0f
             assertEquals(30.0f, maneuver[0], 0.1f);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -358,6 +357,38 @@ class AgenticCommanderTest {
         String[] parts = fighterOrder.details().split("\\|");
         assertEquals(-21.21f, Float.parseFloat(parts[0]), 0.1f);
         assertEquals(-21.21f, Float.parseFloat(parts[1]), 0.1f);
+    }
+
+    @Test
+    void testCarrierCornerAvoidance() throws Exception {
+        // Carrier at (10, 10) - near top-left corner
+        Entity cornerCarrier = new Entity("carrier1", Entity.Type.CARRIER, "RED", 10, 10, 0, 0, null, 0, 0, 0, "100");
+        Collection<Entity> entities = List.of(cornerCarrier);
+
+        java.lang.reflect.Method method = AgenticCommander.class.getDeclaredMethod("calculateCarrierManeuver", Entity.class, Collection.class);
+        method.setAccessible(true);
+        float[] maneuver = (float[]) method.invoke(commander, cornerCarrier, entities);
+
+        assert maneuver != null;
+        // Should steer to center: (worldWidth/2, worldHeight/2) = (500, 500)
+        assertEquals(500.0f, maneuver[0], 0.1f);
+        assertEquals(500.0f, maneuver[1], 0.1f);
+    }
+
+    @Test
+    void testApplyCollisionAvoidanceCorner() throws Exception {
+        // Initial process to initialize battleMap
+        Entity myCarrier = new Entity("myCarrier", Entity.Type.CARRIER, "RED", 500, 500, 0, 0, null, 0, 0, 0, "100");
+        commander.process(List.of(myCarrier));
+
+        // Target at (5, 5) - near top-left corner
+        java.lang.reflect.Method method = AgenticCommander.class.getDeclaredMethod("applyCollisionAvoidance", float.class, float.class, Collection.class);
+        method.setAccessible(true);
+        float[] adjusted = (float[]) method.invoke(commander, 5.0f, 5.0f, List.of(myCarrier));
+
+        // Should steer to center: (500, 500)
+        assertEquals(500.0f, adjusted[0], 0.1f);
+        assertEquals(500.0f, adjusted[1], 0.1f);
     }
 
     @Test
