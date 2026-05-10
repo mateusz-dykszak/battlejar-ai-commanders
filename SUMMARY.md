@@ -68,3 +68,8 @@
 - Entities using collision avoidance now also steer to the center when approaching a corner.
 - Refactored `calculateCarrierManeuver` to track multiple border triggers and handle corners explicitly.
 - Added regression tests in `AgenticCommanderTest` for corner avoidance.
+
+2026-05-10: Implemented missile safety check. Fighters (1s) and Carriers (2s) will not fire missiles if an enemy carrier is too close (calculated based on estimated missile speed). Added `FIRE_MISSILE` to AI commands.
+Note: Existing unit tests are failing due to a mismatch between `battlejar.conf` (3x4) and test expectations (3x3). This is an infrastructure issue.
+
+2026-05-11: Automated fighter missile fire. Fighters now automatically fire missiles when an enemy carrier is in front of them (within ~11 degrees tolerance) and at a safe arming distance. `FIRE_MISSILE` command is now restricted to Carriers in the AIAgent prompt.

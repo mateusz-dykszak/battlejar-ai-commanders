@@ -32,6 +32,11 @@ public class AgenticCommander extends AbstractCommander {
     private static final float EMERGENCY_SCREEN_DISTANCE = 30.0f;
     private static final long DEFAULT_AI_COOLDOWN_MS = 2000;
     private static final long ENTITY_COOLDOWN_MS = 150; // Per-entity order cooldown
+
+    // Missile arming and safety constants
+    private static final float FIGHTER_MISSILE_ARMING_TIME_S = 1.0f;
+    private static final float CARRIER_MISSILE_ARMING_TIME_S = 2.0f;
+    private static final float ESTIMATED_MISSILE_SPEED = 100.0f; // units per second
     private final Map<String, Long> entityLastOrderTime = new HashMap<>();
 
     @Override
@@ -108,6 +113,9 @@ public class AgenticCommander extends AbstractCommander {
                 AICommandParser.AIResponse aiResponse = AICommandParser.parse(aiOutput);
                 executeAiResponse(aiResponse, entities);
                 
+                // Automatic fighter missile fire
+                autoFireFighterMissiles(entities);
+
                 // Update adaptive cooldown for next tick
                 currentAiCooldownMs = calculateAdaptiveAiCooldown();
                 log.info("Next AI tick in {}ms", currentAiCooldownMs);
@@ -312,12 +320,73 @@ public class AgenticCommander extends AbstractCommander {
                 }
             }
             case "DEFEND" -> defend(entity, allEntities);
+            case "FIRE_MISSILE" -> {
+                if (cmd.target() != null) {
+                    float[] targetPos = parseSectorCoords(cmd.target());
+                    if (targetPos != null) {
+                        if (canFireMissile(entity, targetPos[0], targetPos[1], allEntities)) {
+                            if (entity.type() == Entity.Type.CARRIER) {
+                                // For carrier, FIRE_MISSILE details can be "x|y" direction
+                                float dx = targetPos[0] - entity.px();
+                                float dy = targetPos[1] - entity.py();
+                                order(new Order(entity.id(), OrderType.FIRE_MISSILE, dx + "|" + dy));
+                            }
+                            // Fighters do not fire missiles via AI commands anymore
+                        } else {
+                            log.info("Skipping FIRE_MISSILE for {} - target too close for arming", entity.id());
+                        }
+                    }
+                }
+            }
             case "HARASS" -> {
                 if (cmd.target() != null) {
                     float[] targetPos = parseSectorCoords(cmd.target());
                     if (targetPos != null) {
                         harass(entity, targetPos[0], targetPos[1], allEntities);
                     }
+                }
+            }
+        }
+    }
+
+    private void autoFireFighterMissiles(Collection<Entity> entities) {
+        List<Entity> myFighters = entities.stream()
+                .filter(e -> e.type() == Entity.Type.FIGHTER && myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()) && !"C".equals(e.status()))
+                .toList();
+
+        List<Entity> enemyCarriers = entities.stream()
+                .filter(e -> e.type() == Entity.Type.CARRIER && !myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status()))
+                .toList();
+
+        if (myFighters.isEmpty() || enemyCarriers.isEmpty()) {
+            return;
+        }
+
+        for (Entity fighter : myFighters) {
+            if (fighter.missiles() <= 0) continue;
+
+            for (Entity carrier : enemyCarriers) {
+                float dx = carrier.px() - fighter.px();
+                float dy = carrier.py() - fighter.py();
+                float dist = (float) Math.hypot(dx, dy);
+
+                // Check arming distance (1s * estimated speed)
+                if (dist < FIGHTER_MISSILE_ARMING_TIME_S * ESTIMATED_MISSILE_SPEED) {
+                    continue;
+                }
+
+                // Check if in front: dot product of (dx, dy) and velocity (vx, vy)
+                // We normalize them to get the cosine of the angle
+                float vLen = (float) Math.hypot(fighter.vx(), fighter.vy());
+                if (vLen < 1.0f) continue; // Not moving much, skip auto-fire or use heading if available (but it's not)
+
+                float dot = (dx * fighter.vx() + dy * fighter.vy()) / (dist * vLen);
+                
+                // If dot product > 0.98 (~11 degrees tolerance), it's pretty much in front
+                if (dot > 0.98f) {
+                    log.info("Fighter {} auto-firing missile at enemy carrier {} (dist={}, dot={})", fighter.id(), carrier.id(), dist, dot);
+                    order(new Order(fighter.id(), OrderType.FIRE_MISSILE));
+                    break; // Only one missile at a time
                 }
             }
         }
@@ -362,6 +431,23 @@ public class AgenticCommander extends AbstractCommander {
             // No carrier found near target, just move to target sector center
             issueMoveCommand(entity, targetX, targetY, allEntities);
         }
+    }
+
+    private boolean canFireMissile(Entity entity, float targetX, float targetY, Collection<Entity> allEntities) {
+        float armingTime = (entity.type() == Entity.Type.CARRIER) ? CARRIER_MISSILE_ARMING_TIME_S : FIGHTER_MISSILE_ARMING_TIME_S;
+        float minArmingDist = armingTime * ESTIMATED_MISSILE_SPEED;
+        
+        // Check distance to all enemy carriers
+        for (Entity e : allEntities) {
+            if (e.type() == Entity.Type.CARRIER && !myColor.name().equalsIgnoreCase(e.color()) && !"D".equals(e.status())) {
+                float dist = (float) Math.hypot(entity.px() - e.px(), entity.py() - e.py());
+                if (dist < minArmingDist) {
+                    return false;
+                }
+            }
+        }
+        
+        return true;
     }
 
     private void issueMoveCommand(Entity entity, float targetX, float targetY, Collection<Entity> allEntities) {

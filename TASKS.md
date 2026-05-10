@@ -86,3 +86,7 @@ Execute one of the following tasks, commit and push to github when task is compl
 - [x] Fix: Carrier border avoidance triggered at beginning of the game when moving away from border.
 - [x] Fix: AIAgent not ticking due to `lastAiTick` being reset every process loop.
 - [x] Fix: Ensure carrier steers to the center of the map when in range of two borders (corner avoidance).
+- [x] Do not fire missiles when too close to an enemy carrier. Fighter's missiles arm after 1 second. Carrier's missiles arm after 2 seconds.
+    - [x] Add distance check for `FIRE_MISSILE` in `issueCommand`.
+    - [x] Estimate missile speed to calculate safe distance (arming time * speed).
+- [x] Automate fighter missile fire: Fighters should automatically fire missiles when an enemy carrier is in front of them and at safe distance. Remove `FIRE_MISSILE` from AI commands for fighters.

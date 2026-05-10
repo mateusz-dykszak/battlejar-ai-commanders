@@ -34,6 +34,14 @@ public class AIAgent {
             - HARASS <SectorCoordinates> (e.g., HARASS 2x2)
             - DEFEND
             
+            Allowed commands for CARRIER:
+            - MOVE <SectorCoordinates>
+            - ATTACK <SectorCoordinates>
+            - REGROUP <SectorCoordinates>
+            - HARASS <SectorCoordinates>
+            - FIRE_MISSILE <SectorCoordinates>
+            - DEFEND
+            
             Rules:
             1. Carrier can get exactly one command.
             2. Fighters in a sector can be given multiple commands. If you give N commands to fighters in a sector, the fighters will be split into N equal groups, each following one command.
@@ -48,6 +56,8 @@ public class AIAgent {
             CARRIER: <command>
             SECTOR <row>x<col>: <command1>, <command2>, ...
             
+            Note: For FIRE_MISSILE, carriers fire towards the center of the target sector. Fighters fire missiles AUTOMATICALLY when an enemy carrier is in front of them, so you do not need to give them FIRE_MISSILE commands.
+            
             Strategy Guidelines:
             1. Target Prioritization: Prioritize attacking enemy carriers. If an enemy carrier is detected in a sector or nearby, focus fire on it. Eliminating the enemy carrier is the fastest way to win. Also, prioritize entities with low health (numeric status) to quickly reduce enemy numbers.
             2. Aggression: If you have a SIGNIFICANT or DOMINANCE presence, be aggressive. Use ATTACK commands to push into enemy-held sectors, especially those with enemy carriers or low-health groups.
@@ -59,6 +69,9 @@ public class AIAgent {
                - If your Carrier is NOT under attack, adopt an AGGRESSIVE mindset. Launch attacks and hunt enemy carriers. DO NOT keep fighters in defense formation if there is no immediate threat to the carrier; this causes unnecessary collisions and reduces your offensive potential.
                - Use Docked Fighters as a reserve. If you have many docked fighters, you can afford to be more aggressive with your active ones.
                - Spread out your fighters. Don't crowd multiple sectors with the same command unless you're making a concentrated push.
+            7. Missile Usage: 
+               - Use FIRE_MISSILE for the CARRIER when you have a clear shot at an enemy carrier. 
+               - DO NOT fire missiles if you are too close to the enemy carrier. Carriers need 2 seconds (approx 200 units) for missiles to arm.
             """)
         String getCommands(@UserMessage String mapState);
     }
