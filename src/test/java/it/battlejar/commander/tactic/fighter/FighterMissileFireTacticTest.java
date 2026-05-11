@@ -28,130 +28,76 @@ class FighterMissileFireTacticTest {
         state = new CommanderState();
     }
 
-    /**
-     * Normal case: fighter has missiles, enemy is beyond arming range, and enemy is closer
-     * to the fighter than our carrier. Missile should fire.
-     */
+    /** (a) Enemy in front at safe range, carrier behind — missile should fire. */
     @Test
-    void enemyCloserThanCarrier_fires() {
-        // Carrier at (100, 500), fighter at (100, 100), enemy 200 units ahead (> 150 min range)
-        Entity myCarrier = carrier(100, 500);
-        Entity fighter = fighter(100, 100, 1);   // 400 units from carrier
-        Entity target = enemy(100, -100);        // 200 units from fighter, 600 from carrier
+    void enemyInFront_carrierBehind_fires() {
+        Entity myCarrier = carrier(0, 200);   // behind the fighter
+        Entity fighter = fighter(0, 0, 1);
+        Entity enemy = enemy(0, -200);        // 200 units ahead, well beyond arming range
 
-        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, target), state);
+        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, enemy), state);
 
         assertTrue(order.isPresent());
         assertEquals(OrderType.FIRE_MISSILE, order.get().type());
     }
 
-    /**
-     * Fighter is next to our carrier and the enemy is far away — our carrier is closer.
-     * Missile must NOT fire to avoid friendly lock-on.
-     */
+    /** (b) Carrier in front and closer than enemy — missile would home on carrier. Block fire. */
     @Test
-    void carrierCloserThanEnemy_doesNotFire() {
-        // Carrier at (100, 200), fighter just deployed next to carrier, enemy 120 away
-        Entity myCarrier = carrier(100, 200);
-        Entity fighter = fighter(100, 180, 1);  // 20 units from carrier
-        Entity target = enemy(100, 60);          // 120 units from fighter, but carrier only 20 away
+    void carrierInFrontAndCloser_doesNotFire() {
+        Entity myCarrier = carrier(0, -100);  // 100 units ahead of fighter
+        Entity fighter = fighter(0, 0, 1);
+        Entity enemy = enemy(0, -300);        // 300 units ahead — carrier is in the way
 
-        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, target), state);
+        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, enemy), state);
 
-        assertFalse(order.isPresent(), "Should not fire when own carrier is closer than target");
+        assertFalse(order.isPresent(), "Should not fire when own carrier is in front and closer");
     }
 
-    /**
-     * Carrier and enemy equidistant from fighter — no fire (carrier <= distance condition).
-     */
+    /** (c) Carrier to the side, enemy in front — carrier not in trajectory, should fire. */
     @Test
-    void carrierAndEnemyEquidistant_doesNotFire() {
-        Entity myCarrier = carrier(100, 200);
-        Entity fighter = fighter(100, 100, 1);  // exactly between carrier and enemy
-        Entity target = enemy(100, 0);          // both are 100 units from fighter
+    void carrierToSide_enemyInFront_fires() {
+        Entity myCarrier = carrier(100, 0);   // 100 units to the right (perpendicular)
+        Entity fighter = fighter(0, 0, 1);
+        Entity enemy = enemy(0, -200);        // 200 units ahead
 
-        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, target), state);
+        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, enemy), state);
 
-        assertFalse(order.isPresent(), "Should not fire when own carrier is equidistant to target");
+        assertTrue(order.isPresent(), "Should fire when carrier is to the side and not blocking");
+    }
+
+    /** (d) Nearest enemy within arming range — missile won't arm in time. Block fire. */
+    @Test
+    void nearestEnemyWithinArmingRange_doesNotFire() {
+        Entity myCarrier = carrier(0, 500);   // far behind
+        Entity fighter = fighter(0, 0, 1);
+        Entity enemy = enemy(0, -50);         // only 50 units away, below 150 min range
+
+        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, enemy), state);
+
+        assertFalse(order.isPresent(), "Should not fire when nearest enemy is within arming range");
+    }
+
+    /** (e) No live enemies — never fire. */
+    @Test
+    void noLiveEnemies_doesNotFire() {
+        Entity myCarrier = carrier(0, 200);
+        Entity fighter = fighter(0, 0, 1);
+
+        Optional<Order> order = tactic.apply(fighter, snapshotNoEnemies(myCarrier, fighter), state);
+
+        assertFalse(order.isPresent(), "Should not fire with no live enemy carriers");
     }
 
     /** No missiles on fighter — never fire. */
     @Test
     void noMissiles_doesNotFire() {
-        Entity myCarrier = carrier(100, 200);
-        Entity fighter = fighter(100, 100, 0);  // 0 missiles
-        Entity target = enemy(100, 0);
+        Entity myCarrier = carrier(0, 200);
+        Entity fighter = fighter(0, 0, 0);   // 0 missiles
+        Entity enemy = enemy(0, -200);
 
-        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, target), state);
+        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, enemy), state);
 
-        assertFalse(order.isPresent());
-    }
-
-    /** Enemy far away (200+ units) but fighter is farther from carrier — fires regardless of distance. */
-    @Test
-    void enemyFarAway_fires() {
-        // Carrier far behind the fighter so the target is the closer carrier to the fighter.
-        Entity myCarrier = carrier(100, 400);  // 300 units behind fighter
-        Entity fighter = fighter(100, 100, 1);
-        Entity target = enemy(100, -100);      // 200 units ahead — closer than carrier
-
-        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, target), state);
-
-        assertTrue(order.isPresent(), "Should fire at far targets when friendly-fire check passes");
-    }
-
-    /**
-     * Multi-enemy: target is the closest carrier and beyond arming range — missile should fire.
-     */
-    @Test
-    void multiEnemy_targetClosest_fires() {
-        Entity myCarrier = carrier(100, 500);
-        Entity fighter = fighter(100, 100, 1);
-        Entity target = enemy("enemy1", 100, -100);   // 200 units from fighter
-        Entity bystander = enemy("enemy2", 100, -300); // 400 units from fighter — farther
-
-        Optional<Order> order = tactic.apply(fighter, snapshotMulti(myCarrier, fighter, target, List.of(target, bystander)), state);
-
-        assertTrue(order.isPresent(), "Should fire when target is closest carrier");
-    }
-
-    /**
-     * Multi-enemy: a non-target enemy carrier is closer to the fighter than the intended target.
-     * Missile would home to that carrier instead — must not fire.
-     */
-    @Test
-    void multiEnemy_bystanderCloser_doesNotFire() {
-        Entity myCarrier = carrier(100, 200);
-        Entity fighter = fighter(100, 100, 1);
-        Entity target = enemy("enemy1", 100, 0);     // 100 units from fighter
-        Entity bystander = enemy("enemy2", 100, 70); // 30 units from fighter — closer
-
-        Optional<Order> order = tactic.apply(fighter, snapshotMulti(myCarrier, fighter, target, List.of(target, bystander)), state);
-
-        assertFalse(order.isPresent(), "Should not fire when a non-target carrier is closer");
-    }
-
-    /** Target closer than FIGHTER_MISSILE_MIN_FIRE_RANGE — missile won't arm in time. */
-    @Test
-    void targetTooClose_doesNotFire() {
-        Entity myCarrier = carrier(100, 500);   // far behind so carrier check passes
-        Entity fighter = fighter(100, 100, 1);
-        Entity target = enemy(100, 50);          // only 50 units away — below 150 min range
-
-        Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, target), state);
-
-        assertFalse(order.isPresent(), "Should not fire when target is within arming range");
-    }
-
-    /** No primary target — never fire. */
-    @Test
-    void noTarget_doesNotFire() {
-        Entity myCarrier = carrier(100, 200);
-        Entity fighter = fighter(100, 100, 1);
-
-        Optional<Order> order = tactic.apply(fighter, snapshotNoTarget(myCarrier, fighter), state);
-
-        assertFalse(order.isPresent());
+        assertFalse(order.isPresent(), "Should not fire without missiles");
     }
 
     private static Entity carrier(float px, float py) {
@@ -163,27 +109,16 @@ class FighterMissileFireTacticTest {
     }
 
     private static Entity enemy(float px, float py) {
-        return enemy("enemy1", px, py);
+        return new Entity("enemy1", Entity.Type.CARRIER, "RED", px, py, 0, 0, null, 0, 0, 0, "1000");
     }
 
-    private static Entity enemy(String id, float px, float py) {
-        return new Entity(id, Entity.Type.CARRIER, "RED", px, py, 0, 0, null, 0, 0, 0, "1000");
-    }
-
-    private static GameSnapshot snapshot(Entity myCarrier, Entity fighter, Entity target) {
+    private static GameSnapshot snapshot(Entity myCarrier, Entity fighter, Entity enemy) {
         return new GameSnapshot(
-                myCarrier, List.of(fighter), List.of(), List.of(target), List.of(), List.of(),
-                target, 0f, true, false, Map.of(), new int[0][0], new int[0][0], SETTINGS);
+                myCarrier, List.of(fighter), List.of(), List.of(enemy), List.of(), List.of(),
+                enemy, 0f, true, false, Map.of(), new int[0][0], new int[0][0], SETTINGS);
     }
 
-    private static GameSnapshot snapshotMulti(Entity myCarrier, Entity fighter, Entity target,
-                                              List<Entity> allEnemyCarriers) {
-        return new GameSnapshot(
-                myCarrier, List.of(fighter), List.of(), allEnemyCarriers, List.of(), List.of(),
-                target, 0f, true, false, Map.of(), new int[0][0], new int[0][0], SETTINGS);
-    }
-
-    private static GameSnapshot snapshotNoTarget(Entity myCarrier, Entity fighter) {
+    private static GameSnapshot snapshotNoEnemies(Entity myCarrier, Entity fighter) {
         return new GameSnapshot(
                 myCarrier, List.of(fighter), List.of(), List.of(), List.of(), List.of(),
                 null, 0f, false, false, Map.of(), new int[0][0], new int[0][0], SETTINGS);
