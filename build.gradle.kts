@@ -24,9 +24,9 @@ repositories {
 }
 
 dependencies {
-    implementation("it.battlejar:battlejar-api:0.2.2")
-    implementation("it.battlejar:battlejar-client:0.2.2")
-    implementation("it.battlejar:battlejar-math:0.2.2")
+    implementation("it.battlejar:battlejar-api:0.2.3")
+    implementation("it.battlejar:battlejar-client:0.2.3")
+    implementation("it.battlejar:battlejar-math:0.2.3")
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.3")
