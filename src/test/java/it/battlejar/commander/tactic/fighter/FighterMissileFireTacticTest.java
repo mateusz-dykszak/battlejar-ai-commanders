@@ -70,7 +70,7 @@ class FighterMissileFireTacticTest {
     void nearestEnemyWithinArmingRange_doesNotFire() {
         Entity myCarrier = carrier(0, 500);   // far behind
         Entity fighter = fighter(0, 0, 1);
-        Entity enemy = enemy(0, -50);         // only 50 units away, below 150 min range
+        Entity enemy = enemy(0, -80);         // 80 units away, below 100-unit min range
 
         Optional<Order> order = tactic.apply(fighter, snapshot(myCarrier, fighter, enemy), state);
 
