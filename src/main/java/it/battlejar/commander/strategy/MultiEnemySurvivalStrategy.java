@@ -12,7 +12,7 @@ import it.battlejar.commander.tactic.carrier.CarrierCornerTactic;
 import it.battlejar.commander.tactic.fighter.BorderEvasionTactic;
 import it.battlejar.commander.tactic.fighter.DistributedAttackTactic;
 import it.battlejar.commander.tactic.fighter.FighterAttackTactic;
-import it.battlejar.commander.tactic.fighter.FighterMissileFireTactic;
+import it.battlejar.commander.tactic.fighter.FighterMissileOrientAndFireTactic;
 import it.battlejar.commander.tactic.fighter.LaserDefenseTactic;
 import it.battlejar.commander.tactic.fighter.MissileInterceptTactic;
 
@@ -22,31 +22,23 @@ import java.util.Optional;
 /**
  * Active when multiple enemies remain and the carrier has not yet reached a corner. The carrier
  * retreats to the nearest corner to stay out of crossfire while enemies weaken each other.
- * Fighters are split into two roles: interceptors (odd entity-ID suffix) defend against incoming
- * enemy fighters; strikers (even suffix) press directly toward the primary enemy carrier.
+ * Fighter priority: orient and fire missiles → intercept assigned missile (missiles spent) →
+ * attack nearby enemy fighters → attack enemy carriers (distributed) → laser defense.
  * Transitions to {@link MultiEnemyHunterStrategy} once the corner is reached.
  */
 public class MultiEnemySurvivalStrategy implements Strategy {
 
-    private final List<Tactic<Entity>> interceptorTactics;
-    private final List<Tactic<Entity>> strikerTactics;
+    private final List<Tactic<Entity>> fighterTactics;
     private final List<Tactic<Entity>> carrierTactics;
 
     public MultiEnemySurvivalStrategy() {
-        this.interceptorTactics = List.of(
+        this.fighterTactics = List.of(
                 new BorderEvasionTactic(GameConfig.BORDER_MARGIN),
+                new FighterMissileOrientAndFireTactic(),
                 new MissileInterceptTactic(),
-                new FighterMissileFireTactic(),
-                new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),
-                new FighterAttackTactic(GameConfig.FIGHTER_INTRUDER_CARRIER_RANGE_SURVIVAL)
-        );
-
-        this.strikerTactics = List.of(
-                new BorderEvasionTactic(GameConfig.BORDER_MARGIN),
-                new MissileInterceptTactic(),
-                new FighterMissileFireTactic(),
-                new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),
-                new DistributedAttackTactic()
+                new FighterAttackTactic(GameConfig.FIGHTER_INTRUDER_CARRIER_RANGE_SURVIVAL, true),
+                new DistributedAttackTactic(),
+                new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE)
         );
 
         this.carrierTactics = List.of(
@@ -63,8 +55,7 @@ public class MultiEnemySurvivalStrategy implements Strategy {
     @Override
     public void execute(GameSnapshot snapshot, CommanderState state, OrderSender sender) {
         for (Entity fighter : snapshot.myActiveFighters()) {
-            List<Tactic<Entity>> tactics = isInterceptor(fighter) ? interceptorTactics : strikerTactics;
-            for (Tactic<Entity> tactic : tactics) {
+            for (Tactic<Entity> tactic : fighterTactics) {
                 Optional<Order> order = tactic.apply(fighter, snapshot, state);
                 if (order.isPresent()) {
                     sender.send(order.get());
@@ -78,15 +69,6 @@ public class MultiEnemySurvivalStrategy implements Strategy {
                 sender.send(order.get());
                 break;
             }
-        }
-    }
-
-    private static boolean isInterceptor(Entity fighter) {
-        try {
-            String[] parts = fighter.id().split("-");
-            return Integer.parseInt(parts[parts.length - 1]) % 2 != 0;
-        } catch (Exception e) {
-            return false;
         }
     }
 }

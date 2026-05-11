@@ -18,6 +18,7 @@ public class MissileInterceptTactic implements Tactic<Entity> {
 
     @Override
     public Optional<Order> apply(Entity fighter, GameSnapshot snapshot, CommanderState state) {
+        if (fighter.missiles() > 0) return Optional.empty(); // fire missiles first
         int[] mPos = snapshot.interceptMap().get(fighter.id());
         if (mPos != null) {
             return Optional.of(new Order(fighter.id(), OrderType.MOVE, mPos[0] + "|" + mPos[1]));

@@ -17,7 +17,7 @@ import it.battlejar.commander.tactic.carrier.CarrierPatrolTactic;
 import it.battlejar.commander.tactic.carrier.CarrierPushTactic;
 import it.battlejar.commander.tactic.fighter.BorderEvasionTactic;
 import it.battlejar.commander.tactic.fighter.FighterAttackTactic;
-import it.battlejar.commander.tactic.fighter.FighterMissileFireTactic;
+import it.battlejar.commander.tactic.fighter.FighterMissileOrientAndFireTactic;
 import it.battlejar.commander.tactic.fighter.LaserDefenseTactic;
 import it.battlejar.commander.tactic.fighter.MissileInterceptTactic;
 
@@ -36,10 +36,10 @@ public class OneVsOneStrategy implements Strategy {
     public OneVsOneStrategy() {
         this.fighterTactics = List.of(
                 new BorderEvasionTactic(GameConfig.BORDER_MARGIN_ACTIVE),
+                new FighterMissileOrientAndFireTactic(),
                 new MissileInterceptTactic(),
-                new FighterMissileFireTactic(),
-                new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE),
-                new FighterAttackTactic(GameConfig.FIGHTER_INTRUDER_CARRIER_RANGE_1V1)
+                new FighterAttackTactic(GameConfig.FIGHTER_INTRUDER_CARRIER_RANGE_1V1),
+                new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE)
         );
 
         this.carrierTactics = List.of(

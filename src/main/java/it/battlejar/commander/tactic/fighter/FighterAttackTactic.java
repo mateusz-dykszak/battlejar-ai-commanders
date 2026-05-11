@@ -18,9 +18,16 @@ import java.util.Optional;
 public class FighterAttackTactic implements Tactic<Entity> {
 
     private final float intruderCarrierRange;
+    private final boolean intruderOnly;
 
     public FighterAttackTactic(float intruderCarrierRange) {
+        this(intruderCarrierRange, false);
+    }
+
+    /** @param intruderOnly if true, returns empty when no intruder is found (no carrier fallback) */
+    public FighterAttackTactic(float intruderCarrierRange, boolean intruderOnly) {
         this.intruderCarrierRange = intruderCarrierRange;
+        this.intruderOnly = intruderOnly;
     }
 
     @Override
@@ -33,6 +40,7 @@ public class FighterAttackTactic implements Tactic<Entity> {
         if (intruder != null) {
             return Optional.of(new Order(fighter.id(), OrderType.ATTACK, intruder.id()));
         }
+        if (intruderOnly) return Optional.empty();
         Entity target = snapshot.primaryTarget();
         if (target != null) {
             return Optional.of(new Order(fighter.id(), OrderType.ATTACK, target.id()));
