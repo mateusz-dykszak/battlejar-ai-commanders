@@ -134,6 +134,18 @@ public class ClaudeCommander extends AbstractCommander {
                 deployAngle = flippedAngle;
             }
         }
+        // If the center deploy slot is in the border zone, flip to the opposite side so fighters
+        // don't undock directly into a border and waste ticks on BorderEvasionTactic.
+        float centerX = myCarrier.px() + formRadius * (float) Math.cos(deployAngle);
+        float centerY = myCarrier.py() + formRadius * (float) Math.sin(deployAngle);
+        if (GameUtils.isNearBorder(centerX, centerY, settings, GameConfig.BORDER_MARGIN)) {
+            float flippedAngle = deployAngle + (float) Math.PI;
+            float flippedX = myCarrier.px() + formRadius * (float) Math.cos(flippedAngle);
+            float flippedY = myCarrier.py() + formRadius * (float) Math.sin(flippedAngle);
+            if (!GameUtils.isNearBorder(flippedX, flippedY, settings, GameConfig.BORDER_MARGIN)) {
+                deployAngle = flippedAngle;
+            }
+        }
         int[][] deploymentFormation = buildFormation(deployAngle, formRadius, formArc);
 
         return new GameSnapshot(
