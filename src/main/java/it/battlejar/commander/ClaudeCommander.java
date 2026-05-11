@@ -206,8 +206,11 @@ public class ClaudeCommander extends AbstractCommander {
 
         for (Entity missile : threats) {
             String fighterId = state.missileInterceptAssignments.get(missile.id());
-            if (fighterId == null || !activeFighterIds.contains(fighterId)) {
-                // Need a new assignment: closest-to-carrier, not already assigned, not near border
+            boolean isCommitted = fighterId != null && activeFighterIds.contains(fighterId);
+
+            if (!isCommitted) {
+                // Stop adding new assignments once cap is reached; honour committed ones unconditionally
+                if (result.size() >= GameConfig.MISSILE_INTERCEPT_MAX_FIGHTERS) continue;
                 Optional<Entity> candidate = myFighters.stream()
                         .filter(f -> !assignedFighters.contains(f.id()))
                         .filter(f -> !GameUtils.isNearBorder(f, settings, GameConfig.BORDER_MARGIN))
