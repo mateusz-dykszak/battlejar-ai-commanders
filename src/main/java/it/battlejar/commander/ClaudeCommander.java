@@ -1,6 +1,7 @@
 package it.battlejar.commander;
 
 import it.battlejar.api.Entity;
+import it.battlejar.api.GameSettings;
 import it.battlejar.api.Order;
 import it.battlejar.client.AbstractCommander;
 import it.battlejar.commander.strategy.DeploymentDecorator;
@@ -147,6 +148,7 @@ public class ClaudeCommander extends AbstractCommander {
             }
         }
         int[][] deploymentFormation = buildFormation(deployAngle, formRadius, formArc);
+        clampSlotsToSafeZone(deploymentFormation, myCarrier.px(), myCarrier.py(), formRadius, settings);
 
         return new GameSnapshot(
                 myCarrier, myActiveFighters, myDockedFighters,
@@ -179,6 +181,29 @@ public class ClaudeCommander extends AbstractCommander {
             offsets[i][1] = Math.round(radius * (float) Math.sin(slotAngle));
         }
         return offsets;
+    }
+
+    private void clampSlotsToSafeZone(int[][] slots, float cx, float cy, float formRadius, GameSettings settings) {
+        float minX = GameConfig.BORDER_MARGIN;
+        float maxX = settings.worldWidth() - GameConfig.BORDER_MARGIN;
+        float minY = GameConfig.BORDER_MARGIN;
+        float maxY = settings.worldHeight() - GameConfig.BORDER_MARGIN;
+        for (int[] slot : slots) {
+            float wx = cx + slot[0], wy = cy + slot[1];
+            if (wx < minX || wx > maxX || wy < minY || wy > maxY) {
+                float len = (float) Math.sqrt(slot[0] * (double) slot[0] + slot[1] * (double) slot[1]);
+                if (len < 1f) continue;
+                float ndx = slot[0] / len, ndy = slot[1] / len;
+                float maxR = formRadius;
+                if (ndx > 0)      maxR = Math.min(maxR, (maxX - cx) / ndx);
+                else if (ndx < 0) maxR = Math.min(maxR, (minX - cx) / ndx);
+                if (ndy > 0)      maxR = Math.min(maxR, (maxY - cy) / ndy);
+                else if (ndy < 0) maxR = Math.min(maxR, (minY - cy) / ndy);
+                maxR = Math.max(0f, maxR);
+                slot[0] = Math.round(maxR * ndx);
+                slot[1] = Math.round(maxR * ndy);
+            }
+        }
     }
 
     private Map<String, int[]> buildInterceptMap(
