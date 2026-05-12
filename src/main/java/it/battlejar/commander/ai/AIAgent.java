@@ -97,7 +97,6 @@ public class AIAgent {
         ChatModel model = OpenAiChatModel.builder()
                 .apiKey(apiKey)
                 .modelName("gpt-5-nano") // AI - Do not change the model
-                .temperature(0.0)
                 .build();
 
         this.service = AiServices.builder(CommanderService.class)
