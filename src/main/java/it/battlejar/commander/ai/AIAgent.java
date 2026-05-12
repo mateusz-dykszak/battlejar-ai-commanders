@@ -1,6 +1,8 @@
 package it.battlejar.commander.ai;
 
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
@@ -88,15 +90,24 @@ public class AIAgent {
             return;
         }
 
-        OpenAiChatModel model = OpenAiChatModel.builder()
+        ChatModel model = OpenAiChatModel.builder()
                 .apiKey(apiKey)
-                .modelName("gpt-4o-mini")
+                .modelName("gpt-5-nano") // AI - Do not change the model
+                .temperature(0.0)
                 .build();
 
-        this.service = AiServices.create(CommanderService.class, model);
+        this.service = AiServices.builder(CommanderService.class)
+                .chatModel(model)
+                .chatMemory(MessageWindowChatMemory.withMaxMessages(20))
+                .build();
     }
 
     public String getCommandsFromAI(BattleMap map, Color myColor, String carrierHealth, int activeFighters, int dockedFighters) {
+        String userMessage = formatMapState(map, myColor, carrierHealth, activeFighters, dockedFighters);
+        return getCommands(userMessage);
+    }
+
+    public String formatMapState(BattleMap map, Color myColor, String carrierHealth, int activeFighters, int dockedFighters) {
         StringBuilder sb = new StringBuilder();
         sb.append("Current Battle Map State (Your color: ").append(myColor).append("):\n");
         sb.append("Carrier Health: ").append(carrierHealth).append("\n");
@@ -128,11 +139,17 @@ public class AIAgent {
             }
         }
 
-        String userMessage = sb.toString();
-        log.info("Sending map state to LLM:\n{}", userMessage);
+        return String.format(sb.toString(), carrierHealth, activeFighters, dockedFighters);
+    }
+
+    public String getCommands(String userMessage) {
+        if (service == null) {
+            return "ERROR: AI service not initialized (check API key)";
+        }
+        log.info("Sending message to LLM:\n{}", userMessage);
 
         Instant start = Instant.now();
-        String response = service.getCommands(String.format(userMessage, carrierHealth, activeFighters, dockedFighters));
+        String response = service.getCommands(userMessage);
         Instant end = Instant.now();
 
         log.info("LLM response received in {}ms:\n{}", Duration.between(start, end).toMillis(), response);

@@ -12,12 +12,9 @@ if [ -f "$ENV_FILE" ]; then
 else
     echo "Warning: $ENV_FILE not found, relying on environment variables already set" >&2
 fi
+
 export BATTLEJAR_HISTORY_DIR="./history"
-#export BJ_CLIENT_MAX_GAMES=0
-#export BATTLEJAR_API_URL="http://localhost:8888"
 export BATTLEJAR_API_URL="https://api.battlejar.it"
-set -euo pipefail
-cd "$(dirname "$0")"
-gradle shadowJar
-java -jar build/commander.jar
-./postprocess.sh
+
+cd "$SCRIPT_DIR"
+./gradlew test --tests "it.battlejar.commander.ai.AIAgentTest"

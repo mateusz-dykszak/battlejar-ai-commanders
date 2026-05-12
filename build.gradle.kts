@@ -35,7 +35,7 @@ sourceSets {
 }
 
 dependencies {
-    implementation(platform("dev.langchain4j:langchain4j-bom:0.35.0"))
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.13.1"))
     implementation("dev.langchain4j:langchain4j")
     implementation("dev.langchain4j:langchain4j-open-ai")
 
