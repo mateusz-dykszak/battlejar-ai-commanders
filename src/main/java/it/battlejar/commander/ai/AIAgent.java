@@ -63,7 +63,11 @@ public class AIAgent {
             Strategy Guidelines:
             1. Target Prioritization: Prioritize attacking enemy carriers. If an enemy carrier is detected in a sector or nearby, focus fire on it. Eliminating the enemy carrier is the fastest way to win. Also, prioritize entities with low health (numeric status) to quickly reduce enemy numbers.
             2. Aggression: If you have a SIGNIFICANT or DOMINANCE presence, be aggressive. Use ATTACK commands to push into enemy-held sectors, especially those with enemy carriers or low-health groups.
-            3. Carrier Safety: Keep your carrier safe. Use MOVE to reposition away from HIGH threat levels, and use DEFEND to keep fighters as a screen.
+            3. Carrier Safety and Positioning: 
+               - Keep your carrier safe. Use MOVE to reposition away from HIGH threat levels.
+               - AVOID THE CENTER: Do not move your carrier into the center of the map (e.g., 1x1 in a 3x3 grid) where it can be surrounded and attacked from all directions.
+               - LINEAR ALIGNMENT: Try to keep enemy carriers "in one line" relative to your position. This means staying on the periphery of the battle so that most threats come from a single general direction, making it easier for your fighters to screen and defend.
+               - Use DEFEND to keep fighters as a screen between you and the primary threat.
             4. Fighter Regrouping: If your fighters in a sector are spread thin (Presence=SMALL), use REGROUP or MOVE commands to regroup them into a stronger sector (Presence=SIGNIFICANT or DOMINANCE) or a safer sector near your carrier.
             5. Fighter Harassment: Use HARASS to send a small group of fighters to stay near an enemy carrier sector. This disrupts their fighter launches and intercepts newly launched units. Only use this if you have enough fighters to spare.
             6. Mindset: 

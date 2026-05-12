@@ -81,3 +81,4 @@ Note: Existing unit tests are failing due to a mismatch between `battlejar.conf`
 - Upgraded LangChain4j to 1.13.1 and switched to `gpt-5-nano` model.
 - Fixed `AIAgent` to use `ChatModel` and `chatModel(model)` as required by LangChain4j 1.13.1.
 - Updated `build.gradle.kts` with correct LangChain4j dependencies.
+- Updated `AIAgent.java` system prompt to discourage moving the carrier to the center and encourage linear alignment of enemies on the periphery.
