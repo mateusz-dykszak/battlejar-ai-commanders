@@ -6,7 +6,6 @@ import it.battlejar.commander.CommanderState;
 import it.battlejar.commander.GameConfig;
 import it.battlejar.commander.GameSnapshot;
 import it.battlejar.commander.OrderSender;
-import it.battlejar.commander.GameUtils;
 import it.battlejar.commander.tactic.Tactic;
 import it.battlejar.commander.tactic.carrier.CarrierBorderEvasionTactic;
 import it.battlejar.commander.tactic.carrier.CarrierCornerTactic;
@@ -50,10 +49,7 @@ public class MultiEnemySurvivalStrategy implements Strategy {
 
     @Override
     public boolean applies(GameSnapshot snapshot, CommanderState state) {
-        if (snapshot.liveEnemyCarriers().size() <= 1 || state.carrierReachedCorner) return false;
-        // If the target corner area is already enemy-free, skip retreat and let Control take over
-        float[] corner = GameUtils.getTargetCorner(state, snapshot.myCarrier(), snapshot.settings(), GameConfig.CARRIER_CORNER_MARGIN);
-        return !GameUtils.isCornerAreaEmpty(corner, snapshot.liveEnemyCarriers(), snapshot.settings(), GameConfig.CONTROL_CORNER_EMPTY_MARGIN);
+        return snapshot.liveEnemyCarriers().size() > 1 && !state.carrierReachedCorner;
     }
 
     @Override

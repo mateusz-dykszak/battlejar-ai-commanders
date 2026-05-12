@@ -10,6 +10,7 @@ import it.battlejar.commander.OrderSender;
 import it.battlejar.commander.tactic.Tactic;
 import it.battlejar.commander.tactic.carrier.CarrierBorderCruiseTactic;
 import it.battlejar.commander.tactic.carrier.CarrierBorderEvasionTactic;
+import it.battlejar.commander.tactic.carrier.CarrierCornerTactic;
 import it.battlejar.commander.tactic.carrier.CarrierFocusedMissileFireTactic;
 import it.battlejar.commander.tactic.fighter.BorderEvasionTactic;
 import it.battlejar.commander.tactic.fighter.FighterAttackTactic;
@@ -23,27 +24,35 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Activates when multiple enemies remain AND the carrier's target corner is clear: no enemy
- * carrier is within {@link GameConfig#CONTROL_CORNER_EMPTY_MARGIN} units of either border that
- * forms the corner. In this phase the carrier slowly cruises along the free horizontal border
- * while fighters focus concentrated fire on a single selected target.
+ * Activates immediately after {@link MultiEnemySurvivalStrategy} — whenever the carrier has
+ * reached its corner and multiple enemies remain — and stays active until
+ * {@link CommanderState#controlExhausted} is set.
  *
- * <p>Target selection priority:
+ * <p>Carrier behaviour depends on whether the target corner area is free:
+ * <ul>
+ *   <li><b>Corner NOT empty</b> (enemies within {@link GameConfig#CONTROL_CORNER_EMPTY_MARGIN}
+ *       of either corner border): carrier holds position at the corner using
+ *       {@link CarrierCornerTactic}.</li>
+ *   <li><b>Corner empty</b>: carrier slowly cruises along the free horizontal border using
+ *       {@link CarrierBorderCruiseTactic}. Exits to {@link MultiEnemyHunterStrategy} once the
+ *       carrier passes 3/4 of the border.</li>
+ * </ul>
+ *
+ * <p>In both modes fighters focus fire on a single selected enemy. Target selection:
  * <ol>
- *   <li>If the strongest or closest enemy has more than half its fighters near our carrier or
- *       heading toward it, attack that one first.</li>
- *   <li>Otherwise, attack the enemy with the most HP.</li>
- *   <li>If the two candidates' HP differ by ≤ 10%, attack the closest instead.</li>
+ *   <li>The strongest or closest enemy that has more than half its fighters near/heading toward
+ *       our carrier is chosen as the attacking threat.</li>
+ *   <li>Otherwise the enemy with the most HP is chosen.</li>
+ *   <li>If the two candidates' HP differ by ≤ 10%, the closest is chosen instead.</li>
  * </ol>
  *
- * <p>Exits (sets {@link CommanderState#controlExhausted}) when an enemy is destroyed during this
- * phase, or when the carrier has traversed more than 3/4 of the patrol border. After exit,
- * {@link MultiEnemyHunterStrategy} takes over.
+ * <p>Also exits when an enemy carrier is destroyed during this phase.
  */
 public class MultiEnemyControlStrategy implements Strategy {
 
     private final List<Tactic<Entity>> fighterTactics;
-    private final List<Tactic<Entity>> carrierTactics;
+    private final List<Tactic<Entity>> carrierTacticsCorner;  // when corner area is NOT empty
+    private final List<Tactic<Entity>> carrierTacticsCruise;  // when corner area IS empty
 
     public MultiEnemyControlStrategy() {
         this.fighterTactics = List.of(
@@ -55,7 +64,13 @@ public class MultiEnemyControlStrategy implements Strategy {
                 new LaserDefenseTactic(GameConfig.FIGHTER_LASER_RANGE)
         );
 
-        this.carrierTactics = List.of(
+        this.carrierTacticsCorner = List.of(
+                new CarrierBorderEvasionTactic(),
+                new CarrierFocusedMissileFireTactic(GameConfig.CARRIER_MISSILE_FIRE_INTERVAL_MS),
+                new CarrierCornerTactic(GameConfig.CARRIER_CORNER_MARGIN)
+        );
+
+        this.carrierTacticsCruise = List.of(
                 new CarrierBorderEvasionTactic(),
                 new CarrierFocusedMissileFireTactic(GameConfig.CARRIER_MISSILE_FIRE_INTERVAL_MS),
                 new CarrierBorderCruiseTactic(GameConfig.CARRIER_CORNER_MARGIN, GameConfig.CARRIER_CRUISE_SPEED)
@@ -64,10 +79,9 @@ public class MultiEnemyControlStrategy implements Strategy {
 
     @Override
     public boolean applies(GameSnapshot snapshot, CommanderState state) {
-        if (state.controlExhausted) return false;
-        if (snapshot.liveEnemyCarriers().size() <= 1) return false;
-        float[] corner = GameUtils.getTargetCorner(state, snapshot.myCarrier(), snapshot.settings(), GameConfig.CARRIER_CORNER_MARGIN);
-        return GameUtils.isCornerAreaEmpty(corner, snapshot.liveEnemyCarriers(), snapshot.settings(), GameConfig.CONTROL_CORNER_EMPTY_MARGIN);
+        return snapshot.liveEnemyCarriers().size() > 1
+                && state.carrierReachedCorner
+                && !state.controlExhausted;
     }
 
     @Override
@@ -77,26 +91,28 @@ public class MultiEnemyControlStrategy implements Strategy {
             Entity c = snapshot.myCarrier();
             state.controlPatrolStart = new float[]{c.px(), c.py()};
             state.controlInitialEnemyCount = snapshot.liveEnemyCarriers().size();
-            // Signal that we are past the retreat phase so Hunter can take over when we exhaust
-            state.carrierReachedCorner = true;
         }
 
-        // Check exit: an enemy was killed while in control
+        // Exit: enemy was destroyed during this phase
         if (snapshot.liveEnemyCarriers().size() < state.controlInitialEnemyCount) {
             state.controlExhausted = true;
         }
 
-        // Check exit: carrier has traversed > 3/4 of the patrol border
-        if (!state.controlExhausted) {
-            float[] corner = GameUtils.getTargetCorner(state, snapshot.myCarrier(), snapshot.settings(), GameConfig.CARRIER_CORNER_MARGIN);
+        // Choose carrier behaviour for this tick
+        float[] corner = GameUtils.getTargetCorner(state, snapshot.myCarrier(), snapshot.settings(), GameConfig.CARRIER_CORNER_MARGIN);
+        boolean cornerEmpty = GameUtils.isCornerAreaEmpty(
+                corner, snapshot.liveEnemyCarriers(), snapshot.settings(), GameConfig.CONTROL_CORNER_EMPTY_MARGIN);
+
+        // Exit: 3/4 of border traversed (only relevant while cruising)
+        if (!state.controlExhausted && cornerEmpty) {
             boolean cornerNearRight = corner[0] > snapshot.settings().worldWidth() / 2f;
             float cx = snapshot.myCarrier().px();
-            float W = snapshot.settings().worldWidth();
-            if (cornerNearRight && cx < W * 0.25f) state.controlExhausted = true;
+            float W  = snapshot.settings().worldWidth();
+            if ( cornerNearRight && cx < W * 0.25f) state.controlExhausted = true;
             if (!cornerNearRight && cx > W * 0.75f) state.controlExhausted = true;
         }
 
-        // Set focused target for this tick (used by FocusedAttackTactic and CarrierFocusedMissileFireTactic)
+        // Set focused target (read by FocusedAttackTactic and CarrierFocusedMissileFireTactic)
         Entity focusTarget = selectControlTarget(snapshot);
         state.controlFocusTargetId = focusTarget != null ? focusTarget.id() : null;
 
@@ -109,6 +125,8 @@ public class MultiEnemyControlStrategy implements Strategy {
                 }
             }
         }
+
+        List<Tactic<Entity>> carrierTactics = cornerEmpty ? carrierTacticsCruise : carrierTacticsCorner;
         for (Tactic<Entity> tactic : carrierTactics) {
             Optional<Order> order = tactic.apply(snapshot.myCarrier(), snapshot, state);
             if (order.isPresent()) {
@@ -157,7 +175,6 @@ public class MultiEnemyControlStrategy implements Strategy {
         if (theirFighters.isEmpty()) return false;
         long threatening = theirFighters.stream().filter(f -> {
             if (GameUtils.distance(f, myCarrier) < GameConfig.FIGHTER_INTRUDER_CARRIER_RANGE_SURVIVAL) return true;
-            // Velocity dot product: positive = heading toward our carrier
             float dvx = myCarrier.px() - f.px();
             float dvy = myCarrier.py() - f.py();
             float dist = GameUtils.distance(f, myCarrier);
