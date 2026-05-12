@@ -72,6 +72,44 @@ public final class GameUtils {
         return corners[bestCorner];
     }
 
+    /**
+     * Returns true when no live enemy carrier is within {@code margin} units of either border
+     * that forms the given corner (identified by which world quadrant it sits in).
+     */
+    public static boolean isCornerAreaEmpty(float[] corner, List<Entity> enemies, GameSettings settings, float margin) {
+        float W = settings.worldWidth(), H = settings.worldHeight();
+        boolean nearRight = corner[0] > W / 2;
+        boolean nearTop   = corner[1] < H / 2;
+        for (Entity enemy : enemies) {
+            if (nearRight  && enemy.px() > W - margin) return false;
+            if (!nearRight && enemy.px() < margin)      return false;
+            if (nearTop    && enemy.py() < margin)       return false;
+            if (!nearTop   && enemy.py() > H - margin)  return false;
+        }
+        return true;
+    }
+
+    /**
+     * Returns the carrier's current target corner as absolute world coordinates.
+     * Uses {@link CommanderState#preferredCorner} when set, otherwise the closest corner.
+     */
+    public static float[] getTargetCorner(CommanderState state, Entity carrier, GameSettings settings, float margin) {
+        if (state.preferredCorner != null) return state.preferredCorner;
+        float ww = settings.worldWidth(), wh = settings.worldHeight();
+        float[][] corners = {
+            {margin, margin}, {ww - margin, margin},
+            {margin, wh - margin}, {ww - margin, wh - margin}
+        };
+        float bestDsq = Float.MAX_VALUE;
+        float[] best = corners[0];
+        for (float[] c : corners) {
+            float dx = carrier.px() - c[0], dy = carrier.py() - c[1];
+            float dsq = dx * dx + dy * dy;
+            if (dsq < bestDsq) { bestDsq = dsq; best = c; }
+        }
+        return best;
+    }
+
     public static int[] closestCornerOffset(Entity carrier, GameSettings settings, float margin) {
         float ww = settings.worldWidth(), wh = settings.worldHeight();
         float[][] corners = {

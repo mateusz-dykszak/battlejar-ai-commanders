@@ -32,6 +32,10 @@ public final class GameConfig {
     public static final float FIGHTER_MISSILE_MIN_FIRE_RANGE = 60f;
     public static final float CARRIER_MISSILE_MIN_FIRE_RANGE = 60f;
     public static final float DEPLOY_OFFSET = 30f;
+    /** Margin used to determine if a corner's border area is enemy-free, triggering Control strategy. */
+    public static final float CONTROL_CORNER_EMPTY_MARGIN = 90f;
+    /** Horizontal speed the carrier uses while cruising along a border in Control strategy. */
+    public static final float CARRIER_CRUISE_SPEED = 30f;
 
     private GameConfig() {}
 }

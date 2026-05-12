@@ -5,6 +5,7 @@ import it.battlejar.api.GameSettings;
 import it.battlejar.api.Order;
 import it.battlejar.client.AbstractCommander;
 import it.battlejar.commander.strategy.DeploymentDecorator;
+import it.battlejar.commander.strategy.MultiEnemyControlStrategy;
 import it.battlejar.commander.strategy.MultiEnemyHunterStrategy;
 import it.battlejar.commander.strategy.MultiEnemySurvivalStrategy;
 import it.battlejar.commander.strategy.OneVsOneStrategy;
@@ -33,6 +34,7 @@ public class ClaudeCommander extends AbstractCommander {
         this.strategies = List.of(
                 new DeploymentDecorator(new OneVsOneStrategy()),
                 new DeploymentDecorator(new MultiEnemySurvivalStrategy()),
+                new DeploymentDecorator(new MultiEnemyControlStrategy()),
                 new DeploymentDecorator(new MultiEnemyHunterStrategy())
         );
         this.orderSender = order -> {
