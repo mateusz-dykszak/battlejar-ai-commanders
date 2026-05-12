@@ -277,7 +277,7 @@ public class AgenticCommander extends AbstractCommander {
             float[] maneuverPos = calculateCarrierManeuver(entity, allEntities);
             
             // If the maneuver suggests a change, it means safety (border or avoidance) triggered
-            if (maneuverPos[0] != entity.px() || maneuverPos[1] != entity.py()) {
+            if (maneuverPos != null && (maneuverPos[0] != entity.px() || maneuverPos[1] != entity.py())) {
                 log.info("Carrier overriding AI command with safety maneuver: [{}, {}]", maneuverPos[0], maneuverPos[1]);
                 issueMoveCommand(entity, maneuverPos[0], maneuverPos[1], allEntities);
                 return;

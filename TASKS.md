@@ -95,4 +95,5 @@ Execute one of the following tasks, commit and push to github when task is compl
     - [x] Update arming distance checks and AI prompt.
 - [x] Add integration test of the AIAgent to check if it runs correctly, create test.sh script similar to run.sh, which will export correct env variables, and execute gradle test command to run the agent integration tests. Test should send two messages to the agent one with the prepared state, and the second one with user message info that state didn't change return previous response to check if memory is not lost. Test should check only AIAgent class and it's integration with the LLM.
 - [x] Upgrade LangChain4j to 1.13.1 and switch to `gpt-5-nano` model.
-- [x] Improve carrier positioning: discourage the AI from moving the carrier into the center of the map. It should stay at a safe distance, ideally keeping enemies in one line to prevent being surrounded.
+- [x] Fix: `java.lang.NullPointerException: Cannot load from float array because "maneuverPos" is null` in `AgenticCommander.issueCommand`.
+- [ ] 

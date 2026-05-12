@@ -82,3 +82,7 @@ Note: Existing unit tests are failing due to a mismatch between `battlejar.conf`
 - Fixed `AIAgent` to use `ChatModel` and `chatModel(model)` as required by LangChain4j 1.13.1.
 - Updated `build.gradle.kts` with correct LangChain4j dependencies.
 - Updated `AIAgent.java` system prompt to discourage moving the carrier to the center and encourage linear alignment of enemies on the periphery.
+
+
+### 2026-05-12
+- Fixed a `NullPointerException` in `AgenticCommander.issueCommand` when `calculateCarrierManeuver` returns `null`. This occurred when no safety maneuvers were required for the carrier.
